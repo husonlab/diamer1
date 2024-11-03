@@ -4,10 +4,11 @@ import jloda.seq.FastA;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.husonlab.diamer2.alphabet.AminoAcids;
+import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Index;
 import org.husonlab.diamer2.indexing.IndexTest;
 import org.husonlab.diamer2.io.FASTAReader;
-import org.husonlab.diamer2.io.GTDBReader;
+import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.seq.FASTA;
 
 import java.io.*;
@@ -26,8 +27,20 @@ public class Main {
         String path2 = "G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\GCA_000170815.1_protein.faa";
         String path3 = "G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\GB_GCA_000170815.1_protein.faa.gz";
         String path4 = "G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\testFasta.faa";
+        String pathNodes = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\nodes.dmp";
+        String pathNames = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\names.dmp";
+        String pathAccessions = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\prot.accession2taxid.gz";
 
-
+        try {
+            Tree tree = NCBIReader.readTaxonomy(pathNodes);
+            System.out.println(tree.getNodeMap().size());
+            NCBIReader.addTaxonomicLabels(tree, pathNames);
+            System.out.println(tree.getAccessionMap().size());
+            NCBIReader.addAccessions(tree, pathAccessions);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        System.out.println("done");
 
         /*
         try (FileInputStream fis = new FileInputStream(path);

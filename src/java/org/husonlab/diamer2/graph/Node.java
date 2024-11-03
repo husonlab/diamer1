@@ -1,37 +1,43 @@
 package org.husonlab.diamer2.graph;
 
-import org.husonlab.diamer2.graph.Tree;
-
 import java.util.ArrayList;
 
 public class Node {
-    String label;
-    int id;
+    int taxId;
     Node parent;
-    ArrayList<Node> children = new ArrayList<>();
     Tree owner;
+    ArrayList<Node> children;
+    ArrayList<String> labels;
+    String rank;
 
-    public Node(Tree owner, String label) {
-        this.label = label;
+    public Node(Tree owner, int taxId, ArrayList<String> labels, String rank) {
+        this.taxId = taxId;
         this.parent = null;
         this.owner = owner;
-        this.id = owner.add(this);
-    }
-
-    public Node(String label, Node parent) {
-        this.label = label;
-        this.parent = parent;
-        parent.addChild(this);
-        this.owner = parent.owner;
-        this.id = owner.add(this);
+        this.children = new ArrayList<>();
+        this.labels = labels;
+        this.rank = rank;
+        owner.registerNode(this);
     }
 
     public void addChild(Node child) {
         children.add(child);
     }
 
+    public void addLabel(String label) {
+        labels.add(label);
+    }
+
+    public void addAccession(String label) {
+        owner.addAccession(this, label);
+    }
+
+    public void setParent(Node parent) {
+        this.parent = parent;
+    }
+
     public String toString() {
-        return "%s (%d)".formatted(this.label, this.id);
+        return "%s (%d)".formatted(this.labels.size() > 0 ? this.labels.get(0) : "", this.taxId);
     }
 
     public ArrayList<Node> getChildren() {
@@ -42,12 +48,12 @@ public class Node {
         return parent;
     }
 
-    public int getId() {
-        return id;
+    public int getTaxId() {
+        return taxId;
     }
 
-    public String getLabel() {
-        return label;
+    public ArrayList<String> getLabels() {
+        return labels;
     }
 
 }
