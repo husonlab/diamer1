@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
 
-public class ExtractByAcession {
+public class ExtractByAccession {
     /*
     Extracts the sequences from a multi FASTA file that have a specific accession number and writes them to a new file.
     args[0]: path to the file with the accession numbers (one per line)

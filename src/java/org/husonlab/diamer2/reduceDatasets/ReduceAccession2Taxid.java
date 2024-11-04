@@ -10,8 +10,15 @@ import java.util.zip.GZIPOutputStream;
 public class ReduceAccession2Taxid {
     /*
     Script to reduce the NCBI prot.accession2taxid.gz file to only the accessions that are in the input file.
+    INPUT:
+    1. File with accessions to keep
+    2. NCBI prot.accession2taxid.gz file
+    3. Output file
      */
     public static void main(String[] args) throws Exception {
+        // counts
+        int skipped = 0;
+        int kept = 0;
         HashSet<String> accessions = new HashSet<>();
         // read in the accessions
         try (BufferedReader br = Files.newBufferedReader(Paths.get(args[0]))) {
@@ -30,11 +37,16 @@ public class ReduceAccession2Taxid {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t");
-                if (accessions.contains(values[1])) {
+                if (accessions.contains(values[0])) {
                     bw.write(line);
                     bw.newLine();
+                    kept++;
+                } else {
+                    skipped++;
                 }
             }
         }
+        System.out.println("Kept " + kept + " lines");
+        System.out.println("Skipped " + skipped + " lines");
     }
 }

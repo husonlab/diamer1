@@ -53,7 +53,7 @@ public class NCBIReader {
         return tree;
     }
 
-    public static Tree addAccessions(Tree tree, String filename) throws IOException {
+    public static Tree addAccessions(Tree tree, String filename, short accessionCol, short taxIdCol) throws IOException {
         // add sequence accessions from the NCBI prot.accession2taxid.gz file
         try (FileInputStream fis = new FileInputStream(filename);
              GZIPInputStream gis = new GZIPInputStream(fis);
@@ -62,8 +62,8 @@ public class NCBIReader {
             br.readLine(); // skip header
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t");
-                String accession = values[1];
-                int taxId = Integer.parseInt(values[2]);
+                String accession = values[accessionCol];
+                int taxId = Integer.parseInt(values[taxIdCol]);
                 if (tree.byId(taxId) != null) {
                     Node node = tree.byId(taxId);
                     node.addAccession(accession);

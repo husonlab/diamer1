@@ -5,7 +5,7 @@ import java.io.BufferedWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-public class ExtractNrAcessions {
+public class ExtractNrAccessions {
     /*
     Extracts the accession numbers from the headers of a multi FASTA file and writes them to a new file.
     args[0]: path to the input FASTA file

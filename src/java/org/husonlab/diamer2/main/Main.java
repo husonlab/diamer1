@@ -17,32 +17,76 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 
 public class Main {
     public static void main(String[] args) {
 
-        String path = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\gtdb_proteins_aa_reps_r220_reduced100.tar.gz";
-        String path2 = "G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\GCA_000170815.1_protein.faa";
-        String path3 = "G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\GB_GCA_000170815.1_protein.faa.gz";
-        String path4 = "G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\testFasta.faa";
         String pathNodes = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\nodes.dmp";
         String pathNames = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\names.dmp";
-        String pathAccessions = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\prot.accession2taxid.gz";
+        String accessionsReduced = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\accessions100.txt";
+        String pathAccessions = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\prot.accession2taxid.FULL100.gz";
+        String pathAccessionsDead = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
+        String nr = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\nr100.fsa";
 
+        java.lang.Long.valueOf(1);
+
+        IndexTest index = new IndexTest((short)0b1011111111);
+        String header = null;
+        StringBuilder sequence = new StringBuilder();
+        try (InputStream inputStream = new FileInputStream(nr);
+             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.strip();
+                if (line.startsWith(">")) {
+                    if (header != null) {
+                        FASTA fasta = new FASTA(header, sequence.toString());
+                        index.processFASTA(fasta, 0b1001001001);
+                        sequence = new StringBuilder();
+                    }
+                    header = line.substring(1);
+                } else if (header != null) {
+                    sequence.append(line);
+                }
+            }
+            FASTA fasta = new FASTA(header, sequence.toString());
+            index.processFASTA(fasta, 0b1001001001);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        System.out.println(index.getKmerCount());
+
+
+        /*
         try {
             Tree tree = NCBIReader.readTaxonomy(pathNodes);
             System.out.println(tree.getNodeMap().size());
             NCBIReader.addTaxonomicLabels(tree, pathNames);
+            NCBIReader.addAccessions(tree, pathAccessions, (short) 0, (short) 1);
+            NCBIReader.addAccessions(tree, pathAccessionsDead, (short) 1, (short) 2);
             System.out.println(tree.getAccessionMap().size());
-            NCBIReader.addAccessions(tree, pathAccessions);
+            HashSet<String> accessions = new HashSet<>();
+            // read in the accessions
+            try (BufferedReader br = Files.newBufferedReader(Paths.get(accessionsReduced))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    accessions.add(line);
+                }
+            }
+            for (String accession: tree.getAccessionMap().keySet()) {
+                accessions.remove(accession);
+            }
+            System.out.println(accessions.size());
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("done");
 
-        /*
         try (FileInputStream fis = new FileInputStream(path);
              GZIPInputStream gis = new GZIPInputStream(fis);
              TarArchiveInputStream tar = new TarArchiveInputStream(gis)) {

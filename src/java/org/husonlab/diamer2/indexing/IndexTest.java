@@ -9,18 +9,20 @@ import java.util.ArrayList;
 public class IndexTest extends Index {
 
     long kmerCount = 0;
-    long sequenceCount = 0;
+
+    public IndexTest(short bucket) {
+        super(bucket);
+    }
 
     public void processFASTAs_old(ArrayList<FASTA> fastas, int taxId) {
         for (FASTA fasta: fastas){
             fasta = enforceAAAlphabet(fasta);
             String seq = fasta.getSequence();
 
-            long id = ((long) taxId) << 32;
             int i = 0;
             while(i + 15 < seq.length()){
                 String kmer = seq.substring(i, i + 15);
-                long idAndSeq = id | to11Num_15(kmer);
+                long idAndSeq = (long) taxId | (to11Num_15(kmer) << 22);
                 index.add(idAndSeq);
                 i++;
             }
@@ -28,27 +30,24 @@ public class IndexTest extends Index {
     }
 
     @Override
-    public void processFASTAs(ArrayList<FASTA> fastas, int taxId) {
-        for (FASTA fasta: fastas){
-            sequenceCount++;
-            fasta = enforceAAAlphabet(fasta);
-            String seq = fasta.getSequence();
+    public void processFASTA(FASTA fasta, int taxId) {
+        //fasta = enforceAAAlphabet(fasta);
+        String seq = fasta.getSequence();
 
-            long id = ((long) taxId) << 32;
-            int i = 0;
-            while(i + 15 < seq.length()){
-                String kmer = seq.substring(i, i + 15);
-                //long idAndSeq = id | to11Num_15(kmer);
-                kmerCount++;
-                i++;
+        int i = 0;
+        while(i + 15 < seq.length()){
+            String kmer = seq.substring(i, i + 15);
+            long kmerNum = to11Num_15(kmer);
+            if ((kmerNum & (bucket & 0b1111111111)) == (bucket & 0b1111111111)) {
+                long numAndSeq = (long) taxId | (kmerNum << 22);
+                index.add(numAndSeq);
             }
+            //kmerCount++;
+            i++;
         }
     }
 
     public long getKmerCount(){
         return kmerCount;
-    }
-    public long getSequenceCount(){
-        return sequenceCount;
     }
 }

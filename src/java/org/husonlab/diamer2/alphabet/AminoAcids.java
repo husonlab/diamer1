@@ -90,10 +90,10 @@ public class AminoAcids {
             case 'Y' -> { return 2; }
             case 'F' -> { return 3; }
             case 'M' -> { return 4; }
-            case 'L', 'I', 'V' -> { return 5; }
-            case 'C' -> { return 6; }
+            case 'L', 'I', 'V', 'J' -> { return 5; } // J leucine/isoleucine
+            case 'C', 'U' -> { return 6; } // U selenocysteine
             case 'H' -> { return 7; }
-            case 'K', 'R', 'Q', 'E', 'D', 'N' -> { return 8; }
+            case 'K', 'R', 'Q', 'E', 'D', 'N', 'B', 'Z', 'O', 'X' -> { return 8; } // X unknown, B aspartate/asparagine, Z glutamate/glutamine, O pyrrolysine
             case 'G' -> { return 9; }
             case 'A', 'S', 'T' -> { return 10; }
             default -> throw new IllegalArgumentException("Invalid amino acid: " + c);

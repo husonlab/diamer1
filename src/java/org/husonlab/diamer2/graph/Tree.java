@@ -37,7 +37,9 @@ public class Tree {
 
     public void addAccession(Node node, String label) {
         if (accessionMap.containsKey(label))
-            throw new IllegalArgumentException("Label %s already exists in the tree.".formatted(label));
+            if (accessionMap.get(label) != node) {
+                System.err.printf("Label %s already exists in the tree with a different node. %n\texisting: %s%n\tnew: %s%n", label, accessionMap.get(label), node);
+            }
         accessionMap.put(label, node);
     }
 
