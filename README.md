@@ -58,3 +58,7 @@
   * J: leucine or isoleucine: together with L and I
   * Z: glutamic acid or glutamine: together with E and Q
   * O: pyrrolysine: together with lysine
+
+
+# Reading
+[Parallel Programming Tutorial](https://learning.oreilly.com/course/java-multithreading-and/9781804619377/)

@@ -33,33 +33,12 @@ public class Main {
         String pathAccessionsDead = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
         String nr = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\nr100.fsa";
 
-        java.lang.Long.valueOf(1);
-
-        IndexTest index = new IndexTest((short)0b1011111111);
-        String header = null;
-        StringBuilder sequence = new StringBuilder();
-        try (InputStream inputStream = new FileInputStream(nr);
-             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                line = line.strip();
-                if (line.startsWith(">")) {
-                    if (header != null) {
-                        FASTA fasta = new FASTA(header, sequence.toString());
-                        index.processFASTA(fasta, 0b1001001001);
-                        sequence = new StringBuilder();
-                    }
-                    header = line.substring(1);
-                } else if (header != null) {
-                    sequence.append(line);
-                }
-            }
-            FASTA fasta = new FASTA(header, sequence.toString());
-            index.processFASTA(fasta, 0b1001001001);
-        } catch (Exception e) {
+        try {
+            IndexTest index = runIndexing(nr);
+            System.out.println(index.getKmerCount());
+        } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(index.getKmerCount());
 
 
         /*
@@ -133,5 +112,35 @@ public class Main {
             e.printStackTrace();
         }
         */
+    }
+
+    private static IndexTest runIndexing(String fastaPath) throws IOException {
+        /*
+        Indexes a database file
+        @param fastaPath: the path to the database FASTA file
+         */
+        IndexTest index = new IndexTest((short)0b1011111111);
+        String header = null;
+        StringBuilder sequence = new StringBuilder();
+        try (InputStream inputStream = new FileInputStream(fastaPath);
+             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                line = line.strip();
+                if (line.startsWith(">")) {
+                    if (header != null) {
+                        FASTA fasta = new FASTA(header, sequence.toString());
+                        index.processFASTA(fasta, 0b1001001001);
+                        sequence = new StringBuilder();
+                    }
+                    header = line.substring(1);
+                } else if (header != null) {
+                    sequence.append(line);
+                }
+            }
+            FASTA fasta = new FASTA(header, sequence.toString());
+            index.processFASTA(fasta, 0b1001001001);
+        }
+        return index;
     }
 }
