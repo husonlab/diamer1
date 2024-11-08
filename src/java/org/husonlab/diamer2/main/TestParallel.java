@@ -1,116 +1,135 @@
 package org.husonlab.diamer2.main;
 
-import jdk.jfr.Timespan;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+import org.husonlab.diamer2.seq.FASTA;
+
+import java.io.*;
+import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import static org.husonlab.diamer2.alphabet.AminoAcids.to11Num_15;
+
 public class TestParallel {
-    public static void main(String[] args) {
+    private final int MAX_THREADS;
+    private final int MAX_QUEUE_SIZE;
+    private final int FASTA_BATCH_SIZE;
+    private final short[] bucketRange;
+    private final String dbPath;
+    private final ThreadPoolExecutor fastaExecutor;
+    // Array of ConcurrentHashMaps to store the index
+    private final ConcurrentHashMap<Long, Short>[] kmerMap;
 
-        int sortingThreads = 5;
-        int processingThreads = 3;
-
-        BlockingQueue<Long> queue = new LinkedBlockingQueue<>(1000);
-        List<BlockingQueue<Long>> resultQueues = new ArrayList<>(processingThreads);
-        for( int i = 0; i < processingThreads; i++ ) {
-            resultQueues.add(new LinkedBlockingQueue<>(1000));
+    public TestParallel(int MAX_THREADS, int MAX_QUEUE_SIZE, int FASTA_BATCH_SIZE, short[] bucketRange, String dbPath) {
+        this.MAX_THREADS = MAX_THREADS;
+        this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
+        this.FASTA_BATCH_SIZE = FASTA_BATCH_SIZE;
+        this.bucketRange = bucketRange;
+        this.dbPath = dbPath;
+        this.fastaExecutor = new ThreadPoolExecutor(
+                MAX_THREADS,
+                MAX_THREADS,
+                500L,
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+        this.kmerMap = new ConcurrentHashMap[bucketRange[1] - bucketRange[0]];
+        for (int i = 0; i < bucketRange[1] - bucketRange[0]; i++) {
+            kmerMap[i] = new ConcurrentHashMap<Long, Short>();
         }
+    }
 
-        Thread readerThread = new Thread( () -> {
-            for( long i = 0; i < 20; i++ ) {
-                try {
-                    queue.put(i);
-                    System.out.println("Reader: Put value " + i + " to queue.");
-                } catch (InterruptedException e) {
-                    System.err.println("Interrupted while putting to queue.");
+
+
+    public void run(String[] args) throws IOException {
+        String header = null;
+        StringBuilder sequence = new StringBuilder();
+        FASTA[] fastas = new FASTA[FASTA_BATCH_SIZE];
+
+        try (BufferedReader br = new BufferedReader(new FileReader(dbPath))) {
+            String line;
+            int fastaCount = 0;
+            long fastaTime = System.currentTimeMillis();
+            boolean newData = false;
+
+            while ((line = br.readLine()) != null) {
+                line = line.strip();
+                if (line.startsWith(">")) {
+                    if (header != null) {
+                        fastas[fastaCount % FASTA_BATCH_SIZE] = new FASTA(header, sequence.toString());
+                        fastaCount++;
+                        newData = true;
+                        sequence = new StringBuilder();
+                    }
+                    header = line.substring(1);
+                } else if (header != null) {
+                    sequence.append(line);
                 }
-                try {
-                    TimeUnit.MILLISECONDS.sleep(100);
-                } catch (InterruptedException e) {
-                    System.err.println("Interrupted while sleeping.");
+                if (fastaCount % FASTA_BATCH_SIZE == 0 && newData) {
+                    processFasta(fastas);
+                    newData = false;
+                    if (fastaCount % 100000 == 0) {
+                        long sequencesPerSecond = 100000 * 1000L / (System.currentTimeMillis() - fastaTime);
+                        fastaTime = System.currentTimeMillis();
+                        System.out.println("Processed " + (float)fastaCount/(float)1000000 + "M sequences. " + sequencesPerSecond + " sequences per second.");
+                    }
                 }
             }
-            for (int i = 0; i < processingThreads; i++) {
-                try {
-                    queue.put(-1L);
-                } catch (InterruptedException e) {
-                    System.err.println("Interrupted while putting to queue.");
+            fastas[fastaCount % FASTA_BATCH_SIZE] = new FASTA(header, sequence.toString());
+            processFasta(fastas);
+        }
+        for (int j = 0; j < kmerMap.length; j++) {
+            System.out.println("Bucket " + j + ": " + kmerMap[j].size());
+        }
+    }
+
+    public Map<Long, Short>[] getKmerMap() {
+        return kmerMap;
+    }
+
+    public boolean isRunning() {
+        return fastaExecutor.getActiveCount() > 0;
+    }
+
+    public void shutdown() {
+        fastaExecutor.shutdown();
+    }
+
+    private void processFasta(FASTA[] fastas) {
+        FastaProcessor processor = new FastaProcessor(fastas);
+
+        try {
+            fastaExecutor.execute(processor);
+        } catch (RejectedExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private class FastaProcessor implements Runnable {
+        private final FASTA[] fastas;
+
+        public FastaProcessor(FASTA[] fastas) {
+            this.fastas = fastas;
+        }
+
+        @Override
+        public void run() {
+            for (FASTA fasta : fastas) {
+                String sequence = fasta.getSequence();
+                for (int i = 0; i + 15 < sequence.length(); i++) {
+                    String kmer = sequence.substring(i, i + 15);
+                    long kmerEnc = to11Num_15(kmer);
+                    short bucketId = (short) (kmerEnc & 0b1111111111);
+
+                    if (bucketId < bucketRange[1] - bucketRange[0]) {
+                        kmerMap[bucketId].computeIfAbsent(kmerEnc, k -> (short) 0);
+                        kmerMap[bucketId].computeIfPresent(kmerEnc, (k, v) -> (short) (v + 1));
+                    }
                 }
             }
-            System.out.println("Reader: Finished.");
-        });
-
-        ExecutorService sortingExecutor = Executors.newFixedThreadPool(sortingThreads);
-
-        for (int i = 0; i < sortingThreads; i++) {
-            int finalI = i;
-            sortingExecutor.submit( () -> {
-                try {
-                    while (true) {
-                        Long value = queue.take();
-                        if (value == -1) {
-                            for (int j = 0; j < processingThreads; j++) {
-                                resultQueues.get(j).put(-1L);
-                            }
-                            System.out.println("Sorting Thread " + finalI + " finished.");
-                            break;
-                        }
-                        if (value % 10 == 0) {
-                            resultQueues.get(0).put(value);
-                            System.out.println("Sorting Thread " + finalI + " put value " + value + " to queue 0");
-                        } else if (value % 10 == 1) {
-                            resultQueues.get(1).put(value);
-                            System.out.println("Sorting Thread " + finalI + " put value " + value + " to queue 1");
-                        } else if (value % 10 == 2) {
-                            resultQueues.get(2).put(value);
-                            System.out.println("Sorting Thread " + finalI + " put value " + value + " to queue 2");
-                        }
-                        try {
-                            TimeUnit.MILLISECONDS.sleep(500);
-                        } catch (InterruptedException e) {
-                            System.err.println("Interrupted while sleeping.");
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            });
         }
-
-        List<Thread> secondStageThreads = new ArrayList<>(processingThreads);
-        for (int i = 0; i < processingThreads; i++) {
-            final int threadIndex = i;
-            secondStageThreads.add(new Thread( () -> {
-                try {
-                    while (true) {
-                        Long value = resultQueues.get(threadIndex).take();
-                        System.out.println("Secondary Thread " + threadIndex + " got value " + value);
-                        try {
-                            TimeUnit.MILLISECONDS.sleep(500);
-                        } catch (InterruptedException e) {
-                            System.err.println("Interrupted while sleeping.");
-                        }
-                        if (value == -1) {
-                            System.out.println("Secondary Thread " + threadIndex + " finished.");
-                            break;
-                        }
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }));
-        }
-
-        readerThread.start();
-        for (Thread thread : secondStageThreads) {
-            thread.start();
-        }
-        sortingExecutor.shutdown();
     }
 }

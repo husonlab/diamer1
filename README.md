@@ -1,3 +1,14 @@
+# Hashes
+
+* kmer encoding: 52 bits
+* taxid: 22 bits
+
+| bucket 0 - 9 (10) | long 0 - 41 (42) | long 42 - 63 (22) |
+|-------------------|------------------|-------------------|
+| kmer (0 - 9)      | kmer (10 - 52)   | taxid (0 - 21)    |
+| 2^10              | 2^42             | 2^22              |
+
+
 # Test dataset
 ### `gtdb_proteins_aa_reps_r220_reduced100`
 * 100x reduced version of the GTDB dataset.
@@ -64,6 +75,7 @@
 [Parallel Programming Tutorial](https://learning.oreilly.com/course/java-multithreading-and/9781804619377/)
 
 # Parallelization
+## Introduction
 ### Thread start, join, name
 * ``thread.start()`` threads have to be started.
 * ``thread.join()`` if a thread is joined to the main thread, the main thread waits until the thread is finished
@@ -94,6 +106,8 @@
 ### Exception handling on thread level
 * ``Thread.setDefaultUncaughtExceptionHandler()`` All uncaught Runtime Exceptions can also be handled on the thread level.
 * A handler can also be implemented by extending the ThreadGroup class
+
+## Synchronization and synchronization primitives
 
 ### Synchronization with the synchronized keyword
 * ``synchronized (obj) {...}`` can be used to encapsulate a code block that should run mutually exclusive on one thread.
@@ -151,3 +165,92 @@ Lock writeLock = readWriteLock.writeLock();
 * can be used to stop multiple Threads at the same execution state and wait for the other threads to reach this state.
 * ``cyclicBarrier.await()`` will wait until a specified (``new CyclicBarrier(4)``) number of threads reach the same state before the barrier is released and all waiting threads continue simultaneously.
 * ``new CyclicBarrier(4, Runnable)`` a runnable can be supplied to be executed upon each release.
+
+### Phaser
+* similar to cyclic barrier
+  * Has more flexibility than the cyclic barrier
+* ``phaser.register()`` increments parties (to wait for) by one
+  * A thread can register itself in the phaser
+* ``phaser.arriveAndAwaitAdvance`` same as ``await()`` in cyclic barrier
+* ``phaser.getPhase()`` counter that increments when the barrier is released
+* ``phaser.awaitAdvance(phase)`` makes thread wait until a specific phase is reached
+* ``new Phaser(phaser)`` can be used to make tree structures with phasers
+* ``phaser.arriveAndDeregister()`` decreases number of parties without waiting for anything.
+
+### Exchanger
+* Can be used to exchange data between __two__ threads.
+  * The type of data can be defined during initialization ``Exchanger<String>``
+* ``exchanger.exchange(value)`` blocks thread until another thread reaches this statement.
+  * When a pair of threads reaches the exchange method, they exchange the specified value.
+
+### Volatile
+* variables can be declared as ``voletile`` which blocks this variable from being cached, to avoid synchronization problems.
+  * cached variables might not be synchronized between different threads immediately.
+  * values stored only on the RAM however (``voletile``) will not suffer from this.
+
+## Advanced Topics
+
+### 6.2 Thread Pools
+* ``ThreadPoolExecutor`` can be used to create a thread pool of a specific size and maximum size.
+  * The tasks can be submitted in the form of runnable and are stored in a BlockingQueue (e.g. ``ArrayBlockingQueue``)
+* ``threadPoolExecutor.execute(Runnable)`` can be used to submit tasks without a result.
+* ``threadPoolExecutor.submit(Callable)`` can be used to submit a task that has to return a value.
+  * Returns a Future object that wraps the result of a future operation
+  * ``future.get()`` will try to get the computation result.
+    * If the result is not available yet, it pauses until the result is available.
+  * ``future.isDone()`` can be used to check if a result is already available
+  * ``future.cancel()`` cancels the execution of the task
+* ``threadPoolExecutor.shutdown()`` or ``threadPoolExecutor.shutdownNow()`` can be used to stop the thread pool
+  * ``.shutdown()`` stops to accept tasks and wait until all tasks in the queue are finished
+  * ``.shutdownNow()`` interrupts all threads and returns Runnables that have not been run (were in the queue)
+* ``threadPoolExecutor.awaitTermination()`` can be used to wait for the stopping
+
+#### 6.3 Different Blocking Queues
+* ``ArrayBlockingQueue``
+  * fixed defined size, that rejects tasks, once it is full
+* ``LinkedBlockingQueue``
+  * Unbounded queue, may lead to an out of memory
+* ``SynchronousQueue``
+  * Will directly submit or reject tasks
+
+#### 6.4 Handling unchecked exceptions
+* for ``threadPoolExecutor.submit()``, all Exceptions will be collected in the Future object and thrown while calling the ``future.get()`` method and can be caught there
+* for ``.execute``, Errors will pass the ``afterExecute()`` method of a ThreadPoolExecutor, which can be overridden in a custom version to catch errors.
+* the errors thrown with ``.submit()`` could also be retrieved from the Future object in the ``afterExecute()`` method.
+
+#### 6.5 Task rejection
+* If the maximum number of threads is running and the queue is full, new tasks get rejected.
+* The rejection can be handled with a try-catch around the submit statement or by providing a RejectedExecutionHandler to the ThreadPoolExecutor.
+  * There are predefined RejectedExecutionHandlers:
+    * ``ThreadPoolExecutor.AbortPolicy()`` default
+    * ``.CallerRunsPolicy()`` which runs the task on the callers thread
+    * ``.DiscardPolicy()`` silently discards the rejected task
+    * ``.DiscardOldestPolicy()`` discards the oldest task in the queue and accepts the new task
+
+#### 6.6 Monitoring
+* ``threadPoolExecutor.getPoolSize()`` number of threads that are currently in the thread pool
+* ``.getActiveCount()`` number of active threads in the pool
+* ``.getTaskCount()`` number of taks in the queue
+* ``.getCompletedTaskCount()``
+
+#### 6.7 Scheduled Thread Pool Executor
+* extends the ThreadPoolExecutor
+* ``.schedule(Runnable, time)`` can be used to submit a task, that should run after a specified time
+* Has a unbounded queue by default
+* ``.scheduleAtFixedRate(Runnable, initialDelay, period)`` to run a task periodically
+* ``.schedule()`` returns a Future objects that can be canceled (have also to be removed from the queue)
+
+#### 6.8 Fork-Join-Pool
+* Has as many threads as there are threads on the hardware
+* Has one queue per thread
+* Once a thread does not have tasks in its pool anymore, it steals tasks from other queues
+* only ``ForkJoinTasks``, e.g. ``RecursiveAction`` (has no return value) or ``RecursiveTask`` (returns something) objects can be submitted to this pool
+* The thread pool has the best performance when a ForkJoinTask submits subproblems recursively.
+* Is ideally used for divide and conquer algorithms.
+* within a RecursiveAction implementation the ``.invokeAll(RecursiveAction, RecursiveAction)`` can be used to recursively submit subproblems.
+
+#### 6.9 Executors
+* Class with a bunch of frequently used static methods
+  * ``.newFixedThreadPool`` thread pool executor with unlimited queue
+  * ``.newCachedThreadPool`` pool with synchronous pool (no elements in queue, all in threads)
+* Thread Factorys can be used to define how each thread of a threadpool should be created
