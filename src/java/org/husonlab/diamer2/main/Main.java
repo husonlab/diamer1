@@ -4,6 +4,7 @@ import jloda.seq.FastA;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.husonlab.diamer2.alphabet.AminoAcids;
+import org.husonlab.diamer2.graph.Node;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Index;
 import org.husonlab.diamer2.indexing.IndexTest;
@@ -19,27 +20,30 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 
 public class Main {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
 
-        String pathNodes = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\nodes.dmp";
-        String pathNames = "F:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\names.dmp";
-        String accessionsReduced = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\accessions100.txt";
-        String pathAccessions = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\prot.accession2taxid.FULL100.gz";
-        String pathAccessionsDead = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
-        String nr = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\nr100.fsa";
+//        String pathNodes = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\nodes100.dmp";
+//        String pathNames = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\names100.dmp";
+//        String pathAccessions = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\prot.accession2taxid.FULL100.gz";
+//        String pathAccessionsDead = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
+//        String nr = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\nr100.fsa";
+//        String pathNodesFull = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\nodes.dmp";
+//        String pathNamesFull = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\names.dmp";
+//        String pathAccessionsFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\prot.accession2taxid.FULL.gz";
+//        String pathAccessionsDeadFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\dead_prot.accession2taxid.gz";
 
-        try {
-            IndexTest index = runIndexing(nr);
-            System.out.println(index.getKmerCount());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
 
+        NCBIReader ncbiReader = new NCBIReader();
+        //ncbiReader.readTaxonomy(pathNodesFull, pathNamesFull, pathAccessionsFull, pathAccessionsDeadFull);
+        ncbiReader.readTaxonomy(args[0], args[1], args[2], args[3]);
+        ConcurrentHashMap<Integer, Node> idMap = ncbiReader.getIdMap();
+        System.out.println(idMap.size());
 
         /*
         try {

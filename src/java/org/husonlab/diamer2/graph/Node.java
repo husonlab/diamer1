@@ -20,6 +20,14 @@ public class Node {
         owner.registerNode(this);
     }
 
+    public Node(int taxId, ArrayList<String> labels, String rank) {
+        this.taxId = taxId;
+        this.parent = null;
+        this.children = new ArrayList<>();
+        this.labels = labels;
+        this.rank = rank;
+    }
+
     public void addChild(Node child) {
         children.add(child);
     }
@@ -54,6 +62,10 @@ public class Node {
 
     public ArrayList<String> getLabels() {
         return labels;
+    }
+
+    public String getRank() {
+        return rank;
     }
 
 }

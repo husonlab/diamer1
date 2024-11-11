@@ -1,3 +1,12 @@
+# Questions:
+* How to handle missing mappings of protein accessions to taxids?
+* How to handle weired amino acid letters?
+
+# TODO
+* How to deal with identical protein groups?
+  * Some proteins with identical protein sequences occure in different organisms (e.g. WP_012019010.1).
+  * Actually their MRCA will have to be calculated while reading in the taxonomy.
+
 # Hashes
 
 * kmer encoding: 52 bits
@@ -154,6 +163,8 @@ Lock writeLock = readWriteLock.writeLock();
 * ``semaphore.release()`` releases the entity again.
 * The maximum amount of parallel acquisitions can be defined in the instantiation of the semaphore.
 * can e.g. be used to limit the total number of threads working at the same time.
+* can also be used with a count of 0 during instantiation.
+  * Ith ca then be used to lock a thread ``semaphore.acquire()`` until another thread releases it ``semaphore.release()``.
 
 ### CountDownLatch
 * similar to a semaphore, but only counts down.

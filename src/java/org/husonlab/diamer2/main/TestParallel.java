@@ -81,6 +81,12 @@ public class TestParallel {
             fastas[fastaCount % FASTA_BATCH_SIZE] = new FASTA(header, sequence.toString());
             processFasta(fastas);
         }
+        fastaExecutor.shutdown();
+        try {
+            fastaExecutor.awaitTermination(1, TimeUnit.MINUTES);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         for (int j = 0; j < kmerMap.length; j++) {
             System.out.println("Bucket " + j + ": " + kmerMap[j].size());
         }
