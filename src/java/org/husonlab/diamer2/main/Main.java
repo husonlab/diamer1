@@ -38,12 +38,22 @@ public class Main {
 //        String pathAccessionsFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\prot.accession2taxid.FULL.gz";
 //        String pathAccessionsDeadFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\dead_prot.accession2taxid.gz";
 
-
-        NCBIReader ncbiReader = new NCBIReader();
         //ncbiReader.readTaxonomy(pathNodesFull, pathNamesFull, pathAccessionsFull, pathAccessionsDeadFull);
-        ncbiReader.readTaxonomy(args[0], args[1], args[2], args[3]);
-        ConcurrentHashMap<Integer, Node> idMap = ncbiReader.getIdMap();
-        System.out.println(idMap.size());
+        NCBIReader.AccessionMapping[] mappings = new NCBIReader.AccessionMapping[args.length - 2];
+        for (int i = 2; i < args.length; i++) {
+            mappings[i - 2] = new NCBIReader.AccessionMapping(args[i], 1, 2);
+        }
+        NCBIReader.Tree tree = NCBIReader.readTaxonomyDebug(args[0], args[1], mappings);
+        System.out.println(tree.findMRCA(tree.idMap.get(1263076), tree.idMap.get(1310742)));
+        System.out.println(tree.findMRCA(tree.idMap.get(1310741), tree.idMap.get(1310742)));
+        System.out.println(tree.findMRCA(tree.idMap.get(1), tree.idMap.get(1310742)));
+        System.out.println(tree.findMRCA(tree.idMap.get(1310742), tree.idMap.get(1)));
+        System.out.println(tree.findMRCA(tree.idMap.get(1), tree.idMap.get(2)));
+        System.out.println(tree.accessionMap.size());
+
+        //tree.pathToRoot(tree.idMap.get(1263076))
+        //tree.pathToRoot(tree.idMap.get(1310742))
+        //tree.findMRCA(tree.idMap.get(1263076), tree.idMap.get(1310742))
 
         /*
         try {

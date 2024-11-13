@@ -1,8 +1,5 @@
 package org.husonlab.diamer2.io;
 
-import org.husonlab.diamer2.graph.Node;
-import org.husonlab.diamer2.graph.Tree;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -11,30 +8,14 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.zip.GZIPInputStream;
 import java.util.concurrent.TimeUnit;
 
 public class NCBIReader {
-    private static ThreadPoolExecutor threadPoolExecutor;
-    private static ConcurrentHashMap<Integer, Node> idMap;
-    private static ConcurrentHashMap<String, Node> accessionMap;
 
-    public NCBIReader() {
-        idMap = new ConcurrentHashMap<>(3500000);
-        accessionMap = new ConcurrentHashMap<>(4000000);
-        threadPoolExecutor = new ThreadPoolExecutor(
-                12,
-                12,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(100),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-    }
-
-    public Tree readTaxonomy(String nodesDumpfile, String namesDumpfile, String fullAccessionMapping, String deadAccessionMapping) throws IOException {
+    public static Tree readTaxonomy(String nodesDumpfile, String namesDumpfile, AccessionMapping[] accessionMappings) throws IOException {
         /**
          * Parses the NCBI taxonomy from the following files:
          * @param nodesDumpfile: nodes.dmp, containing the taxonomy nodes (format: tax_id | parent_tax_id | rank)
@@ -42,19 +23,54 @@ public class NCBIReader {
          * @param fullAccessionMapping: prot.accession2taxidFULL.gz, containing the mapping of protein accessions to tax_ids (format: accession.version | tax_id)
          * @param deadAccessionMapping: dead_prot.accession2taxid.gz, containing the mapping of dead protein accessions to tax_ids (format: accession | accession.version | tax_id)
          */
-        System.out.println("Reading nodes dumpfile...");
-        readNodesDumpfile(nodesDumpfile);
-        System.out.println("Reading names dumpfile...");
-        readNamesDumpfile(namesDumpfile);
-        System.out.println("Reading full accession mapping...");
-        readAccessionMap(fullAccessionMapping, 1, 2);
 
-        threadPoolExecutor.shutdown();
-        return null;
+        final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>(2700000);
+        final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>(1400000000);
+
+        System.out.println("Reading nodes dumpfile...");
+        readNodesDumpfile(nodesDumpfile, idMap);
+        System.out.println("Reading names dumpfile...");
+        readNamesDumpfile(namesDumpfile, idMap);
+        for (AccessionMapping mapping : accessionMappings) {
+            System.out.println("Reading accession mapping from " + mapping.mappingFile);
+            readAccessionMap(mapping.mappingFile, mapping.accessionCol, mapping.taxIdCol, idMap, accessionMap);
+        }
+        return new Tree(idMap, accessionMap);
     }
 
-    private void readNodesDumpfile(String nodesDumpfile) throws IOException {
-        ConcurrentHashMap<Integer, Integer> parentMap = new ConcurrentHashMap<>();
+    // todo: remove
+    public static Tree readTaxonomyDebug(String nodesDumpfile, String namesDumpfile, AccessionMapping[] accessionMappings) throws IOException {
+        /**
+         * Parses the NCBI taxonomy from the following files:
+         * @param nodesDumpfile: nodes.dmp, containing the taxonomy nodes (format: tax_id | parent_tax_id | rank)
+         * @param namesDumpfile: names.dmp, containing the taxonomy names (format: tax_id | name)
+         * @param fullAccessionMapping: prot.accession2taxidFULL.gz, containing the mapping of protein accessions to tax_ids (format: accession.version | tax_id)
+         * @param deadAccessionMapping: dead_prot.accession2taxid.gz, containing the mapping of dead protein accessions to tax_ids (format: accession | accession.version | tax_id)
+         */
+
+        //final HashMap<Integer, Node> idMap = new HashMap<>(2700000);
+        final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
+        //final HashMap<String, Integer> accessionMap = new HashMap<>(1400000000);
+        final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>();
+
+        System.out.println("Reading nodes dumpfile...");
+        readNodesDumpfile(nodesDumpfile, idMap);
+        System.out.println("Reading names dumpfile...");
+        readNamesDumpfile(namesDumpfile, idMap);
+        for (AccessionMapping mapping : accessionMappings) {
+            System.out.println("Reading accession mapping from " + mapping.mappingFile);
+            readAccessionMap(mapping.mappingFile, mapping.accessionCol, mapping.taxIdCol, idMap, accessionMap);
+        }
+        return new Tree(idMap, accessionMap);
+    }
+
+    private static void readNodesDumpfile(String nodesDumpfile, ConcurrentHashMap<Integer, Node> idMap) throws IOException {
+        /**
+         * Reads the NCBI nodes.dmp file and creates a map of tax_id -> Node objects.
+         * @param nodesDumpfile: path to the file
+         * @param idMap: map to store the nodes
+         */
+        HashMap<Integer, Integer> parentMap = new HashMap<>();
         try (BufferedReader br = Files.newBufferedReader(Paths.get(nodesDumpfile))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -62,7 +78,7 @@ public class NCBIReader {
                 int taxId = Integer.parseInt(values[0]);
                 int parentTaxId = Integer.parseInt(values[1]);
                 String rank = values[2];
-                Node node = new Node(taxId, new ArrayList<>(), rank);
+                Node node = new Node(taxId, rank);
                 idMap.put(taxId, node);
                 // parents are recorded separately since the node objects might not have been created yet
                 parentMap.put(taxId, parentTaxId);
@@ -77,7 +93,12 @@ public class NCBIReader {
         });
     }
 
-    public void readNamesDumpfile(String namesDumpfile) throws IOException {
+    public static void readNamesDumpfile(String namesDumpfile, ConcurrentHashMap<Integer, Node> idMap) throws IOException {
+        /**
+         * Reads the NCBI names.dmp file and adds the names to the corresponding Node objects.
+         * @param namesDumpfile: path to the file
+         * @param idMap: map of tax_id -> Node objects
+         */
         try (BufferedReader br = Files.newBufferedReader(Paths.get(namesDumpfile))) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -89,102 +110,171 @@ public class NCBIReader {
             }
         }
     }
-
-    // no multithreading:
-    // 4769646500
-    // 4722979800
-    // 4422426700
-    // multithreading
-    // 8456561300
-    // 8607339500
-    // 7978696100
-
-    public void readAccessionMap(String accessionMapFile, int accessionCol, int taxIdCol) throws IOException {
+    public static void readAccessionMap(String accessionMapFile, int accessionCol, int taxIdCol, ConcurrentHashMap<Integer, Node> idMap, ConcurrentHashMap<String, Integer> accessionMap) throws IOException {
         try (FileInputStream fis = new FileInputStream(accessionMapFile);
              GZIPInputStream gis = new GZIPInputStream(fis);
              BufferedReader br = new BufferedReader(new InputStreamReader(gis))) {
             String line;
             br.readLine(); // skip header
             long start = System.nanoTime();
+            long i = 0;
+            long start2 = System.nanoTime();
             while ((line = br.readLine()) != null) {
-                String finalLine = line;
-                threadPoolExecutor.submit(() -> {
-                    String[] values = finalLine.split("\t");
-                    String accession = values[accessionCol];
-                    int taxId = Integer.parseInt(values[taxIdCol]);
-                    if (idMap.containsKey(taxId) && !accessionMap.containsKey(accession)) {
-                        Node node = idMap.get(taxId);
-                        accessionMap.put(accession, node);
-                    } else if (idMap.containsKey(taxId)) {
-                        System.err.printf("Accession %s already exists in the tree with a different node. %n\texisting: %s%n\tnew: %s%n", accession, accessionMap.get(accession), idMap.get(taxId));
-                    }
-                });
+                String[] values = line.split("\t");
+                String accession = values[accessionCol];
+                int taxId = Integer.parseInt(values[taxIdCol]);
+                // only add accessions, if the tax_id is in the tree and the accession is not already in the tree
+                if (idMap.containsKey(taxId) && !accessionMap.containsKey(accession)) {
+                    accessionMap.put(accession, taxId);
+                // case where the tax_id is in the map, but the accession maps to a different taxId
+                } else if (idMap.containsKey(taxId) && accessionMap.get(accession) != taxId) {
+                    System.err.printf(
+                            "Accession %s already exists in the tree with a different node. \n\texisting: %s\n\tnew: %s\n",
+                            accession, idMap.get(accessionMap.get(accession)), idMap.get(taxId)
+                    );
+                }
+                if (++i %1000000 == 0) {
+                    long end2 = System.nanoTime();
+                    System.out.println("accessios: " + i/1000000 + "M");
+                    System.out.printf("accessions per second: %f\n", 1000000/((end2 - start2)*(10E-10)));
+                    start2 = System.nanoTime();
+                }
             }
             long end = System.nanoTime();
             System.out.println("Reading accession map took " + (end - start));
         }
     }
+    public record AccessionMapping(String mappingFile, int accessionCol, int taxIdCol) {}
+    public static class Node {
+        private final int taxId;                // required
+        private Node parent;                    // can be null
+        private final ArrayList<Node> children; // can be empty
+        private final ArrayList<String> labels; // can be empty
+        private String rank;                    // can be null
 
-    public static Tree readTaxonomy(String filename) throws IOException {
-        // read the NCBI taxonomy from a nr dump file (nodes.dmp)
-        Tree tree = new Tree();
-        HashMap<Integer, Integer> parentMap = new HashMap<>(3500000);
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(filename))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split("\t\\|\t");
-                int taxId = Integer.parseInt(values[0]);
-                int parentTaxId = Integer.parseInt(values[1]);
-                String rank = values[2];
-                Node node = new Node(tree, taxId, new ArrayList<>(), rank);
-                parentMap.put(taxId, parentTaxId);
-            }
+        public Node(int taxId) {
+            this.taxId = taxId;
+            this.children = new ArrayList<>();
+            this.labels = new ArrayList<>();
         }
-        for (int taxId : parentMap.keySet()) {
-            Node node = tree.byId(taxId);
-            Node parent = tree.byId(parentMap.get(taxId));
-            node.setParent(parent);
-            parent.addChild(node);
+
+        public Node(int taxId, Node parent) {
+            this.taxId = taxId;
+            this.parent = parent;
+
+            this.children = new ArrayList<>();
+            this.labels = new ArrayList<>();
         }
-        return tree;
+
+        public Node(int taxId, String rank) {
+            this.taxId = taxId;
+            this.rank = rank;
+
+            this.children = new ArrayList<>();
+            this.labels = new ArrayList<>();
+        }
+
+        public Node(int taxId, Node parent, String rank) {
+            this.taxId = taxId;
+            this.parent = parent;
+            this.rank = rank;
+
+            this.children = new ArrayList<>();
+            this.labels = new ArrayList<>();
+        }
+
+        public void addChild(Node child) {
+            children.add(child);
+        }
+
+        public void addLabel(String label) {
+            labels.add(label);
+        }
+
+        public void setParent(Node parent) {
+            this.parent = parent;
+        }
+
+        public String toString() {
+            return "(%s) %s (%d)"
+                    .formatted(
+                            !Objects.isNull(this.rank) ? this.rank : "no rank",
+                            this.labels.size() > 0 ? this.labels.get(0) : "no labels",
+                            this.taxId
+                    );
+        }
+
+        public ArrayList<Node> getChildren() {
+            return children;
+        }
+
+        public Node getParent() {
+            return parent;
+        }
+
+        public int getTaxId() {
+            return taxId;
+        }
+
+        public ArrayList<String> getLabels() {
+            return labels;
+        }
+
+        public String getRank() {
+            return rank;
+        }
+
+        public void setRank(String rank) {
+            this.rank = rank;
+        }
     }
 
-    public static Tree addTaxonomicLabels(Tree tree, String filename) throws IOException {
-        // read the NCBI taxonomy from a nr dump file (names.dmp)
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(filename))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split("\t\\|\t");
-                int taxId = Integer.parseInt(values[0]);
-                String label = values[1];
-                Node node = tree.byId(taxId);
-                node.addLabel(label);
-            }
+    public static class Tree {
+        public final ConcurrentHashMap<Integer, Node> idMap;
+        public final ConcurrentHashMap<String, Integer> accessionMap;
+        public Tree(ConcurrentHashMap<Integer, Node> idMap, ConcurrentHashMap<String, Integer> accessionMap) {
+            this.idMap = idMap;
+            this.accessionMap = accessionMap;
         }
-        return tree;
-    }
 
-    public static Tree addAccessions(Tree tree, String filename, short accessionCol, short taxIdCol) throws IOException {
-        // add sequence accessions from the NCBI prot.accession2taxid.gz file
-        try (FileInputStream fis = new FileInputStream(filename);
-             GZIPInputStream gis = new GZIPInputStream(fis);
-             BufferedReader br = new BufferedReader(new InputStreamReader(gis))) {
-            String line;
-            br.readLine(); // skip header
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split("\t");
-                String accession = values[accessionCol];
-                int taxId = Integer.parseInt(values[taxIdCol]);
-                if (tree.byId(taxId) != null) {
-                    Node node = tree.byId(taxId);
-                    node.addAccession(accession);
+        public Node findMRCA(Node node1, Node node2) {
+            ArrayList<Node> path1 = pathToRoot(node1);
+            ArrayList<Node> path2 = pathToRoot(node2);
+            Node mrca = null;
+            int difference = path1.size() - path2.size();
+            if (difference > 0) {
+                for (int i = path2.size() - 1; i >= 0; i--) {
+                    if (path2.get(i).equals(path1.get(i + difference))) {
+                        mrca = path2.get(i);
+                    } else {
+                        break;
+                    }
+                }
+            } else {
+                for (int i = path1.size() - 1; i >= 0; i--) {
+                    if (path1.get(i).equals(path2.get(i - difference))) {
+                        mrca = path1.get(i);
+                    } else {
+                        break;
+                    }
                 }
             }
+            return mrca;
         }
-        return tree;
-    }
 
-    public ConcurrentHashMap<Integer, Node> getIdMap() {
-        return idMap;
+        public int findMRCA(int taxId1, int taxId2) {
+            return findMRCA(idMap.get(taxId1), idMap.get(taxId2)).getTaxId();
+        }
+
+        public ArrayList<Node> pathToRoot(Node node) {
+            ArrayList<Node> path = new ArrayList<>();
+            Node prevNode = null;
+            while (node != prevNode) {
+                path.add(node);
+                prevNode = node;
+                node = node.getParent();
+            }
+            return path;
+        }
     }
 }

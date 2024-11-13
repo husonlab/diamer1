@@ -34,6 +34,7 @@ public class ReduceAccession2Taxid {
              OutputStream fos = Files.newOutputStream(Paths.get(args[2]));
              GZIPOutputStream gos = new GZIPOutputStream(fos);
              BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(gos))) {
+            bw.write(br.readLine()); // write header
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t");

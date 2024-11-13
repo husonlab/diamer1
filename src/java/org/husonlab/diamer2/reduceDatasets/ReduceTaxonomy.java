@@ -19,7 +19,7 @@ public class ReduceTaxonomy {
     private static final String pathAccessionsDead = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
     private static final String pathOutput = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\";
     public static void main(String[] args) throws IOException {
-        Tree tree = NCBIReader.readTaxonomy(pathNodes);
+        NCBIReader.Tree tree = NCBIReader.readTaxonomy(pathNodes);
         NCBIReader.addTaxonomicLabels(tree, pathNodeLabels);
         NCBIReader.addAccessions(tree, pathAccessionsFull, (short) 0, (short) 1);
         NCBIReader.addAccessions(tree, pathAccessionsDead, (short) 1, (short) 2);

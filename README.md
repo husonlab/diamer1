@@ -1,3 +1,15 @@
+# Process:
+## 1. Reading in taxonomy
+### 1.1 Reading nodes
+### 1.2 Reading names
+### 1.3 reading prot.accession2taxid map
+* ConcurrentHashMap:
+  * Requires about 192 GB of RAM for 1,367,645,996 entries
+  * took 757556745593ns (12m)
+* Normal HashMap:
+  * Requires about 182 GB
+  * Took 11m
+
 # Questions:
 * How to handle missing mappings of protein accessions to taxids?
 * How to handle weired amino acid letters?
@@ -18,7 +30,7 @@
 | 2^10              | 2^42             | 2^22              |
 
 
-# Test dataset
+# GTDB
 ### `gtdb_proteins_aa_reps_r220_reduced100`
 * 100x reduced version of the GTDB dataset.
 * every 100th fasta file was skipped during extraction.
@@ -30,7 +42,7 @@
 
 # NCBI dataset:
 * 2,613,902 taxon ids in taxonomy
-* prot.accession2taxid has about 1,300,000,000 entries
+* prot.accession2taxid has 1,381,601,160 entries
   * almost all taxids also occur in the taxonomy
 ### Source links
 * [nr database](https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/)
