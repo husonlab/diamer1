@@ -36,14 +36,18 @@ public class ReduceAccession2Taxid {
              BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(gos))) {
             bw.write(br.readLine()); // write header
             String line;
+            long counter = 0L;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t");
-                if (accessions.contains(values[0])) {
+                if (accessions.contains(values[1])) {
                     bw.write(line);
                     bw.newLine();
                     kept++;
                 } else {
                     skipped++;
+                }
+                if (++counter % 10000000 == 0) {
+                    System.out.println("Processed " + counter / 1000000 + "M lines.");
                 }
             }
         }

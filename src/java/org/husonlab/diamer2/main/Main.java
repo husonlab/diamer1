@@ -1,28 +1,11 @@
 package org.husonlab.diamer2.main;
 
-import jloda.seq.FastA;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.husonlab.diamer2.alphabet.AminoAcids;
-import org.husonlab.diamer2.graph.Node;
-import org.husonlab.diamer2.graph.Tree;
-import org.husonlab.diamer2.indexing.Index;
-import org.husonlab.diamer2.indexing.IndexTest;
-import org.husonlab.diamer2.io.FASTAReader;
+import org.husonlab.diamer2.indexing.Al11k15;
+import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.seq.FASTA;
 
 import java.io.*;
-import java.nio.file.DirectoryStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
-import java.util.zip.GZIPInputStream;
 
 
 public class Main {
@@ -38,123 +21,9 @@ public class Main {
 //        String pathAccessionsFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\prot.accession2taxid.FULL.gz";
 //        String pathAccessionsDeadFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\dead_prot.accession2taxid.gz";
 
-        //ncbiReader.readTaxonomy(pathNodesFull, pathNamesFull, pathAccessionsFull, pathAccessionsDeadFull);
-        NCBIReader.AccessionMapping[] mappings = new NCBIReader.AccessionMapping[args.length - 2];
-        for (int i = 2; i < args.length; i++) {
-            mappings[i - 2] = new NCBIReader.AccessionMapping(args[i], 1, 2);
-        }
-        NCBIReader.Tree tree = NCBIReader.readTaxonomyDebug(args[0], args[1], mappings);
-        System.out.println(tree.findMRCA(tree.idMap.get(1263076), tree.idMap.get(1310742)));
-        System.out.println(tree.findMRCA(tree.idMap.get(1310741), tree.idMap.get(1310742)));
-        System.out.println(tree.findMRCA(tree.idMap.get(1), tree.idMap.get(1310742)));
-        System.out.println(tree.findMRCA(tree.idMap.get(1310742), tree.idMap.get(1)));
-        System.out.println(tree.findMRCA(tree.idMap.get(1), tree.idMap.get(2)));
-        System.out.println(tree.accessionMap.size());
-
-        //tree.pathToRoot(tree.idMap.get(1263076))
-        //tree.pathToRoot(tree.idMap.get(1310742))
-        //tree.findMRCA(tree.idMap.get(1263076), tree.idMap.get(1310742))
-
-        /*
-        try {
-            Tree tree = NCBIReader.readTaxonomy(pathNodes);
-            System.out.println(tree.getNodeMap().size());
-            NCBIReader.addTaxonomicLabels(tree, pathNames);
-            NCBIReader.addAccessions(tree, pathAccessions, (short) 0, (short) 1);
-            NCBIReader.addAccessions(tree, pathAccessionsDead, (short) 1, (short) 2);
-            System.out.println(tree.getAccessionMap().size());
-            HashSet<String> accessions = new HashSet<>();
-            // read in the accessions
-            try (BufferedReader br = Files.newBufferedReader(Paths.get(accessionsReduced))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    accessions.add(line);
-                }
-            }
-            for (String accession: tree.getAccessionMap().keySet()) {
-                accessions.remove(accession);
-            }
-            System.out.println(accessions.size());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println("done");
-
-        try (FileInputStream fis = new FileInputStream(path);
-             GZIPInputStream gis = new GZIPInputStream(fis);
-             TarArchiveInputStream tar = new TarArchiveInputStream(gis)) {
-
-            TarArchiveEntry entry;
-            while ((entry = tar.getNextEntry()) != null) {
-                System.out.println(entry.getName());
-                if (entry.isFile()) {
-                    try (GZIPInputStream innerGis = new GZIPInputStream(tar)) {
-                        ArrayList<FASTA> fastas = FASTAReader.readStream(innerGis);
-                        System.out.println(fastas.get(0).getHeader());
-                    }
-                }
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        byte[] bytearray = new byte[8];
-        bytearray[2] = 2;
-        bytearray[7] = 8;
-
-        var test = MurmurHash3.murmurhash3x8632(bytearray, 0, 8, 0);
-        System.out.println(test);
-
-        try {
-            var test = FastAFileIterator.getFastAOrFastQAsFastAIterator("G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\extracted_subset\\GCA_000008885.1_protein.faa");
-            while (test.hasNext()) {
-                var record = test.next();
-                System.out.println(record.getFirst());
-                System.out.println(record.getSecond());
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            Tree tree = GTDBReader.readTaxonomy("G:\\Studium\\Master\\semester5\\thesis\\diamer2\\src\\test\\resources\\GTDB\\bac120_taxonomy_r220.tsv");
-            System.out.println(tree);
-            for (Node node: tree.byLabel("f__SURF-5").getChildren()) {
-                System.out.println(node);
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        */
-    }
-
-    private static IndexTest runIndexing(String fastaPath) throws IOException {
-        /*
-        Indexes a database file
-        @param fastaPath: the path to the database FASTA file
-         */
-        IndexTest index = new IndexTest((short)0b1011111111);
-        String header = null;
-        StringBuilder sequence = new StringBuilder();
-        try (InputStream inputStream = new FileInputStream(fastaPath);
-             BufferedReader br = new BufferedReader(new InputStreamReader(inputStream))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                line = line.strip();
-                if (line.startsWith(">")) {
-                    if (header != null) {
-                        FASTA fasta = new FASTA(header, sequence.toString());
-                        index.processFASTA(fasta, 0b1001001001);
-                        sequence = new StringBuilder();
-                    }
-                    header = line.substring(1);
-                } else if (header != null) {
-                    sequence.append(line);
-                }
-            }
-            FASTA fasta = new FASTA(header, sequence.toString());
-            index.processFASTA(fasta, 0b1001001001);
-        }
-        return index;
+        NCBIReader.AccessionMapping[] mappings = {new NCBIReader.AccessionMapping(args[3], 1, 2)};
+        NCBIReader.Tree tree = NCBIReader.readTaxonomy(args[1], args[2], mappings);
+        Indexer indexer = new Indexer(tree, Integer.parseInt(args[0]), 1000, 100, new short[]{0, 10});
+        indexer.index(args[4]);
     }
 }

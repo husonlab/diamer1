@@ -11,6 +11,7 @@
   * Took 11m
 
 # Questions:
+* Faster storage for data on server?
 * How to handle missing mappings of protein accessions to taxids?
 * How to handle weired amino acid letters?
 
