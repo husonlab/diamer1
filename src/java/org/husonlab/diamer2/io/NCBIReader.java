@@ -1,8 +1,7 @@
 package org.husonlab.diamer2.io;
 
-import com.sun.source.tree.Tree;
-import org.checkerframework.checker.units.qual.N;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -17,13 +16,13 @@ import java.util.concurrent.TimeUnit;
 public class NCBIReader {
 
     /**
-     * Parses the NCBI taxonomy from the following files:
+     * Parses the NCBI taxonomy, including the node names and the amino acid accessions.
      * @param nodesDumpfile: nodes.dmp, containing the taxonomy nodes (format: tax_id | parent_tax_id | rank)
      * @param namesDumpfile: names.dmp, containing the taxonomy names (format: tax_id | name)
      * @param accessionMappings: array of AccessionMapping objects, containing the path to the mapping file and the column indices for the accession and tax_id.
      */
     @NotNull
-    public static Tree readTaxonomy(
+    public static Tree readTaxonomyWithAccessions(
             @NotNull String nodesDumpfile,
             @NotNull String namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings) throws IOException {
@@ -31,18 +30,18 @@ public class NCBIReader {
         final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>(2700000);
         final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>(1400000000);
 
-        return readTaxonomy(nodesDumpfile, namesDumpfile, accessionMappings, idMap, accessionMap);
+        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, idMap, accessionMap);
     }
 
     /**
-     * Parses the NCBI taxonomy from the following files:
+     * Parses the NCBI taxonomy, including the node names and the amino acid accessions.
+     * Does not set initial HashMap capacities to allow for dynamic resizing in smaller datasets.
      * @param nodesDumpfile: nodes.dmp, containing the taxonomy nodes (format: tax_id | parent_tax_id | rank)
      * @param namesDumpfile: names.dmp, containing the taxonomy names (format: tax_id | name)
      * @param accessionMappings: array of AccessionMapping objects, containing the path to the mapping file and the column indices for the accession and tax_id.
-     * @param debug: boolean to disable initial HashMap sizes and save memory on reduced datasets.
      */
     @NotNull
-    public static Tree readTaxonomy(
+    public static Tree readTaxonomyWithAccessions(
             @NotNull String nodesDumpfile,
             @NotNull String namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings,
@@ -51,11 +50,11 @@ public class NCBIReader {
         final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
         final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>();
 
-        return readTaxonomy(nodesDumpfile, namesDumpfile, accessionMappings, idMap, accessionMap);
+        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, idMap, accessionMap);
     }
 
     @NotNull
-    private static Tree readTaxonomy(
+    private static Tree readTaxonomyWithAccessions(
             @NotNull String nodesDumpfile,
             @NotNull String namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings,
@@ -77,20 +76,42 @@ public class NCBIReader {
     }
 
     /**
+     * Reads the NCBI taxonomy from the nodes and names dumpfiles.
+     * @param nodesDumpfile path to the nodes dumpfile (nodes.dmp)
+     * @param namesDumpfile path to the names dumpfile (names.dmp)
+     * @throws IOException
+     */
+    @NotNull
+    public static Tree readTaxonomy(@NotNull String nodesDumpfile, @NotNull String namesDumpfile) throws IOException {
+        final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
+        System.out.println("[NCBIReader] Reading nodes dumpfile...");
+        readNodesDumpfile(nodesDumpfile, idMap);
+        System.out.println("[NCBIReader] Reading names dumpfile...");
+        readNamesDumpfile(namesDumpfile, idMap);
+        System.out.printf(
+                "[NCBIReader] Finished reading taxonomy. Tree with %d nodes.\n", idMap.size());
+        return new Tree(idMap);
+    }
+
+    /**
      * Annotates the entries of the NCBI nr database with the taxon id of the MRCA.
      * The headers in the output file start with the taxon id.
      * @param pathNrInput: path to the input nr file
      * @param pathNrOutput: path to the output nr file
      * @param tree: NCBI taxonomy tree
      */
-private static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, Tree tree) throws IOException {
+public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, Tree tree) throws IOException {
     int skipped = 0;
+    int processed = 0;
+    int oldProcessed = 0;
     try (BufferedReader br = Files.newBufferedReader(Paths.get(pathNrInput));
          BufferedWriter bw = Files.newBufferedWriter(Paths.get(pathNrOutput))) {
         String line;
         boolean skipping = false;
+        long timerStart = System.currentTimeMillis();
         while ((line = br.readLine()) != null) {
             if (line.startsWith(">")) {
+                processed++;
                 ArrayList<Integer> taxIds = new ArrayList<>();
                 for (String value : line.split(" ")) {
                     if (value.startsWith(">") && tree.accessionMap.containsKey(value.substring(1))) {
@@ -103,7 +124,7 @@ private static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, 
                     for (int i = 1; i < taxIds.size(); i++) {
                         taxId = tree.findMRCA(taxId, taxIds.get(i));
                     }
-                    bw.write(">%d %s".formatted(taxId, line));
+                    bw.write(">%d %s\n".formatted(taxId, line));
                 } else {
                     skipping = true;
                     skipped++;
@@ -111,6 +132,12 @@ private static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, 
             } else if (!skipping) {
                 bw.write(line);
                 bw.newLine();
+            }
+            if (System.currentTimeMillis() - timerStart > 5000) {
+                long timerEnd = System.currentTimeMillis();
+                System.out.printf("[NCBIReader] Processed %d entries. %f entries per second.\n", processed, (processed - oldProcessed) / ((timerEnd - timerStart) * 10E-2));
+                oldProcessed = processed;
+                timerStart = timerEnd;
             }
         }
     }
@@ -281,10 +308,16 @@ private static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, 
 
     public static class Tree {
         public final ConcurrentHashMap<Integer, Node> idMap;
+        @Nullable
         public final ConcurrentHashMap<String, Integer> accessionMap;
-        public Tree(ConcurrentHashMap<Integer, Node> idMap, ConcurrentHashMap<String, Integer> accessionMap) {
+        public Tree(ConcurrentHashMap<Integer, Node> idMap, @Nullable ConcurrentHashMap<String, Integer> accessionMap) {
             this.idMap = idMap;
             this.accessionMap = accessionMap;
+        }
+
+        public Tree(ConcurrentHashMap<Integer, Node> idMap) {
+            this.idMap = idMap;
+            this.accessionMap = null;
         }
 
         public Node findMRCA(Node node1, Node node2) {

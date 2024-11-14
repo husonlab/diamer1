@@ -1,14 +1,19 @@
 # Process:
-## 1. Reading in taxonomy
-### 1.1 Reading nodes
-### 1.2 Reading names
-### 1.3 reading prot.accession2taxid map
+## 1. Annotating nr database with taxon ids
+### 1.1 Reading nodes and names
+### 1.2 reading prot.accession2taxid map
 * ConcurrentHashMap:
-  * Requires about 192 GB of RAM for 1,367,645,996 entries
-  * took 757556745593ns (12m)
-* Normal HashMap:
-  * Requires about 182 GB
-  * Took 11m
+  * Requires about 192 GB of RAM (for 1,367,645,996 accessions)
+  * took about 12m
+### 1.3 Annotating nr
+* Running over the database
+* Add the taxon id of the MRCA of all accessions that can be found in the taxonomy
+* Skip entries, that do not have an accession in the accession2taxid map
+  * 325,908,528 entries were skipped
+## 2. Creating database k-mer index
+### 2.1 Reading nodes, and names
+### 2.2 Indexing
+* Reading annotated nr database and index kmers
 
 # Questions:
 * Faster storage for data on server?
@@ -45,18 +50,20 @@
 * 2,613,902 taxon ids in taxonomy
 * prot.accession2taxid has 1,381,601,160 entries
   * almost all taxids also occur in the taxonomy
-### Source links
+## Source links
 * [nr database](https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/)
 * [taxon dumps](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
 * [accession mapping](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/)
 
-# generate reduced NCBI database dataset
+## generate reduced NCBI database dataset
 * Extracting the accessions that are part of the nr.fsa file with the [ExtractNrAcessions](src/java/org/husonlab/diamer2/reduceDatasets/ExtractNrAcessions.java) to see if all accessions in the taxon map are required to process the nr.fsa.
   * Extracted 812,194,751 accession ids.
 * Reducing the accessions by 100 with the [Reduce100](src/java/org/husonlab/diamer2/reduceDatasets/Reduce100.java) script.
   * 8,121,948 accessions remaining.
 * Extracted the sequences that belong to the reduced accessions from the nr.fsa flie -> nr100.fsa with the [ExtractByAccession](src/java/org/husonlab/diamer2/reduceDatasets/ExtractByAccession.java) script.
 * Extracted the taxon ids that belong to the reduced accessions from the prot.accession2taxid.gz file -> prot.accession2taxid100.gz with the [ReduceAccession2Taxid](src/java/org/husonlab/diamer2/reduceDatasets/ReduceAccession2Taxid.java) script.
+
+##
 
 ### k-mer counts
 * 2,980,952,285 15-mers in the nr100.fsa file.
@@ -93,10 +100,66 @@
   * O: pyrrolysine: together with lysine
 
 
-# Reading
-[Parallel Programming Tutorial](https://learning.oreilly.com/course/java-multithreading-and/9781804619377/)
+# Benchmarking
+## kmer - taxon rank mapping
+* Used the annotated nr_taxid.fsa file (~ 486 million sequences)
+``
+[Indexer] Size of bucket 0: 10964242
+[Indexer] Size of bucket 1: 10971128
+[Indexer] Size of bucket 2: 10969360
+[Indexer] Size of bucket 3: 10969499
+[Indexer] Size of bucket 4: 10972296
+[Indexer] Size of bucket 5: 10970629
+[Indexer] Size of bucket 6: 10968862
+[Indexer] Size of bucket 7: 10962933
+[Indexer] Size of bucket 8: 10966068
+[Indexer] Size of bucket 9: 10971730
+[Indexer] Number of unprocessed FASTAs: 0
+subsection      34
+forma specialis 83212
+superorder      63270
+varietas        175991
+subfamily       296583
+cohort  45691
+section 18640
+forma   44613
+parvorder       20053
+superkingdom    2591119
+isolate 45143
+subkingdom      45118
+superclass      6783
+subgenus        177214
+infraclass      62969
+species group   242150
+class   1509032
+subtribe        9700
+serotype        3982
+order   1414593
+strain  2349125
+biotype 156
+suborder        188899
+infraorder      64962
+no rank 7051012
+superfamily     75574
+kingdom 294031
+genotype        9351
+phylum  1076659
+species subgroup        33841
+subcohort       1149
+genus   10625872
+species 75837787
+serogroup       69
+tribe   146545
+series  574
+subphylum       34501
+subclass        104081
+family  2855692
+subspecies      517114
+clade   1563863
+``
 
 # Parallelization
+[Parallel Programming Tutorial](https://learning.oreilly.com/course/java-multithreading-and/9781804619377/)
 ## Introduction
 ### Thread start, join, name
 * ``thread.start()`` threads have to be started.

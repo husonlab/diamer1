@@ -1,9 +1,8 @@
 package org.husonlab.diamer2.main;
 
-import org.husonlab.diamer2.indexing.Al11k15;
+import org.husonlab.diamer2.benchmarking.RankMapping;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
-import org.husonlab.diamer2.seq.FASTA;
 
 import java.io.*;
 
@@ -21,9 +20,14 @@ public class Main {
 //        String pathAccessionsFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\prot.accession2taxid.FULL.gz";
 //        String pathAccessionsDeadFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\dead_prot.accession2taxid.gz";
 
-        NCBIReader.AccessionMapping[] mappings = {new NCBIReader.AccessionMapping(args[3], 1, 2)};
-        NCBIReader.Tree tree = NCBIReader.readTaxonomy(args[1], args[2], mappings);
+        //NCBIReader.AccessionMapping[] mappings = {new NCBIReader.AccessionMapping(args[3], 1, 2)};
+        //NCBIReader.Tree tree = NCBIReader.readTaxonomyWithAccessions(args[1], args[2], mappings, true);
+        //Indexer indexer = new Indexer(tree, Integer.parseInt(args[0]), 1000, 100, new short[]{0, 10});
+        //indexer.index(args[4]);
+        //NCBIReader.annotateNrWithMRCA(args[4], args[5], tree);
+        NCBIReader.Tree tree = NCBIReader.readTaxonomy(args[1], args[2]);
         Indexer indexer = new Indexer(tree, Integer.parseInt(args[0]), 1000, 100, new short[]{0, 10});
-        indexer.index(args[4]);
+        indexer.index(args[3]);
+        RankMapping.computeKmerRankMapping(indexer.getBuckets(), tree);
     }
 }

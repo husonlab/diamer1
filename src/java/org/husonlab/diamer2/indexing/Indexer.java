@@ -119,31 +119,14 @@ public class Indexer {
             threadPoolExecutor.execute(() -> {
                 for (FASTA fasta : fastas) {
                     String sequence = fasta.getSequence();
-                    String[] headerSplit = fasta.getHeader().split(" ");
-                    String accession;
-                    int taxId = -1;
-                    // trying to find an accession that is part of the accession map
-                    for (String s : headerSplit) {
-                        if (s.startsWith(">")) {
-                            if (tree.accessionMap.containsKey(s.substring(1))) {
-                                accession = s.substring(1);
-                                taxId = tree.accessionMap.get(accession);
-                                break;
-                            }
-                        }
-                    }
-                    // Skip sequences that can not be found in the taxonomy
-                    if (taxId == -1) {
-                        continue;
-                    }
-                    int finalTaxId = taxId;
+                    int taxId = Integer.parseInt(fasta.getHeader().split(" ")[0].substring(1));
                     for (int i = 0; i + 15 < sequence.length(); i++) {
                         String kmer = sequence.substring(i, i + 15);
                         long kmerEnc = to11Num_15(kmer);
                         short bucketId = (short) (kmerEnc & 0b1111111111);
                         if (bucketId < bucketRange[1] - bucketRange[0]) {
-                            buckets[bucketId].computeIfAbsent(kmerEnc, k -> finalTaxId);
-                            buckets[bucketId].computeIfPresent(kmerEnc, (k, v) -> tree.findMRCA(v, finalTaxId));
+                            buckets[bucketId].computeIfAbsent(kmerEnc, k -> taxId);
+                            buckets[bucketId].computeIfPresent(kmerEnc, (k, v) -> tree.findMRCA(v, taxId));
                         }
                     }
                 }
@@ -153,11 +136,15 @@ public class Indexer {
         }
     }
 
-    public Map<Long, Integer>[] getBuckets() {
+    public ConcurrentHashMap<Long, Integer>[] getBuckets() {
         return buckets;
     }
 
     public ConcurrentLinkedQueue<String> getUnprocessedFastas() {
         return unprocessedFastas;
+    }
+
+    public void sortBuckets() {
+        buckets[0]
     }
 }

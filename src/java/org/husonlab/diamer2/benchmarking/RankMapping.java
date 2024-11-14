@@ -1,22 +1,20 @@
 package org.husonlab.diamer2.benchmarking;
 
-import org.husonlab.diamer2.indexing.Bucket;
+
 import org.husonlab.diamer2.io.NCBIReader;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class RankMapping {
-    public static void computeKmerRankMapping(Bucket[] buckets) {
+    public static void computeKmerRankMapping(ConcurrentHashMap<Long, Integer>[] buckets, NCBIReader.Tree tree) {
         final ConcurrentHashMap<String, Integer> rankMapping = new ConcurrentHashMap<>();
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                1,
-                12,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(1000),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-        
+        for (ConcurrentHashMap<Long, Integer> bucket : buckets) {
+            bucket.forEachEntry(12, entry -> {
+                String rank = tree.idMap.get(entry.getValue()).getRank();
+                rankMapping.computeIfAbsent(rank, k -> 0);
+                rankMapping.compute(rank, (k, v) -> v + 1);
+            });
+        }
+        rankMapping.forEach((k, v) -> System.out.println(k + "\t" + v));
     }
 }
