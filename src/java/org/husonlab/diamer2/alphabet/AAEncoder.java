@@ -6,9 +6,9 @@ public class AAEncoder {
      * @param sequence amino acid sequence
      * @return long representation of the sequence in a base 11 alphabet
      */
-    public static long base11(String sequence) {
-        if (sequence.length() > 15) {
-            throw new IllegalArgumentException("Sequence too long.");
+    public static long base11andNumber(String sequence) {
+        if (sequence.length() > 18) {
+            throw new IllegalArgumentException("Sequence too long. Not more than 18 amino acids can be encoded in a long.");
         }
         long result = 0;
         short length = (short) sequence.length();

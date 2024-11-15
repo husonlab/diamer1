@@ -6,10 +6,9 @@ import org.husonlab.diamer2.seq.FASTA;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.*;
 
-import static org.husonlab.diamer2.alphabet.AminoAcids.to11Num_15;
+import static org.husonlab.diamer2.alphabet.AAEncoder.base11andNumber;
 
 public class Indexer {
     private final NCBIReader.Tree tree;
@@ -17,7 +16,7 @@ public class Indexer {
     private final int MAX_QUEUE_SIZE;
     private final int FASTA_BATCH_SIZE;
     private final short[] bucketRange;
-    private final ConcurrentHashMap<Long, Integer>[] buckets;
+    private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
     // Queue to store sequence headers, that could not be found in the taxonomy.
     private final ConcurrentLinkedQueue<String> unprocessedFastas = new ConcurrentLinkedQueue<>();
 
@@ -35,9 +34,9 @@ public class Indexer {
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.FASTA_BATCH_SIZE = FASTA_BATCH_SIZE;
         this.bucketRange = bucketRange;
-        this.buckets = new ConcurrentHashMap[bucketRange[1] - bucketRange[0]];
+        this.bucketMaps = new ConcurrentHashMap[bucketRange[1] - bucketRange[0]];
         for (int i = 0; i < bucketRange[1] - bucketRange[0]; i++) {
-            buckets[i] = new ConcurrentHashMap<Long, Integer>();
+            bucketMaps[i] = new ConcurrentHashMap<Long, Integer>();
         }
     }
 
@@ -103,8 +102,8 @@ public class Indexer {
             e.printStackTrace();
         }
         System.out.println("[Indexer] Finished indexing.");
-        for (int j = 0; j < buckets.length; j++) {
-            System.out.println("[Indexer] Size of bucket " + j + ": " + buckets[j].size());
+        for (int j = 0; j < bucketMaps.length; j++) {
+            System.out.println("[Indexer] Size of bucket " + j + ": " + bucketMaps[j].size());
         }
         System.out.println("[Indexer] Number of unprocessed FASTAs: " + unprocessedFastas.size());
     }
@@ -122,11 +121,11 @@ public class Indexer {
                     int taxId = Integer.parseInt(fasta.getHeader().split(" ")[0].substring(1));
                     for (int i = 0; i + 15 < sequence.length(); i++) {
                         String kmer = sequence.substring(i, i + 15);
-                        long kmerEnc = to11Num_15(kmer);
+                        long kmerEnc = base11andNumber(kmer);
                         short bucketId = (short) (kmerEnc & 0b1111111111);
                         if (bucketId < bucketRange[1] - bucketRange[0]) {
-                            buckets[bucketId].computeIfAbsent(kmerEnc, k -> taxId);
-                            buckets[bucketId].computeIfPresent(kmerEnc, (k, v) -> tree.findMRCA(v, taxId));
+                            bucketMaps[bucketId].computeIfAbsent(kmerEnc, k -> taxId);
+                            bucketMaps[bucketId].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
                         }
                     }
                 }
@@ -136,15 +135,28 @@ public class Indexer {
         }
     }
 
-    public ConcurrentHashMap<Long, Integer>[] getBuckets() {
-        return buckets;
+    public ConcurrentHashMap<Long, Integer>[] getBucketMaps() {
+        return bucketMaps;
+    }
+
+    /**
+     * Converts the bucketMaps (kmer -> taxId) to an array of sorted long arrays
+     * with the kmer and taxId both encoded in each long.
+     * @return Array of long arrays (buckets) with sorted longs that encode kmer and taxId.
+     */
+    public long[][] getBuckets() {
+        return new long[1][1];
+    }
+
+    public void sortBuckets() {
+        for (int i = 0; i < bucketMaps.length; i++) {
+            bucketMaps[i] = new ConcurrentHashMap<>(bucketMaps[i].entrySet().stream()
+                    .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                    .collect(ConcurrentHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), ConcurrentHashMap::putAll));
+        }
     }
 
     public ConcurrentLinkedQueue<String> getUnprocessedFastas() {
         return unprocessedFastas;
-    }
-
-    public void sortBuckets() {
-        buckets[0]
     }
 }

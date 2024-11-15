@@ -29,8 +29,9 @@ public class NCBIReader {
 
         final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>(2700000);
         final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>(1400000000);
+        final Tree tree = new Tree(idMap, accessionMap);
 
-        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, idMap, accessionMap);
+        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
     }
 
     /**
@@ -49,8 +50,9 @@ public class NCBIReader {
 
         final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
         final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>();
+        final Tree tree = new Tree(idMap, accessionMap);
 
-        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, idMap, accessionMap);
+        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
     }
 
     @NotNull
@@ -58,21 +60,20 @@ public class NCBIReader {
             @NotNull String nodesDumpfile,
             @NotNull String namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings,
-            @NotNull ConcurrentHashMap<Integer, Node> idMap,
-            @NotNull ConcurrentHashMap<String, Integer> accessionMap) throws IOException {
+            @NotNull Tree tree) throws IOException {
         System.out.println("[NCBIReader] Reading nodes dumpfile...");
-        readNodesDumpfile(nodesDumpfile, idMap);
+        readNodesDumpfile(nodesDumpfile, tree);
         System.out.println("[NCBIReader] Reading names dumpfile...");
-        readNamesDumpfile(namesDumpfile, idMap);
+        readNamesDumpfile(namesDumpfile, tree);
         for (AccessionMapping mapping : accessionMappings) {
             System.out.println("[NCBIReader] Reading accession mapping from " + mapping.mappingFile);
-            readAccessionMap(mapping.mappingFile, mapping.accessionCol, mapping.taxIdCol, idMap, accessionMap);
+            readAccessionMap(mapping.mappingFile, mapping.accessionCol, mapping.taxIdCol, tree);
         }
         System.out.printf(
                 "[NCBIReader] Finished reading taxonomy. Tree with %d nodes and %d accessions.\n",
-                idMap.size(), accessionMap.size()
+                tree.idMap.size(), tree.accessionMap.size()
         );
-        return new Tree(idMap, accessionMap);
+        return tree;
     }
 
     /**
@@ -84,13 +85,14 @@ public class NCBIReader {
     @NotNull
     public static Tree readTaxonomy(@NotNull String nodesDumpfile, @NotNull String namesDumpfile) throws IOException {
         final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
+        final Tree tree = new Tree(idMap);
         System.out.println("[NCBIReader] Reading nodes dumpfile...");
-        readNodesDumpfile(nodesDumpfile, idMap);
+        readNodesDumpfile(nodesDumpfile, tree);
         System.out.println("[NCBIReader] Reading names dumpfile...");
-        readNamesDumpfile(namesDumpfile, idMap);
+        readNamesDumpfile(namesDumpfile, tree);
         System.out.printf(
                 "[NCBIReader] Finished reading taxonomy. Tree with %d nodes.\n", idMap.size());
-        return new Tree(idMap);
+        return tree;
     }
 
     /**
@@ -100,7 +102,7 @@ public class NCBIReader {
      * @param pathNrOutput: path to the output nr file
      * @param tree: NCBI taxonomy tree
      */
-public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, Tree tree) throws IOException {
+public static void annotateNrWithLCA(String pathNrInput, String pathNrOutput, Tree tree) throws IOException {
     int skipped = 0;
     int processed = 0;
     int oldProcessed = 0;
@@ -122,7 +124,7 @@ public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, T
                     skipping = false;
                     int taxId = taxIds.get(0);
                     for (int i = 1; i < taxIds.size(); i++) {
-                        taxId = tree.findMRCA(taxId, taxIds.get(i));
+                        taxId = tree.findLCA(taxId, taxIds.get(i));
                     }
                     bw.write(">%d %s\n".formatted(taxId, line));
                 } else {
@@ -147,9 +149,9 @@ public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, T
     /**
      * Reads the NCBI nodes.dmp file and creates a map of tax_id -> Node objects.
      * @param nodesDumpfile: path to the file
-     * @param idMap: map to store the nodes
+     * @param tree: Tree with idMap to store the nodes
      */
-    private static void readNodesDumpfile(String nodesDumpfile, ConcurrentHashMap<Integer, Node> idMap) throws IOException {
+    private static void readNodesDumpfile(String nodesDumpfile, Tree tree) throws IOException {
         HashMap<Integer, Integer> parentMap = new HashMap<>();
         try (BufferedReader br = Files.newBufferedReader(Paths.get(nodesDumpfile))) {
             String line;
@@ -159,15 +161,15 @@ public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, T
                 int parentTaxId = Integer.parseInt(values[1]);
                 String rank = values[2];
                 Node node = new Node(taxId, rank);
-                idMap.put(taxId, node);
+                tree.idMap.put(taxId, node);
                 // parents are recorded separately since the node objects might not have been created yet
                 parentMap.put(taxId, parentTaxId);
             }
         }
         // set the parent-child relationships after all nodes have been created
         parentMap.forEach( (nodeId, parentId) -> {
-            Node node = idMap.get(nodeId);
-            Node parent = idMap.get(parentId);
+            Node node = tree.idMap.get(nodeId);
+            Node parent = tree.idMap.get(parentId);
             node.setParent(parent);
             parent.addChild(node);
         });
@@ -176,21 +178,21 @@ public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, T
     /**
      * Reads the NCBI names.dmp file and adds the names to the corresponding Node objects.
      * @param namesDumpfile: path to the file
-     * @param idMap: map of tax_id -> Node objects
+     * @param tree: Tree with idMap of tax_id -> Node objects
      */
-    public static void readNamesDumpfile(String namesDumpfile, ConcurrentHashMap<Integer, Node> idMap) throws IOException {
+    public static void readNamesDumpfile(String namesDumpfile, Tree tree) throws IOException {
         try (BufferedReader br = Files.newBufferedReader(Paths.get(namesDumpfile))) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t\\|\t");
                 int taxId = Integer.parseInt(values[0]);
                 String label = values[1];
-                Node node = idMap.get(taxId);
+                Node node = tree.idMap.get(taxId);
                 node.addLabel(label);
             }
         }
     }
-    public static void readAccessionMap(String accessionMapFile, int accessionCol, int taxIdCol, ConcurrentHashMap<Integer, Node> idMap, ConcurrentHashMap<String, Integer> accessionMap) throws IOException {
+    public static void readAccessionMap(String accessionMapFile, int accessionCol, int taxIdCol, Tree tree) throws IOException {
         try (FileInputStream fis = new FileInputStream(accessionMapFile);
              GZIPInputStream gis = new GZIPInputStream(fis);
              BufferedReader br = new BufferedReader(new InputStreamReader(gis))) {
@@ -203,14 +205,14 @@ public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, T
                 String accession = values[accessionCol];
                 int taxId = Integer.parseInt(values[taxIdCol]);
                 // only add accessions, if the tax_id is in the tree and the accession is not already in the tree
-                if (idMap.containsKey(taxId) && !accessionMap.containsKey(accession)) {
-                    accessionMap.put(accession, taxId);
+                if (tree.idMap.containsKey(taxId) && !tree.accessionMap.containsKey(accession)) {
+                    tree.accessionMap.put(accession, taxId);
                 // case where the tax_id is in the map, but the accession maps to a different taxId
-                } else if (idMap.containsKey(taxId) && accessionMap.get(accession) != taxId) {
-                    System.err.printf(
-                            "[NCBIReader] Accession %s already exists in the tree with a different node. \n\texisting: %s\n\tnew: %s\n",
-                            accession, idMap.get(accessionMap.get(accession)), idMap.get(taxId)
-                    );
+                // find LCA and update the accession map
+                } else if (tree.idMap.containsKey(taxId) && tree.accessionMap.get(accession) != taxId) {
+                    int oldTaxId = tree.accessionMap.get(accession);
+                    int newTaxId = tree.findLCA(oldTaxId, taxId);
+                    tree.accessionMap.put(accession, newTaxId);
                 }
                 if (++i %1000000 == 0) {
                     long end2 = System.nanoTime();
@@ -320,7 +322,7 @@ public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, T
             this.accessionMap = null;
         }
 
-        public Node findMRCA(Node node1, Node node2) {
+        public Node findLCA(Node node1, Node node2) {
             ArrayList<Node> path1 = pathToRoot(node1);
             ArrayList<Node> path2 = pathToRoot(node2);
             Node mrca = null;
@@ -345,8 +347,8 @@ public static void annotateNrWithMRCA(String pathNrInput, String pathNrOutput, T
             return mrca;
         }
 
-        public int findMRCA(int taxId1, int taxId2) {
-            return findMRCA(idMap.get(taxId1), idMap.get(taxId2)).getTaxId();
+        public int findLCA(int taxId1, int taxId2) {
+            return findLCA(idMap.get(taxId1), idMap.get(taxId2)).getTaxId();
         }
 
         public ArrayList<Node> pathToRoot(Node node) {

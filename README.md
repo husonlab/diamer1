@@ -7,23 +7,22 @@
   * took about 12m
 ### 1.3 Annotating nr
 * Running over the database
-* Add the taxon id of the MRCA of all accessions that can be found in the taxonomy
+* Add the taxon id of the LCA of all accessions that can be found in the taxonomy
 * Skip entries, that do not have an accession in the accession2taxid map
-  * 325,908,528 entries were skipped
+  * accession2taxid: 325,908,528 entries were skipped
+  * accession2taxid.FULL + dead_prot.accession2taxid:
 ## 2. Creating database k-mer index
 ### 2.1 Reading nodes, and names
 ### 2.2 Indexing
 * Reading annotated nr database and index kmers
 
 # Questions:
-* Faster storage for data on server?
-* How to handle missing mappings of protein accessions to taxids?
 * How to handle weired amino acid letters?
 
 # TODO
 * How to deal with identical protein groups?
   * Some proteins with identical protein sequences occure in different organisms (e.g. WP_012019010.1).
-  * Actually their MRCA will have to be calculated while reading in the taxonomy.
+  * Actually their LCA will have to be calculated while reading in the taxonomy.
 
 # Hashes
 
@@ -47,9 +46,12 @@
   * 22,855,959
 
 # NCBI dataset:
-* 2,613,902 taxon ids in taxonomy
-* prot.accession2taxid has 1,381,601,160 entries
+* nodes.dmp: 2,613,902 taxon ids in taxonomy
+* prot.accession2taxid: 1,381,601,160 entries
   * almost all taxids also occur in the taxonomy
+* prot.accession2taxid.FULL: 7,482,355,539 entries
+* dead_prot.accession2taxid: 158,629,501 entries
+
 ## Source links
 * [nr database](https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/)
 * [taxon dumps](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
@@ -70,7 +72,9 @@
 * 3,918,560 in one bucket
 
 # Missing taxid assignments?
-* Can not find the taxonomic id for 12,917 accessions (~ 0.16 %) in the prot.accession2taxidFull.gz file.
+* prot.accession2taxid: can not find the accessions for 325,908,528 entries
+  * [MEX9938374.1](https://www.ncbi.nlm.nih.gov/protein/MEX9938374.1) is missing while [KJX92028.1](https://www.ncbi.nlm.nih.gov/protein/KJX92028.1) is there - why?
+* prot.accession2taxidFull.gz: 12,917 accessions (~ 0.16 %) missing
   * e.g. MEQ8169148.1 is missing in the prot.accession2taxidFULL.gz file.
   * 7,609 can be found in the dead_prot.accession2taxid.gz file (some redundant).
   * still 6,026 missing (~ 0.07 %).
@@ -103,7 +107,8 @@
 # Benchmarking
 ## kmer - taxon rank mapping
 * Used the annotated nr_taxid.fsa file (~ 486 million sequences)
-``
+
+````
 [Indexer] Size of bucket 0: 10964242
 [Indexer] Size of bucket 1: 10971128
 [Indexer] Size of bucket 2: 10969360
@@ -115,48 +120,48 @@
 [Indexer] Size of bucket 8: 10966068
 [Indexer] Size of bucket 9: 10971730
 [Indexer] Number of unprocessed FASTAs: 0
-subsection      34
+subsection  34
 forma specialis 83212
-superorder      63270
-varietas        175991
-subfamily       296583
+superorder  63270
+varietas  175991
+subfamily 296583
 cohort  45691
 section 18640
-forma   44613
-parvorder       20053
-superkingdom    2591119
+forma 44613
+parvorder 20053
+superkingdom  2591119
 isolate 45143
-subkingdom      45118
-superclass      6783
-subgenus        177214
-infraclass      62969
-species group   242150
-class   1509032
-subtribe        9700
-serotype        3982
-order   1414593
+subkingdom  45118
+superclass  6783
+subgenus  177214
+infraclass  62969
+species group 242150
+class 1509032
+subtribe  9700
+serotype  3982
+order 1414593
 strain  2349125
 biotype 156
-suborder        188899
-infraorder      64962
+suborder  188899
+infraorder  64962
 no rank 7051012
-superfamily     75574
+superfamily 75574
 kingdom 294031
-genotype        9351
+genotype  9351
 phylum  1076659
-species subgroup        33841
-subcohort       1149
-genus   10625872
+species subgroup  33841
+subcohort 1149
+genus 10625872
 species 75837787
-serogroup       69
-tribe   146545
+serogroup 69
+tribe 146545
 series  574
-subphylum       34501
-subclass        104081
+subphylum 34501
+subclass  104081
 family  2855692
-subspecies      517114
-clade   1563863
-``
+subspecies  517114
+clade 1563863
+````
 
 # Parallelization
 [Parallel Programming Tutorial](https://learning.oreilly.com/course/java-multithreading-and/9781804619377/)

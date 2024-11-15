@@ -1,10 +1,9 @@
 package org.husonlab.diamer2.main;
 
-import org.husonlab.diamer2.benchmarking.RankMapping;
-import org.husonlab.diamer2.indexing.Indexer;
-import org.husonlab.diamer2.io.NCBIReader;
+import static org.husonlab.diamer2.indexing.Sorting.radixSort42bits;
 
 import java.io.*;
+import java.util.Arrays;
 
 
 public class Main {
@@ -20,14 +19,17 @@ public class Main {
 //        String pathAccessionsFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\prot.accession2taxid.FULL.gz";
 //        String pathAccessionsDeadFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\dead_prot.accession2taxid.gz";
 
-        //NCBIReader.AccessionMapping[] mappings = {new NCBIReader.AccessionMapping(args[3], 1, 2)};
-        //NCBIReader.Tree tree = NCBIReader.readTaxonomyWithAccessions(args[1], args[2], mappings, true);
-        //Indexer indexer = new Indexer(tree, Integer.parseInt(args[0]), 1000, 100, new short[]{0, 10});
-        //indexer.index(args[4]);
-        //NCBIReader.annotateNrWithMRCA(args[4], args[5], tree);
-        NCBIReader.Tree tree = NCBIReader.readTaxonomy(args[1], args[2]);
-        Indexer indexer = new Indexer(tree, Integer.parseInt(args[0]), 1000, 100, new short[]{0, 10});
-        indexer.index(args[3]);
-        RankMapping.computeKmerRankMapping(indexer.getBuckets(), tree);
+//        NCBIReader.AccessionMapping[] mappings = {
+//                new NCBIReader.AccessionMapping(args[2], 1, 2)
+//        };
+//        NCBIReader.Tree tree = NCBIReader.readTaxonomyWithAccessions(args[0], args[1], mappings, true);
+//        NCBIReader.annotateNrWithLCA(args[4], args[5], tree);
+//        NCBIReader.Tree tree = NCBIReader.readTaxonomy(args[1], args[2]);
+//        Indexer indexer = new Indexer(tree, Integer.parseInt(args[0]), 1000, 100, new short[]{0, 10});
+//        indexer.index(args[3]);
+//        RankMapping.computeKmerRankMapping(indexer.getBuckets(), tree);
+
+        long[] arr = {431L, 1973L, 1L, 7365L, 913L, 64L};
+        System.out.println(Arrays.toString(radixSort42bits(arr)));
     }
 }
