@@ -4,7 +4,7 @@ import org.apache.commons.cli.*;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 
-import static org.husonlab.diamer2.indexing.Sorting.radixSort42bits;
+import static org.husonlab.diamer2.indexing.Sorting.radixSort44bits;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -32,6 +32,11 @@ public class Main {
                 Option.builder()
                         .longOpt("indexreads")
                         .desc("Index the reads")
+                        .build()
+        );
+        computationOptions.addOption(
+                Option.builder()
+                        .longOpt("debug")
                         .build()
         );
         options.addOptionGroup(computationOptions);
@@ -166,8 +171,22 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-        } else if (cli.getOptionValue("computation").equals("indexreads")) {
+        } else if (cli.hasOption("indexreads")) {
             System.out.println("Indexing reads");
+        } else if (cli.hasOption("debug")) {
+            System.out.println("Debugging");
+            long[] testarray = {
+                    0b11100000000001000000000,
+                    0b01000000111000000000000,
+                    0b00100000000000000000000,
+                    0b10100000000000011000000,
+                    0b00100000000000000000000,
+                    0b10000000000000000000000
+            };
+            long[] sorted = radixSort44bits(testarray);
+            for (long l: sorted) {
+                System.out.println(l >> 20);
+            }
         }
 
 //        String pathNodes = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\nodes100.dmp";
