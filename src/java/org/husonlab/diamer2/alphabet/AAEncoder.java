@@ -6,14 +6,14 @@ public class AAEncoder {
      * @param sequence amino acid sequence
      * @return long representation of the sequence in a base 11 alphabet
      */
-    public static long base11andNumber(String sequence) {
+    public static long toBase11andNumber(String sequence) {
         if (sequence.length() > 18) {
             throw new IllegalArgumentException("Sequence too long. Not more than 18 amino acids can be encoded in a long.");
         }
         long result = 0;
         short length = (short) sequence.length();
         for (int i = 0; i < length; i++) {
-            result += base11andNumber(sequence.charAt(length - i - 1))*Math.pow(11, i);
+            result += toBase11andNumber(sequence.charAt(length - i - 1))*Math.pow(11, i);
         }
         return result;
     }
@@ -23,7 +23,7 @@ public class AAEncoder {
      * @param aa amino acid (upper case)
      * @return number representation of the amino acid in the base 11 alphabet
      */
-    private static short base11andNumber(char aa) {
+    private static short toBase11andNumber(char aa) {
         switch (aa) {
             case 'P' -> { return 0; }
             case 'W' -> { return 1; }
@@ -45,7 +45,7 @@ public class AAEncoder {
      * @param aa amino acid
      * @return amino acid in the base 11 alphabet
      */
-    private static char base11(char aa) {
+    private static char toBase11(char aa) {
         switch (aa) {
             case 'P' -> { return 'P'; }
             case 'W' -> { return 'W'; }
@@ -58,6 +58,57 @@ public class AAEncoder {
             case 'K', 'R', 'Q', 'E', 'D', 'N' -> { return 'K'; }
             case 'G' -> { return 'G'; }
             case 'A', 'S', 'T' -> { return 'A'; }
+            default -> throw new IllegalArgumentException("Invalid amino acid: " + aa);
+        }
+    }
+
+    /**
+     * Converts a long to a protein sequence in the base 11 alphabet.
+     * @param sequence long representation of the sequence in a base 11 alphabet
+     * @return protein sequence
+     */
+    private static String fromNumberTo11(long sequence) {
+        StringBuilder result = new StringBuilder();
+        while (sequence > 0) {
+            result.append(fromNumber((short) (sequence % 11)));
+            sequence /= 11;
+        }
+        return result.reverse().toString();
+    }
+
+    /**
+     * Converts a long to a protein sequence in the base 11 alphabet with a specified length.
+     * @param sequence long representation of the sequence in a base 11 alphabet
+     * @param length length of the sequence
+     * @return protein sequence
+     */
+    private static String fromNumberTo11(long sequence, int length) {
+        StringBuilder result = new StringBuilder();
+        for (int i = 0; i < length; i++) {
+            result.append(fromNumber((short) (sequence % 11)));
+            sequence /= 11;
+        }
+        return result.reverse().toString();
+    }
+
+    /**
+     * Converts the number representation of an amino acid in the base 11 alphabet to an amino acid.
+     * @param aa number representation of the amino acid in the base 11 alphabet
+     * @return amino acid
+     */
+    private static char fromNumber(short aa) {
+        switch (aa) {
+            case 0 -> { return 'P'; }
+            case 1 -> { return 'W'; }
+            case 2 -> { return 'Y'; }
+            case 3 -> { return 'F'; }
+            case 4 -> { return 'M'; }
+            case 5 -> { return 'L'; }
+            case 6 -> { return 'C'; }
+            case 7 -> { return 'H'; }
+            case 8 -> { return 'K'; }
+            case 9 -> { return 'G'; }
+            case 10 -> { return 'A'; }
             default -> throw new IllegalArgumentException("Invalid amino acid: " + aa);
         }
     }

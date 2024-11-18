@@ -23,8 +23,8 @@ public class NCBIReader {
      */
     @NotNull
     public static Tree readTaxonomyWithAccessions(
-            @NotNull String nodesDumpfile,
-            @NotNull String namesDumpfile,
+            @NotNull File nodesDumpfile,
+            @NotNull File namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings) throws IOException {
 
         final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>(2700000);
@@ -43,8 +43,8 @@ public class NCBIReader {
      */
     @NotNull
     public static Tree readTaxonomyWithAccessions(
-            @NotNull String nodesDumpfile,
-            @NotNull String namesDumpfile,
+            @NotNull File nodesDumpfile,
+            @NotNull File namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings,
             boolean debug) throws IOException {
 
@@ -57,8 +57,8 @@ public class NCBIReader {
 
     @NotNull
     private static Tree readTaxonomyWithAccessions(
-            @NotNull String nodesDumpfile,
-            @NotNull String namesDumpfile,
+            @NotNull File nodesDumpfile,
+            @NotNull File namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings,
             @NotNull Tree tree) throws IOException {
         System.out.println("[NCBIReader] Reading nodes dumpfile...");
@@ -83,7 +83,7 @@ public class NCBIReader {
      * @throws IOException
      */
     @NotNull
-    public static Tree readTaxonomy(@NotNull String nodesDumpfile, @NotNull String namesDumpfile) throws IOException {
+    public static Tree readTaxonomy(@NotNull File nodesDumpfile, @NotNull File namesDumpfile){
         final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
         final Tree tree = new Tree(idMap);
         System.out.println("[NCBIReader] Reading nodes dumpfile...");
@@ -151,9 +151,9 @@ public static void annotateNrWithLCA(String pathNrInput, String pathNrOutput, Tr
      * @param nodesDumpfile: path to the file
      * @param tree: Tree with idMap to store the nodes
      */
-    private static void readNodesDumpfile(String nodesDumpfile, Tree tree) throws IOException {
+    private static void readNodesDumpfile(File nodesDumpfile, Tree tree){
         HashMap<Integer, Integer> parentMap = new HashMap<>();
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(nodesDumpfile))) {
+        try (BufferedReader br = Files.newBufferedReader(nodesDumpfile.toPath())) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t\\|\t");
@@ -165,6 +165,8 @@ public static void annotateNrWithLCA(String pathNrInput, String pathNrOutput, Tr
                 // parents are recorded separately since the node objects might not have been created yet
                 parentMap.put(taxId, parentTaxId);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         // set the parent-child relationships after all nodes have been created
         parentMap.forEach( (nodeId, parentId) -> {
@@ -180,8 +182,8 @@ public static void annotateNrWithLCA(String pathNrInput, String pathNrOutput, Tr
      * @param namesDumpfile: path to the file
      * @param tree: Tree with idMap of tax_id -> Node objects
      */
-    public static void readNamesDumpfile(String namesDumpfile, Tree tree) throws IOException {
-        try (BufferedReader br = Files.newBufferedReader(Paths.get(namesDumpfile))) {
+    public static void readNamesDumpfile(File namesDumpfile, Tree tree) {
+        try (BufferedReader br = Files.newBufferedReader(namesDumpfile.toPath())) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t\\|\t");
@@ -190,6 +192,8 @@ public static void annotateNrWithLCA(String pathNrInput, String pathNrOutput, Tr
                 Node node = tree.idMap.get(taxId);
                 node.addLabel(label);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
     public static void readAccessionMap(String accessionMapFile, int accessionCol, int taxIdCol, Tree tree) throws IOException {

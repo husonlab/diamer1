@@ -3,12 +3,12 @@ package org.husonlab.diamer2.indexing;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.seq.FASTA;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.*;
 
-import static org.husonlab.diamer2.alphabet.AAEncoder.base11andNumber;
+import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11andNumber;
 
 public class Indexer {
     private final NCBIReader.Tree tree;
@@ -42,11 +42,10 @@ public class Indexer {
 
     /**
      * Run indexing on a FASTA database and add kmers to the buckets.
-     * @param pathFasta Path to the FASTA database.
-     * @throws IOException
+     * @param fastaFile Path to the FASTA database.
      */
-    public void index(String pathFasta) throws IOException {
-        System.out.println("[Indexer] Starting indexing on " + pathFasta);
+    public void index(File fastaFile) {
+        System.out.println("[Indexer] Starting indexing on " + fastaFile);
         final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
                 MAX_THREADS,
                 MAX_THREADS,
@@ -58,7 +57,7 @@ public class Indexer {
         StringBuilder sequence = new StringBuilder();
         FASTA[] batch = new FASTA[FASTA_BATCH_SIZE];
 
-        try (BufferedReader br = new BufferedReader(new FileReader(pathFasta))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(fastaFile))) {
             int processedFastas = 0;
             long timerStart = System.currentTimeMillis();
             String line;
@@ -90,6 +89,8 @@ public class Indexer {
             if (newData) {
                 processBatch(batch, threadPoolExecutor);
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
         threadPoolExecutor.shutdown();
         try {
@@ -117,11 +118,14 @@ public class Indexer {
         try {
             threadPoolExecutor.execute(() -> {
                 for (FASTA fasta : fastas) {
+                    if (fasta == null) {
+                        continue;
+                    }
                     String sequence = fasta.getSequence();
                     int taxId = Integer.parseInt(fasta.getHeader().split(" ")[0].substring(1));
-                    for (int i = 0; i + 15 < sequence.length(); i++) {
+                    for (int i = 0; i + 15 <= sequence.length(); i++) {
                         String kmer = sequence.substring(i, i + 15);
-                        long kmerEnc = base11andNumber(kmer);
+                        long kmerEnc = toBase11andNumber(kmer);
                         short bucketId = (short) (kmerEnc & 0b1111111111);
                         if (bucketId < bucketRange[1] - bucketRange[0]) {
                             bucketMaps[bucketId].computeIfAbsent(kmerEnc, k -> taxId);
@@ -145,14 +149,30 @@ public class Indexer {
      * @return Array of long arrays (buckets) with sorted longs that encode kmer and taxId.
      */
     public long[][] getBuckets() {
-        return new long[1][1];
+        long[][] buckets = new long[bucketMaps.length][];
+        for (int i = 0; i < bucketMaps.length; i++) {
+            buckets[i] = new long[bucketMaps[i].size()];
+            int j = 0;
+            for (ConcurrentHashMap.Entry<Long, Integer> entry : bucketMaps[i].entrySet()) {
+                buckets[i][j] = (entry.getKey() << 22) | entry.getValue();
+                j++;
+            }
+        }
+        return buckets;
     }
 
-    public void sortBuckets() {
-        for (int i = 0; i < bucketMaps.length; i++) {
-            bucketMaps[i] = new ConcurrentHashMap<>(bucketMaps[i].entrySet().stream()
-                    .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                    .collect(ConcurrentHashMap::new, (m, e) -> m.put(e.getKey(), e.getValue()), ConcurrentHashMap::putAll));
+    public void writeBuckets(Path path) {
+        long[][] buckets = getBuckets();
+        for (int i = 0; i < bucketRange[1] - bucketRange[0]; i++) {
+            try (FileOutputStream fos = new FileOutputStream(path.resolve("bucket" + i + ".bin").toString());
+                 DataOutputStream dos = new DataOutputStream(fos)) {
+                dos.writeInt(buckets[i].length);
+                for (long kmer : buckets[i]) {
+                    dos.writeLong(kmer);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 

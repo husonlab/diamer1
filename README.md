@@ -10,7 +10,7 @@
 * Add the taxon id of the LCA of all accessions that can be found in the taxonomy
 * Skip entries, that do not have an accession in the accession2taxid map
   * accession2taxid: 325,908,528 entries were skipped
-  * accession2taxid.FULL + dead_prot.accession2taxid:
+  * accession2taxid.FULL + dead_prot.accession2taxid: 583,290 were skipped (811,611,461 remaining)
 ## 2. Creating database k-mer index
 ### 2.1 Reading nodes, and names
 ### 2.2 Indexing
@@ -46,6 +46,7 @@
   * 22,855,959
 
 # NCBI dataset:
+* nr.fsa: 812,194,751 sequences
 * nodes.dmp: 2,613,902 taxon ids in taxonomy
 * prot.accession2taxid: 1,381,601,160 entries
   * almost all taxids also occur in the taxonomy
