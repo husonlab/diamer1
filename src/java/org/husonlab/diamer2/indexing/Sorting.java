@@ -13,6 +13,11 @@ public class Sorting {
         return input;
     }
 
+    /**
+     * Sorts a long array by its first 11 bits.
+     * @param input Array to sort.
+     * @return Array sorted by the first 11 bits.
+     */
     public static long[] countingSort(long[] input, int shift) {
         final int[] count = new int[2048];
         final long[] output = new long[input.length];

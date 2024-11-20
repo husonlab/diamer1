@@ -13,7 +13,11 @@ public class AAEncoder {
         long result = 0;
         short length = (short) sequence.length();
         for (int i = 0; i < length; i++) {
-            result += toBase11andNumber(sequence.charAt(length - i - 1))*Math.pow(11, i);
+            try {
+                result += toBase11andNumber(sequence.charAt(length - i - 1))*Math.pow(11, i);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+            }
         }
         return result;
     }
@@ -67,7 +71,7 @@ public class AAEncoder {
      * @param sequence long representation of the sequence in a base 11 alphabet
      * @return protein sequence
      */
-    private static String fromNumberTo11(long sequence) {
+    private static String fromNumberToBase11(long sequence) {
         StringBuilder result = new StringBuilder();
         while (sequence > 0) {
             result.append(fromNumber((short) (sequence % 11)));
@@ -82,7 +86,7 @@ public class AAEncoder {
      * @param length length of the sequence
      * @return protein sequence
      */
-    private static String fromNumberTo11(long sequence, int length) {
+    private static String fromNumberToBase11(long sequence, int length) {
         StringBuilder result = new StringBuilder();
         for (int i = 0; i < length; i++) {
             result.append(fromNumber((short) (sequence % 11)));

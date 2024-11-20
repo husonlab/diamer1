@@ -15,6 +15,8 @@
 ### 2.1 Reading nodes, and names
 ### 2.2 Indexing
 * Reading annotated nr database and index kmers
+* Took ~ 100GB and ~ 1:30h for 10 buckets
+* Indexing whole DB start 20.11.2024 14:15
 
 # Questions:
 * How to handle weired amino acid letters?

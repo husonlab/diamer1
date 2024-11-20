@@ -1,12 +1,13 @@
 package org.husonlab.diamer2.benchmarking;
 
 
+import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 
 import java.util.concurrent.ConcurrentHashMap;
 
 public class RankMapping {
-    public static void computeKmerRankMapping(ConcurrentHashMap<Long, Integer>[] buckets, NCBIReader.Tree tree) {
+    public static void computeKmerRankMapping(ConcurrentHashMap<Long, Integer>[] buckets, Tree tree) {
         final ConcurrentHashMap<String, Integer> rankMapping = new ConcurrentHashMap<>();
         for (ConcurrentHashMap<Long, Integer> bucket : buckets) {
             bucket.forEachEntry(12, entry -> {

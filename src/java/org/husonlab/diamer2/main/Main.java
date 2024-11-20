@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
+import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 
@@ -58,6 +59,15 @@ public class Main {
                     .hasArgs()
                     .type(Integer.class)
                     .converter((Converter<Integer, NumberFormatException>) Integer::parseInt)
+                    .build()
+        );
+        options.addOption(
+                Option.builder("b")
+                    .longOpt("buckets")
+                    .argName("Number")
+                    .desc("Number of buckets to process in one cycle.")
+                    .hasArg()
+                    .type(Integer.class)
                     .build()
         );
         options.addOption(
@@ -147,12 +157,13 @@ public class Main {
         if (cli.hasOption("preprocess")) {
             System.out.println("Preprocessing");
         } else if (cli.hasOption("indexdb")) {
-            if (!cli.hasOption("no") || !cli.hasOption("na")) {
+            if (!cli.hasOption("no") || !cli.hasOption("na") || !cli.hasOption("d")) {
                 System.err.println("Missing NCBI nodes and names files for indexing database task.");
                 System.exit(1);
             }
             System.out.println("Indexing database");
             try {
+                int bucketsPerCycle = cli.getParsedOptionValue("b");
                 File nodes = cli.getParsedOptionValue("no");
                 File names = cli.getParsedOptionValue("na");
                 File database = cli.getParsedOptionValue("d");
@@ -162,11 +173,9 @@ public class Main {
                     System.err.println("One or more required files do not exist.");
                     System.exit(1);
                 }
-                NCBIReader.Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                Indexer indexer = new Indexer(tree, maxThreads, 1000, 100, new short[]{0, 10});
-                indexer.index(database);
-                System.out.println("Writing buckets to " + output);
-                indexer.writeBuckets(output);
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                Indexer indexer = new Indexer(tree, maxThreads, 1000, 100, bucketsPerCycle);
+                indexer.index(database, output);
             } catch (ParseException | NullPointerException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -175,18 +184,6 @@ public class Main {
             System.out.println("Indexing reads");
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");
-            long[] testarray = {
-                    0b11100000000001000000000,
-                    0b01000000111000000000000,
-                    0b00100000000000000000000,
-                    0b10100000000000011000000,
-                    0b00100000000000000000000,
-                    0b10000000000000000000000
-            };
-            long[] sorted = radixSort44bits(testarray);
-            for (long l: sorted) {
-                System.out.println(l >> 20);
-            }
         }
 
 //        String pathNodes = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\nodes100.dmp";

@@ -8,10 +8,11 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import java.util.concurrent.TimeUnit;
+import org.husonlab.diamer2.graph.Tree;
+import org.husonlab.diamer2.graph.Node;
 
 public class NCBIReader {
 
@@ -228,142 +229,4 @@ public static void annotateNrWithLCA(String pathNrInput, String pathNrOutput, Tr
         }
     }
     public record AccessionMapping(String mappingFile, int accessionCol, int taxIdCol) {}
-    public static class Node {
-        private final int taxId;                // required
-        private Node parent;                    // can be null
-        private final ArrayList<Node> children; // can be empty
-        private final ArrayList<String> labels; // can be empty
-        private String rank;                    // can be null
-
-        public Node(int taxId) {
-            this.taxId = taxId;
-            this.children = new ArrayList<>();
-            this.labels = new ArrayList<>();
-        }
-
-        public Node(int taxId, Node parent) {
-            this.taxId = taxId;
-            this.parent = parent;
-
-            this.children = new ArrayList<>();
-            this.labels = new ArrayList<>();
-        }
-
-        public Node(int taxId, String rank) {
-            this.taxId = taxId;
-            this.rank = rank;
-
-            this.children = new ArrayList<>();
-            this.labels = new ArrayList<>();
-        }
-
-        public Node(int taxId, Node parent, String rank) {
-            this.taxId = taxId;
-            this.parent = parent;
-            this.rank = rank;
-
-            this.children = new ArrayList<>();
-            this.labels = new ArrayList<>();
-        }
-
-        public void addChild(Node child) {
-            children.add(child);
-        }
-
-        public void addLabel(String label) {
-            labels.add(label);
-        }
-
-        public void setParent(Node parent) {
-            this.parent = parent;
-        }
-
-        public String toString() {
-            return "(%s) %s (%d)"
-                    .formatted(
-                            !Objects.isNull(this.rank) ? this.rank : "no rank",
-                            this.labels.size() > 0 ? this.labels.get(0) : "no labels",
-                            this.taxId
-                    );
-        }
-
-        public ArrayList<Node> getChildren() {
-            return children;
-        }
-
-        public Node getParent() {
-            return parent;
-        }
-
-        public int getTaxId() {
-            return taxId;
-        }
-
-        public ArrayList<String> getLabels() {
-            return labels;
-        }
-
-        public String getRank() {
-            return rank;
-        }
-
-        public void setRank(String rank) {
-            this.rank = rank;
-        }
-    }
-
-    public static class Tree {
-        public final ConcurrentHashMap<Integer, Node> idMap;
-        @Nullable
-        public final ConcurrentHashMap<String, Integer> accessionMap;
-        public Tree(ConcurrentHashMap<Integer, Node> idMap, @Nullable ConcurrentHashMap<String, Integer> accessionMap) {
-            this.idMap = idMap;
-            this.accessionMap = accessionMap;
-        }
-
-        public Tree(ConcurrentHashMap<Integer, Node> idMap) {
-            this.idMap = idMap;
-            this.accessionMap = null;
-        }
-
-        public Node findLCA(Node node1, Node node2) {
-            ArrayList<Node> path1 = pathToRoot(node1);
-            ArrayList<Node> path2 = pathToRoot(node2);
-            Node mrca = null;
-            int difference = path1.size() - path2.size();
-            if (difference > 0) {
-                for (int i = path2.size() - 1; i >= 0; i--) {
-                    if (path2.get(i).equals(path1.get(i + difference))) {
-                        mrca = path2.get(i);
-                    } else {
-                        break;
-                    }
-                }
-            } else {
-                for (int i = path1.size() - 1; i >= 0; i--) {
-                    if (path1.get(i).equals(path2.get(i - difference))) {
-                        mrca = path1.get(i);
-                    } else {
-                        break;
-                    }
-                }
-            }
-            return mrca;
-        }
-
-        public int findLCA(int taxId1, int taxId2) {
-            return findLCA(idMap.get(taxId1), idMap.get(taxId2)).getTaxId();
-        }
-
-        public ArrayList<Node> pathToRoot(Node node) {
-            ArrayList<Node> path = new ArrayList<>();
-            Node prevNode = null;
-            while (node != prevNode) {
-                path.add(node);
-                prevNode = node;
-                node = node.getParent();
-            }
-            return path;
-        }
-    }
 }
