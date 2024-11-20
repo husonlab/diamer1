@@ -16,7 +16,10 @@
 ### 2.2 Indexing
 * Reading annotated nr database and index kmers
 * Took ~ 100GB and ~ 1:30h for 10 buckets
-* Indexing whole DB start 20.11.2024 14:15
+* Indexing whole DB start 20.11.2024 15:20
+  * ~ 320GB
+  * bucket size ~ 13.660.000
+  * ~ 3h/128 buckets
 
 # Questions:
 * How to handle weired amino acid letters?
@@ -54,6 +57,12 @@
   * almost all taxids also occur in the taxonomy
 * prot.accession2taxid.FULL: 7,482,355,539 entries
 * dead_prot.accession2taxid: 158,629,501 entries
+
+# Bash commands
+## Extracting n sequences from a fasta file
+````shell
+awk '/^>/ {n++} n>1000 {exit} {print}' input.fasta > output.fasta
+````
 
 ## Source links
 * [nr database](https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/)

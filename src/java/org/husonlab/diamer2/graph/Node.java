@@ -1,14 +1,17 @@
 package org.husonlab.diamer2.graph;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.Objects;
 
 public class Node {
-    private final int taxId;                // required
-    private Node parent;                    // can be null
-    private final ArrayList<Node> children; // can be empty
-    private final ArrayList<String> labels; // can be empty
-    private String rank;                    // can be null
+    private final int taxId;
+    @Nullable
+    private Node parent;
+    private final ArrayList<Node> children;
+    private final ArrayList<String> labels;
+    private String rank;
 
     public Node(int taxId) {
         this.taxId = taxId;

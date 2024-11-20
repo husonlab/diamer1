@@ -6,7 +6,7 @@ public class AAEncoder {
      * @param sequence amino acid sequence
      * @return long representation of the sequence in a base 11 alphabet
      */
-    public static long toBase11andNumber(String sequence) {
+    public static long toBase11AndNumber(String sequence) {
         if (sequence.length() > 18) {
             throw new IllegalArgumentException("Sequence too long. Not more than 18 amino acids can be encoded in a long.");
         }
@@ -14,7 +14,7 @@ public class AAEncoder {
         short length = (short) sequence.length();
         for (int i = 0; i < length; i++) {
             try {
-                result += toBase11andNumber(sequence.charAt(length - i - 1))*Math.pow(11, i);
+                result += toBase11AndNumber(sequence.charAt(length - i - 1))*Math.pow(11, i);
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             }
@@ -27,7 +27,7 @@ public class AAEncoder {
      * @param aa amino acid (upper case)
      * @return number representation of the amino acid in the base 11 alphabet
      */
-    private static short toBase11andNumber(char aa) {
+    public static short toBase11AndNumber(char aa) {
         switch (aa) {
             case 'P' -> { return 0; }
             case 'W' -> { return 1; }

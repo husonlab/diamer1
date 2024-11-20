@@ -8,7 +8,7 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.concurrent.*;
 
-import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11andNumber;
+import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11AndNumber;
 
 public class Indexer {
     private final Tree tree;
@@ -16,6 +16,8 @@ public class Indexer {
     private final int MAX_QUEUE_SIZE;
     private final int FASTA_BATCH_SIZE;
     private final int bucketsPerCycle;
+    private final LinkedList<int[]> bucketRangesToProcess;
+    private final ThreadPoolExecutor threadPoolExecutor;
     private int[] currentBucketRange = new int[2];
 
     /**
@@ -26,16 +28,14 @@ public class Indexer {
      * @param FASTA_BATCH_SIZE Number of FASTA sequences to process in each batch (thread).
      */
     public Indexer(Tree tree, int MAX_THREADS, int MAX_QUEUE_SIZE, int FASTA_BATCH_SIZE, int bucketsPerCycle) {
+        // Initialize the parameters of the Indexer
         this.tree = tree;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.FASTA_BATCH_SIZE = FASTA_BATCH_SIZE;
         this.bucketsPerCycle = bucketsPerCycle;
-    }
-
-    public void index(File fastaFile, Path outPath) {
-        System.out.println("[Indexer] Indexing " + fastaFile + " into " + outPath + " with " + MAX_THREADS + " threads.");
-        LinkedList<int[]> bucketRangesToProcess = new LinkedList<>();
+        this.bucketRangesToProcess = new LinkedList<>();
+        // Divide the 1024 buckets into ranges to process in each cycle
         int i = 0;
         while (i < 1024) {
             int[] bucketRange = new int[2];
@@ -44,8 +44,20 @@ public class Indexer {
             bucketRangesToProcess.add(bucketRange);
             i += bucketsPerCycle;
         }
+        this.threadPoolExecutor = new ThreadPoolExecutor(
+                1,
+                MAX_THREADS,
+                500L,
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+    }
+
+    public void index(File fastaFile, Path outPath) {
+        System.out.println("[Indexer] Indexing " + fastaFile + " into " + outPath + " with " + MAX_THREADS + " threads.");
         for (int[] rangeToProcess : bucketRangesToProcess) {
             currentBucketRange = rangeToProcess;
+            System.out.println("[Indexer] Indexing buckets " + currentBucketRange[0] + " - " + currentBucketRange[1]);
             indexCurrentRange(fastaFile, outPath);
         }
     }
@@ -56,24 +68,22 @@ public class Indexer {
      */
     private void indexCurrentRange(File fastaFile, Path outPath) {
         System.out.println("[Indexer] Indexing buckets " + currentBucketRange[0] + " - " + currentBucketRange[1]);
+
+        // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
         final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
         for (int i = 0; i < currentBucketRange[1] - currentBucketRange[0]; i++) {
             bucketMaps[i] = new ConcurrentHashMap<Long, Integer>(21000000);
         }
-        final ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
-                MAX_THREADS,
-                MAX_THREADS,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+
+        // Initialize variable for FASTA reading
         String header = null;
         StringBuilder sequence = new StringBuilder();
         FASTA[] batch = new FASTA[FASTA_BATCH_SIZE];
-
         long timerStart = System.currentTimeMillis();
         int processedFastasLastPrint = 0;
         int processedFastas = 0;
+
+        // Read the FASTA database and process the sequences in batches
         try (BufferedReader br = new BufferedReader(new FileReader(fastaFile))) {
             String line;
             boolean newData = false; // Flag to indicate if new data was added to the batch to avoid processing empty batches.
@@ -91,8 +101,11 @@ public class Indexer {
                     sequence.append(line);
                 }
                 if (processedFastas % FASTA_BATCH_SIZE == 0 && newData) {
-                    processBatch(batch, threadPoolExecutor, bucketMaps);
+                    // Submit a new FastaBatchProcessor thread to process the batch
+                    threadPoolExecutor.submit(new FastaBatchProcessor(batch, bucketMaps, tree, currentBucketRange));
                     newData = false;
+
+                    // Print progress every minute
                     if (System.currentTimeMillis() - timerStart > 60000) {
                         double mSequencesPerSecond = (processedFastas - processedFastasLastPrint) / 60f;
                         System.out.printf("[Indexer] (buckets %d - %d) Processed %dM sequences (%.2f seq/s)%n",
@@ -104,7 +117,8 @@ public class Indexer {
             }
             batch[processedFastas % FASTA_BATCH_SIZE] = new FASTA(header, sequence.toString());
             if (newData) {
-                processBatch(batch, threadPoolExecutor, bucketMaps);
+                // Submit a new FastaBatchProcessor thread to process the batch
+                threadPoolExecutor.submit(new FastaBatchProcessor(batch, bucketMaps, tree, currentBucketRange));
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -124,36 +138,6 @@ public class Indexer {
             System.out.println("[Indexer] Size of bucket " + j + ": " + bucketMaps[j].size());
         }
         writeBuckets(bucketMaps, outPath);
-    }
-
-    /**
-     * Process a batch of FASTA sequences and add kmers to the respective buckets.
-     * @param fastas Array (batch) of FASTA sequences to process.
-     * @param threadPoolExecutor ThreadPoolExecutor to run the processing in parallel.
-     */
-    private void processBatch(FASTA[] fastas, ThreadPoolExecutor threadPoolExecutor, ConcurrentHashMap<Long, Integer>[] bucketMaps) {
-        try {
-            threadPoolExecutor.execute(() -> {
-                for (FASTA fasta : fastas) {
-                    if (fasta == null) {
-                        continue;
-                    }
-                    String sequence = fasta.getSequence();
-                    int taxId = Integer.parseInt(fasta.getHeader().split(" ")[0].substring(1));
-                    for (int i = 0; i + 15 <= sequence.length(); i++) {
-                        String kmer = sequence.substring(i, i + 15);
-                        long kmerEnc = toBase11andNumber(kmer);
-                        int bucketId = (int) (kmerEnc & 0b1111111111);
-                        if (bucketId < currentBucketRange[1] - currentBucketRange[0]) {
-                            bucketMaps[bucketId].computeIfAbsent(kmerEnc, k -> taxId);
-                            bucketMaps[bucketId].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
-                        }
-                    }
-                }
-            });
-        } catch (RejectedExecutionException e) {
-            e.printStackTrace();
-        }
     }
 
     /**

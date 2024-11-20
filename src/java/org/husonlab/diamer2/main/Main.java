@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
+import org.husonlab.diamer2.alphabet.KmerEncoder;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
@@ -184,6 +185,8 @@ public class Main {
             System.out.println("Indexing reads");
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");
+            KmerEncoder encoder = new KmerEncoder(4, 4, "YWFP");
+            System.out.println(encoder.getEncodedKmer());
         }
 
 //        String pathNodes = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\nodes100.dmp";
