@@ -8,7 +8,6 @@ import org.husonlab.diamer2.io.NCBIReader;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.Arrays;
 
 
 public class Main {
@@ -19,7 +18,7 @@ public class Main {
         computationOptions.addOption(
                 Option.builder()
                         .longOpt("preprocess")
-                        .desc("Preprocess FASTA database")
+                        .desc("Preprocess Sequence database")
                         .build()
         );
         computationOptions.addOption(
@@ -174,7 +173,7 @@ public class Main {
                 }
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 Indexer indexer = new Indexer(tree, maxThreads, 1000, 100, bucketsPerCycle);
-                indexer.index(database, output);
+                indexer.indexDB(database, output);
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
                 System.exit(1);

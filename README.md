@@ -16,7 +16,7 @@
 ### 2.2 Indexing
 * Reading annotated nr database and index kmers
 * Took ~ 100GB and ~ 1:30h for 10 buckets
-* Indexing whole DB start 21.11.2024 11:30
+* Indexing whole DB start 21.11.2024 14:06
 * 
   * ~ 320GB
   * bucket size ~ 13.660.000
@@ -24,6 +24,7 @@
 
 # Questions:
 * How to handle weired amino acid letters?
+* How to handle stop codons?
 
 # TODO
 * How to deal with identical protein groups?
@@ -39,6 +40,25 @@
 |-------------------|------------------|-------------------|
 | kmer (0 - 9)      | kmer (10 - 52)   | taxid (0 - 21)    |
 | 2^10              | 2^42             | 2^22              |
+
+# 11 Letter alphabet
+
+| AA     | Frequency (%) |
+|--------|---------------|
+| KRQEDN | 31.2          |
+| LIV    | 17.4          |
+| S      | 8.1           |
+| G      | 7.4           |
+| A      | 7.4           |
+| T      | 6.2           |
+| P      | 5             |
+| F      | 4             |
+| Y      | 3.3           |
+| C      | 3.3           |
+| H      | 2.9           |
+| M      | 1.8           |
+| W      | 1.3           |
+[source](https://legacy.nimbios.org//~gross/bioed/webmodules/aminoacid.htm)
 
 
 # GTDB

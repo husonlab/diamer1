@@ -6,7 +6,7 @@ public class AAEncoder {
      * @param sequence amino acid sequence
      * @return long representation of the sequence in a base 11 alphabet
      */
-    public static long toBase11AndNumber(String sequence) {
+    public static long toBase11(String sequence) {
         if (sequence.length() > 18) {
             throw new IllegalArgumentException("Sequence too long. Not more than 18 amino acids can be encoded in a long.");
         }
@@ -14,7 +14,7 @@ public class AAEncoder {
         short length = (short) sequence.length();
         for (int i = 0; i < length; i++) {
             try {
-                result += toBase11AndNumber(sequence.charAt(length - i - 1))*Math.pow(11, i);
+                result += (long) (toBase11(sequence.charAt(length - i - 1))*Math.pow(11, i));
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             }
@@ -27,92 +27,22 @@ public class AAEncoder {
      * @param aa amino acid (upper case)
      * @return number representation of the amino acid in the base 11 alphabet
      */
-    public static short toBase11AndNumber(char aa) {
+    public static short toBase11(char aa) {
         switch (aa) {
-            case 'P' -> { return 0; }
-            case 'W' -> { return 1; }
-            case 'Y' -> { return 2; }
-            case 'F' -> { return 3; }
-            case 'M' -> { return 4; }
-            case 'L', 'I', 'V', 'J' -> { return 5; } // J leucine/isoleucine
-            case 'C', 'U' -> { return 6; } // U selenocysteine
-            case 'H' -> { return 7; }
-            case 'K', 'R', 'Q', 'E', 'D', 'N', 'B', 'Z', 'O', 'X' -> { return 8; } // X unknown, B aspartate/asparagine, Z glutamate/glutamine, O pyrrolysine
-            case 'G' -> { return 9; }
-            case 'A', 'S', 'T' -> { return 10; }
-            default -> throw new IllegalArgumentException("Invalid amino acid: " + aa);
-        }
-    }
-
-    /**
-     * Converts a protein sequence to an alphabet of size 11.
-     * @param aa amino acid
-     * @return amino acid in the base 11 alphabet
-     */
-    private static char toBase11(char aa) {
-        switch (aa) {
-            case 'P' -> { return 'P'; }
-            case 'W' -> { return 'W'; }
-            case 'Y' -> { return 'Y'; }
-            case 'F' -> { return 'F'; }
-            case 'M' -> { return 'M'; }
-            case 'L', 'I', 'V' -> { return 'L'; }
-            case 'C' -> { return 'C'; }
-            case 'H' -> { return 'H'; }
-            case 'K', 'R', 'Q', 'E', 'D', 'N' -> { return 'K'; }
-            case 'G' -> { return 'G'; }
-            case 'A', 'S', 'T' -> { return 'A'; }
-            default -> throw new IllegalArgumentException("Invalid amino acid: " + aa);
-        }
-    }
-
-    /**
-     * Converts a long to a protein sequence in the base 11 alphabet.
-     * @param sequence long representation of the sequence in a base 11 alphabet
-     * @return protein sequence
-     */
-    private static String fromNumberToBase11(long sequence) {
-        StringBuilder result = new StringBuilder();
-        while (sequence > 0) {
-            result.append(fromNumber((short) (sequence % 11)));
-            sequence /= 11;
-        }
-        return result.reverse().toString();
-    }
-
-    /**
-     * Converts a long to a protein sequence in the base 11 alphabet with a specified length.
-     * @param sequence long representation of the sequence in a base 11 alphabet
-     * @param length length of the sequence
-     * @return protein sequence
-     */
-    private static String fromNumberToBase11(long sequence, int length) {
-        StringBuilder result = new StringBuilder();
-        for (int i = 0; i < length; i++) {
-            result.append(fromNumber((short) (sequence % 11)));
-            sequence /= 11;
-        }
-        return result.reverse().toString();
-    }
-
-    /**
-     * Converts the number representation of an amino acid in the base 11 alphabet to an amino acid.
-     * @param aa number representation of the amino acid in the base 11 alphabet
-     * @return amino acid
-     */
-    private static char fromNumber(short aa) {
-        switch (aa) {
-            case 0 -> { return 'P'; }
-            case 1 -> { return 'W'; }
-            case 2 -> { return 'Y'; }
-            case 3 -> { return 'F'; }
-            case 4 -> { return 'M'; }
-            case 5 -> { return 'L'; }
-            case 6 -> { return 'C'; }
-            case 7 -> { return 'H'; }
-            case 8 -> { return 'K'; }
-            case 9 -> { return 'G'; }
-            case 10 -> { return 'A'; }
+            // X unknown, B aspartate/asparagine, Z glutamate/glutamine, O pyrrolysine
+            case 'B', 'D', 'E', 'K', 'N', 'O', 'Q', 'R', 'X', 'Z' -> { return 0; }
+            case 'A', 'S', 'T' -> { return 1; }
+            // J leucine/isoleucine
+            case 'I', 'J', 'L', 'V' -> { return 2; }
+            case 'G' -> { return 3; }
+            case 'P' -> { return 4; }
+            case 'F' -> { return 5; }
+            case 'Y' -> { return 6; }
+            // U selenocysteine
+            case 'C', 'U' -> { return 7; }
+            case 'H' -> { return 8; }
+            case 'M' -> { return 9; }
+            case 'W' -> { return 10; }
             default -> throw new IllegalArgumentException("Invalid amino acid: " + aa);
         }
     }

@@ -7,8 +7,8 @@ import java.nio.file.Paths;
 
 public class ExtractNrAccessions {
     /*
-    Extracts the accession numbers from the headers of a multi FASTA file and writes them to a new file.
-    args[0]: path to the input FASTA file
+    Extracts the accession numbers from the headers of a multi Sequence file and writes them to a new file.
+    args[0]: path to the input Sequence file
     args[1]: path to the output file
      */
     public static void main(String[] args) throws Exception {

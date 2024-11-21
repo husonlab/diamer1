@@ -8,9 +8,9 @@ import java.util.HashSet;
 
 public class ExtractByAccession {
     /*
-    Extracts the sequences from a multi FASTA file that have a specific accession number and writes them to a new file.
+    Extracts the sequences from a multi Sequence file that have a specific accession number and writes them to a new file.
     args[0]: path to the file with the accession numbers (one per line)
-    args[1]: path to the input FASTA file
+    args[1]: path to the input Sequence file
     args[2]: path to the output file
      */
     public static void main(String[] args) throws Exception {

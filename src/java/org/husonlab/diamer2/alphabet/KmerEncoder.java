@@ -2,13 +2,26 @@ package org.husonlab.diamer2.alphabet;
 
 import java.util.LinkedList;
 
-import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11AndNumber;
+import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11;
 
 public class KmerEncoder {
     private final int k;
     private final int alphabetSize;
     private final LinkedList<Integer> kmer;
     private long encodedKmer;
+
+    /**
+     * Class to encode a kmer dynamically.
+     * Chars can be added one after the other and the long representation of the kmer is updated accordingly.
+     * The new char will be added to the kmer and the last char will be removed.
+     * @param k length of the kmer
+     * @param alphabetSize size of the alphabet
+     */
+    public KmerEncoder(int k, int alphabetSize) {
+        this.k = k;
+        this.alphabetSize = alphabetSize;
+        kmer = new LinkedList<>();
+    }
 
     /**
      * Class to encode a kmer dynamically.
@@ -32,7 +45,7 @@ public class KmerEncoder {
      */
     public long initializeKmer(String initialKmer) {
         kmer.clear();
-        initialKmer.chars().forEach(c -> kmer.add((int) toBase11AndNumber((char) c)));
+        initialKmer.chars().forEach(c -> kmer.add((int) toBase11((char) c)));
         encodedKmer = encodeKmer();
         return encodedKmer;
     }
@@ -44,7 +57,7 @@ public class KmerEncoder {
      */
     public long addChar(char c) {
         int oldLetterEncoding = kmer.pop();
-        int newLetterEncoding = toBase11AndNumber(c);
+        int newLetterEncoding = toBase11(c);
         encodedKmer = (long) ((encodedKmer - oldLetterEncoding*Math.pow(alphabetSize, k - 1))*alphabetSize + newLetterEncoding);
         kmer.add(newLetterEncoding);
         return encodedKmer;
