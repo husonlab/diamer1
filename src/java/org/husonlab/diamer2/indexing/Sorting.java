@@ -17,19 +17,6 @@ public class Sorting {
     }
 
     /**
-     * Sorts a long array by its first 44 bits.
-     * @param input Array to sort.
-     * @return Array sorted by the first 44 bits.
-     */
-    @NotNull
-    public static long[] radixSort44bits(@NotNull long[] input, boolean pseudoInPlace) {
-        for (int i = 0; i < 4; i++) {
-            input = countingSort(input, i);
-        }
-        return input;
-    }
-
-    /**
      * Sorts a long array by its first 11 bits.
      * @param input Array to sort.
      * @return Array sorted by the first 11 bits.

@@ -16,7 +16,8 @@
 ### 2.2 Indexing
 * Reading annotated nr database and index kmers
 * Took ~ 100GB and ~ 1:30h for 10 buckets
-* Indexing whole DB start 20.11.2024 15:20
+* Indexing whole DB start 21.11.2024 11:30
+* 
   * ~ 320GB
   * bucket size ~ 13.660.000
   * ~ 3h/128 buckets

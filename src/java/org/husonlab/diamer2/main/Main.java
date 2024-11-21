@@ -6,8 +6,6 @@ import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 
-import static org.husonlab.diamer2.indexing.Sorting.radixSort44bits;
-
 import java.io.*;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -177,7 +175,7 @@ public class Main {
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 Indexer indexer = new Indexer(tree, maxThreads, 1000, 100, bucketsPerCycle);
                 indexer.index(database, output);
-            } catch (ParseException | NullPointerException e) {
+            } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
                 System.exit(1);
             }

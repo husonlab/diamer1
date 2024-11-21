@@ -6,6 +6,11 @@ public class BucketConverter implements Runnable{
     private final ConcurrentHashMap<Long, Integer> bucketMap;
     private final Bucket bucket;
 
+    /**
+     * Converts a ConcurrentHashMap to a Bucket.
+     * @param bucketMap ConcurrentHashMap to convert.
+     * @param bucket Bucket to store the converted data.
+     */
     public BucketConverter(ConcurrentHashMap<Long, Integer> bucketMap, Bucket bucket) {
         this.bucketMap = bucketMap;
         this.bucket = bucket;
