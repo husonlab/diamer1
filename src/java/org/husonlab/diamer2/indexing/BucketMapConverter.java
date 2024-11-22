@@ -2,7 +2,7 @@ package org.husonlab.diamer2.indexing;
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class BucketConverter implements Runnable{
+public class BucketMapConverter implements Runnable{
     private final ConcurrentHashMap<Long, Integer> bucketMap;
     private final Bucket bucket;
 
@@ -11,7 +11,7 @@ public class BucketConverter implements Runnable{
      * @param bucketMap ConcurrentHashMap to convert.
      * @param bucket Bucket to store the converted data.
      */
-    public BucketConverter(ConcurrentHashMap<Long, Integer> bucketMap, Bucket bucket) {
+    public BucketMapConverter(ConcurrentHashMap<Long, Integer> bucketMap, Bucket bucket) {
         this.bucketMap = bucketMap;
         this.bucket = bucket;
     }

@@ -1,13 +1,15 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.alphabet.KmerEncoder;
+import org.husonlab.diamer2.alphabet.DNAEncoder;
+import org.husonlab.diamer2.alphabet.DNAKmerEncoder;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 
 public class Main {
@@ -180,33 +182,25 @@ public class Main {
             }
         } else if (cli.hasOption("indexreads")) {
             System.out.println("Indexing reads");
+            try {
+                int bucketsPerCycle = cli.getParsedOptionValue("b");
+                File reads = cli.getParsedOptionValue("d");
+                Path output = cli.getParsedOptionValue("o");
+
+                Indexer indexer = new Indexer(null, maxThreads, 1000, 100, bucketsPerCycle);
+                indexer.indexReads(reads, output);
+            } catch (ParseException | NullPointerException | IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");
-            KmerEncoder encoder = new KmerEncoder(4, 4, "YWFP");
-            System.out.println(encoder.getEncodedKmer());
+            DNAKmerEncoder kmerEncoder = new DNAKmerEncoder(4, "TT");
+            String dnaSequence = "TCAATGTCTT";
+            for (int i = 0; i < dnaSequence.length(); i++) {
+                System.out.println(kmerEncoder.addNucleotide(dnaSequence.charAt(i)).getEncodedKmers());
+            }
+            System.out.println(kmerEncoder.getEncodedKmers());
         }
-
-//        String pathNodes = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\nodes100.dmp";
-//        String pathNames = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\names100.dmp";
-//        String pathAccessions = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\prot.accession2taxid.FULL100.gz";
-//        String pathAccessionsDead = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
-//        String nr = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\nr100.fsa";
-//        String pathNodesFull = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\nodes.dmp";
-//        String pathNamesFull = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\names.dmp";
-//        String pathAccessionsFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\prot.accession2taxid.FULL.gz";
-//        String pathAccessionsDeadFull = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxmapping\\dead_prot.accession2taxid.gz";
-
-//        NCBIReader.AccessionMapping[] mappings = {
-//                new NCBIReader.AccessionMapping(args[2], 1, 2)
-//        };
-//        NCBIReader.Tree tree = NCBIReader.readTaxonomyWithAccessions(args[0], args[1], mappings, true);
-//        NCBIReader.annotateNrWithLCA(args[4], args[5], tree);
-//        NCBIReader.Tree tree = NCBIReader.readTaxonomy(args[1], args[2]);
-//        Indexer indexer = new Indexer(tree, Integer.parseInt(args[0]), 1000, 100, new short[]{0, 10});
-//        indexer.index(args[3]);
-//        RankMapping.computeKmerRankMapping(indexer.getBuckets(), tree);
-
-        // long[] arr = {431L, 1973L, 1L, 7365L, 913L, 64L};
-        // System.out.println(Arrays.toString(radixSort42bits(arr)));
     }
 }

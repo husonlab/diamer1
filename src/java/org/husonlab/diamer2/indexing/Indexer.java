@@ -59,7 +59,7 @@ public class Indexer {
             currentBucketRange = rangeToProcess;
             System.out.println("[Indexer] Indexing buckets " + currentBucketRange[0] + " - " + currentBucketRange[1]);
             ConcurrentHashMap<Long, Integer>[] bucketMaps = indexDBCurrentRange(fastaFile);
-            Bucket[] buckets = convertBuckets(bucketMaps);
+            Bucket[] buckets = convertBucketMaps(bucketMaps);
             writeBuckets(buckets, outPath);
         }
     }
@@ -69,8 +69,8 @@ public class Indexer {
         for (int[] rangeToProcess : bucketRangesToProcess) {
             currentBucketRange = rangeToProcess;
             System.out.println("[Indexer] Indexing buckets " + currentBucketRange[0] + " - " + currentBucketRange[1]);
-            ConcurrentHashMap<Long, Integer>[] bucketMaps = indexReadsCurrentRange(readsFile);
-            Bucket[] buckets = convertBuckets(bucketMaps);
+            ConcurrentLinkedQueue<Long>[] bucketLists = indexReadsCurrentRange(readsFile);
+            Bucket[] buckets = convertBucketLists(bucketLists);
             writeBuckets(buckets, outPath);
         }
     }
@@ -160,7 +160,7 @@ public class Indexer {
         return bucketMaps;
     }
 
-    private ConcurrentHashMap<Long, Integer>[] indexReadsCurrentRange(File fastqFile) throws IOException {
+    private ConcurrentLinkedQueue<Long>[] indexReadsCurrentRange(File fastqFile) throws IOException {
 
         ConcurrentHashMap<Integer, String> readHeaderMap = new ConcurrentHashMap<>();
 
@@ -172,11 +172,10 @@ public class Indexer {
                 new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
-        // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
-        final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
+        // Initialize LinkedLists to store the kmers and their taxIds during indexing
+        final ConcurrentLinkedQueue<Long>[] buckets = new ConcurrentLinkedQueue[bucketsPerCycle];
         for (int i = 0; i < currentBucketRange[1] - currentBucketRange[0]; i++) {
-            // todo what initial capacity to use?
-            bucketMaps[i] = new ConcurrentHashMap<Long, Integer>();
+            buckets[i] = new ConcurrentLinkedQueue<Long>();
         }
 
         // Read the FastQ file and process the sequences in batches
@@ -194,7 +193,7 @@ public class Indexer {
                 String header = null;
                 String sequence = null;
                 try {
-                    header = line.strip();
+                    header = line.strip().substring(1);
                     sequence = br.readLine().strip();
                     br.readLine(); // skip the "+" line
                     br.readLine(); // skip the quality line
@@ -211,7 +210,7 @@ public class Indexer {
 
                     // Submit a new FastaBatchProcessor thread to process the batch
                     // todo change to fastq
-                    threadPoolExecutor.submit(new FastQBatchProcessor(batch, bucketMaps, readHeaderMap, currentBucketRange, processedReads - BATCH_SIZE));
+                    threadPoolExecutor.submit(new FastQBatchProcessor(batch, buckets, readHeaderMap, currentBucketRange, processedReads - BATCH_SIZE));
                     batch = new Sequence[BATCH_SIZE];
 
                     // Print progress every minute
@@ -220,7 +219,7 @@ public class Indexer {
             }
             // submit the last batch for processing if not empty
             if (batch[0] != null) {
-                threadPoolExecutor.submit(new FastQBatchProcessor(batch, bucketMaps, readHeaderMap, currentBucketRange, processedReads - BATCH_SIZE));
+                threadPoolExecutor.submit(new FastQBatchProcessor(batch, buckets, readHeaderMap, currentBucketRange, processedReads - BATCH_SIZE));
             }
         }
         // #############################################################################################################
@@ -228,10 +227,10 @@ public class Indexer {
         // Shutdown the ThreadPoolExecutor and print size of each bucket
         shutdownThreadPoolExecutor(threadPoolExecutor);
         System.out.println("[Indexer] Finished indexing.");
-        for (int j = 0; j < bucketMaps.length; j++) {
-            System.out.println("[Indexer] Size of bucket " + j + ": " + bucketMaps[j].size());
+        for (int j = 0; j < buckets.length; j++) {
+            System.out.println("[Indexer] Size of bucket " + j + ": " + buckets[j].size());
         }
-        return bucketMaps;
+        return buckets;
     }
 
     /**
@@ -240,7 +239,7 @@ public class Indexer {
      * @param bucketMaps Array of ConcurrentHashMaps with the kmers and their taxIds for each bucket.
      * @return Array of long arrays (buckets) with sorted longs that encode kmer and taxId.
      */
-    public Bucket[] convertBuckets(ConcurrentHashMap<Long, Integer>[] bucketMaps) {
+    public Bucket[] convertBucketMaps(ConcurrentHashMap<Long, Integer>[] bucketMaps) {
         System.out.println("[Indexer] Converting buckets to arrays and sorting...");
 
         final int threads = Math.min(MAX_THREADS, bucketMaps.length);
@@ -255,7 +254,40 @@ public class Indexer {
         Bucket[] buckets = new Bucket[bucketMaps.length];
         for (int i = 0; i < bucketMaps.length; i++) {
             buckets[i] = new Bucket(i + currentBucketRange[0]);
-            threadPoolExecutor.submit(new BucketConverter(bucketMaps[i], buckets[i]));
+            threadPoolExecutor.submit(new BucketMapConverter(bucketMaps[i], buckets[i]));
+        }
+
+        shutdownThreadPoolExecutor(threadPoolExecutor);
+        System.out.println("[Indexer] Finished converting buckets.");
+        return buckets;
+    }
+
+    public Bucket[] convertBucketLists(ConcurrentLinkedQueue<Long>[] bucketLists) {
+        System.out.println("[Indexer] Converting buckets to arrays and sorting...");
+
+        final int threads = Math.min(MAX_THREADS, bucketLists.length);
+        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+                1,
+                threads,
+                500L,
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(Math.min(bucketLists.length - threads, MAX_QUEUE_SIZE)),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+
+        Bucket[] buckets = new Bucket[bucketLists.length];
+        for (int i = 0; i < bucketLists.length; i++) {
+            buckets[i] = new Bucket(i + currentBucketRange[0]);
+            int finalI = i;
+            threadPoolExecutor.submit(() -> {
+                long[] bucketArray = new long[bucketLists[finalI].size()];
+                int j = 0;
+                for (Long encodedKmer : bucketLists[finalI]) {
+                    bucketArray[j] = encodedKmer;
+                    j++;
+                }
+                buckets[finalI].setContent(bucketArray);
+                buckets[finalI].sort();
+            });
         }
 
         shutdownThreadPoolExecutor(threadPoolExecutor);

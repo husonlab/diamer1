@@ -4,7 +4,7 @@ import java.util.LinkedList;
 
 import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11;
 
-public class KmerEncoder {
+public class AAKmerEncoder {
     private final int k;
     private final int alphabetSize;
     private final LinkedList<Integer> kmer;
@@ -17,7 +17,7 @@ public class KmerEncoder {
      * @param k length of the kmer
      * @param alphabetSize size of the alphabet
      */
-    public KmerEncoder(int k, int alphabetSize) {
+    public AAKmerEncoder(int k, int alphabetSize) {
         this.k = k;
         this.alphabetSize = alphabetSize;
         kmer = new LinkedList<>();
@@ -31,7 +31,7 @@ public class KmerEncoder {
      * @param alphabetSize size of the alphabet
      * @param initialKmer initial kmer
      */
-    public KmerEncoder(int k, int alphabetSize, String initialKmer) {
+    public AAKmerEncoder(int k, int alphabetSize, String initialKmer) {
         this.k = k;
         this.alphabetSize = alphabetSize;
         kmer = new LinkedList<>();

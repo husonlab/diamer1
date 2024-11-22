@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.alphabet.KmerEncoder;
+import org.husonlab.diamer2.alphabet.AAKmerEncoder;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.seq.Sequence;
 
@@ -30,7 +30,7 @@ public class FastaBatchProcessor implements Runnable {
 
     @Override
     public void run() {
-        final KmerEncoder encoder = new KmerEncoder(15, 11);
+        final AAKmerEncoder encoder = new AAKmerEncoder(15, 11);
         for (Sequence fasta : sequences) {
             if (fasta == null || fasta.getSequence().isEmpty()) {
                 continue;
