@@ -20,7 +20,7 @@ public class BucketListConverter implements Runnable{
             System.out.println("[Indexer] Sorting bucket " + bucket.getName() + "...");
             bucket.sort();
             System.out.println("[Indexer] Finished converting bucket " + bucket.getName() + ".");
-        } catch (Exception e) {
+        } catch (Throwable e) {
             e.printStackTrace();
         }
     }
