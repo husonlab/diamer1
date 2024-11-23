@@ -97,39 +97,33 @@ public class DNAEncoder {
      * @param codon DNA codon
      * @return short array with the number representation of the codon in forward [0] and reverse [1] orientation.
      */
-    public static Pair<Short, Short> toAAAndBase11AndNumberFR(String codon) {
+    public static short[] toAAAndBase11AndNumberFR(String codon) {
         switch (codon) {
-            case "ACC", "GCC", "TCC" -> { return new Pair<>((short)1, (short)4); }
-            case "CTT" -> { return new Pair<>((short)2, (short)5); }
-            case "CGA", "TGA" -> { return new Pair<>((short)0, (short)1); }
-            case "ACA", "ACG", "ACT", "GCA", "GCG", "GCT", "TCA", "TCG", "TCT" -> {
-                return new Pair<>((short)1, (short)1);
-            }
-            case "GGT" -> { return new Pair<>((short)3, (short)10); }
-            case "AAA", "AAC", "AAG", "AAT", "AGA", "CAA", "CAG", "CGC", "GAA", "GAC", "GAG", "GAT", "TAA", "TAG" -> {
-                return new Pair<>((short)0, (short)0);
-            }
-            case "AGG", "CGG" -> { return new Pair<>((short)0, (short)3); }
-            case "AGC", "AGT" -> { return new Pair<>((short)1, (short)0); }
-            case "GTA" -> { return new Pair<>((short)2, (short)9); }
-            case "ATG" -> { return new Pair<>((short)9, (short)2); }
-            case "GGG" -> { return new Pair<>((short)3, (short)3); }
-            case "TGG" -> { return new Pair<>((short)10, (short)3); }
-            case "CCC" -> { return new Pair<>((short)4, (short)4); }
-            case "TTC" -> { return new Pair<>((short)5, (short)2); }
-            case "TGT" -> { return new Pair<>((short)7, (short)7); }
-            case "TAT" -> { return new Pair<>((short)6, (short)6); }
-            case "CCA", "CCG", "CCT" -> { return new Pair<>((short)4, (short)1); }
-            case "TTT" -> { return new Pair<>((short)5, (short)5); }
-            case "CAC" -> { return new Pair<>((short)8, (short)8); }
-            case "CAT" -> { return new Pair<>((short)8, (short)6); }
-            case "CGT" -> { return new Pair<>((short)0, (short)7); }
-            case "GGA", "GGC" -> { return new Pair<>((short)3, (short)0); }
-            case "TGC" -> { return new Pair<>((short)7, (short)0); }
-            case "TAC" -> { return new Pair<>((short)6, (short)8); }
-            case "ATA", "ATC", "ATT", "CTA", "CTC", "CTG", "GTC", "GTG", "GTT", "TTA", "TTG" -> {
-                return new Pair<>((short)2, (short)2);
-            }
+            case "ACC", "GCC", "TCC" -> { return new short[]{(short)1, (short)4}; }
+            case "CTT" -> { return new short[]{(short)2, (short)5}; }
+            case "CGA", "TGA" -> { return new short[]{(short)0, (short)1}; }
+            case "ACA", "ACG", "ACT", "GCA", "GCG", "GCT", "TCA", "TCG", "TCT" -> { return new short[]{(short)1, (short)1}; }
+            case "GGT" -> { return new short[]{(short)3, (short)10}; }
+            case "AAA", "AAC", "AAG", "AAT", "AGA", "CAA", "CAG", "CGC", "GAA", "GAC", "GAG", "GAT", "TAA", "TAG" -> { return new short[]{(short)0, (short)0}; }
+            case "AGG", "CGG" -> { return new short[]{(short)0, (short)3}; }
+            case "AGC", "AGT" -> { return new short[]{(short)1, (short)0}; }
+            case "GTA" -> { return new short[]{(short)2, (short)9}; }
+            case "ATG" -> { return new short[]{(short)9, (short)2}; }
+            case "GGG" -> { return new short[]{(short)3, (short)3}; }
+            case "TGG" -> { return new short[]{(short)10, (short)3}; }
+            case "CCC" -> { return new short[]{(short)4, (short)4}; }
+            case "TTC" -> { return new short[]{(short)5, (short)2}; }
+            case "TGT" -> { return new short[]{(short)7, (short)7}; }
+            case "TAT" -> { return new short[]{(short)6, (short)6}; }
+            case "CCA", "CCG", "CCT" -> { return new short[]{(short)4, (short)1}; }
+            case "TTT" -> { return new short[]{(short)5, (short)5}; }
+            case "CAC" -> { return new short[]{(short)8, (short)8}; }
+            case "CAT" -> { return new short[]{(short)8, (short)6}; }
+            case "CGT" -> { return new short[]{(short)0, (short)7}; }
+            case "GGA", "GGC" -> { return new short[]{(short)3, (short)0}; }
+            case "TGC" -> { return new short[]{(short)7, (short)0}; }
+            case "TAC" -> { return new short[]{(short)6, (short)8}; }
+            case "ATA", "ATC", "ATT", "CTA", "CTC", "CTG", "GTC", "GTG", "GTT", "TTA", "TTG" -> { return new short[]{(short)2, (short)2}; }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);
         }
     }
@@ -150,8 +144,8 @@ public class DNAEncoder {
             int codonEncoding = toAAAndBase11AndNumber(codon);
             int reverseEncoding = toAAAndBase11AndNumber(reverse);
             String encoding = "(short)" + codonEncoding + ", " + "(short)" + reverseEncoding;
-            encodingToCodons.computeIfAbsent(encoding, _ -> new LinkedList<>());
-            encodingToCodons.computeIfPresent(encoding, (_, v) -> { v.add(codon); return v; });
+            encodingToCodons.computeIfAbsent(encoding, k -> new LinkedList<>());
+            encodingToCodons.computeIfPresent(encoding, (k, v) -> { v.add(codon); return v; });
         }
         for (String encoding : encodingToCodons.keySet()) {
             StringBuilder sb = new StringBuilder();
@@ -160,7 +154,7 @@ public class DNAEncoder {
                 sb.append("\"").append(codon).append("\", ");
             }
             sb.delete(sb.length() - 2, sb.length());
-            sb.append(" -> { return new Pair<>(").append(encoding).append("); }");
+            sb.append(" -> { return new short[]{").append(encoding).append("}; }");
             System.out.println(sb);
         }
     }

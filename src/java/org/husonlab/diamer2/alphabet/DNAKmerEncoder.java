@@ -9,7 +9,7 @@ import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11;
 import static org.husonlab.diamer2.alphabet.DNAEncoder.toAAAndBase11AndNumberFR;
 
 public class DNAKmerEncoder {
-    private final LinkedList<Character> codon;
+    private final StringBuilder codon;
     private final ReadingFrame[] forwardReadingFrames;
     private final ReadingFrame[] reverseReadingFrames;
     private int position;
@@ -18,9 +18,9 @@ public class DNAKmerEncoder {
         if (firstTwoNucleotides.length() != 2) {
             throw new IllegalArgumentException("First two nucleotides must be of length 2");
         }
-        codon = new LinkedList<>();
-        codon.add(firstTwoNucleotides.charAt(0));
-        codon.add(firstTwoNucleotides.charAt(1));
+        codon = new StringBuilder(3);
+        codon.append(firstTwoNucleotides.charAt(0));
+        codon.append(firstTwoNucleotides.charAt(1));
         forwardReadingFrames = new ReadingFrame[3];
         reverseReadingFrames = new ReadingFrame[3];
         for (int i = 0; i < 3; i++) {
@@ -31,21 +31,20 @@ public class DNAKmerEncoder {
     }
 
     public DNAKmerEncoder addNucleotide(char nucleotide) {
-        codon.addLast(nucleotide);
+        codon.append(nucleotide);
         position++;
-        String codonString = codon.stream().map(String::valueOf).collect(Collectors.joining());
-        Pair<Short, Short> encoding = toAAAndBase11AndNumberFR(codonString);
-        forwardReadingFrames[position % 3].addBack(encoding.getFirst());
-        reverseReadingFrames[position % 3].addFront(encoding.getLast());
-        codon.pop();
+        short[] encoding = toAAAndBase11AndNumberFR(codon.toString());
+        forwardReadingFrames[position % 3].addBack(encoding[0]);
+        reverseReadingFrames[position % 3].addFront(encoding[0]);
+        codon.deleteCharAt(0);
         return this;
     }
 
-    public Pair<Long, Long> getEncodedKmers() {
-        return new Pair<>(
+    public long[] getEncodedKmers() {
+        return new long[]{
                 forwardReadingFrames[position % 3].getEncodedKmer(),
                 reverseReadingFrames[position % 3].getEncodedKmer()
-        );
+        };
     }
 
     public static class ReadingFrame {

@@ -187,7 +187,7 @@ public class Main {
                 File reads = cli.getParsedOptionValue("d");
                 Path output = cli.getParsedOptionValue("o");
 
-                Indexer indexer = new Indexer(null, maxThreads, 1000, 100, bucketsPerCycle);
+                Indexer indexer = new Indexer(null, maxThreads, 100, 500, bucketsPerCycle);
                 indexer.indexReads(reads, output);
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
@@ -195,12 +195,13 @@ public class Main {
             }
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");
-            DNAKmerEncoder kmerEncoder = new DNAKmerEncoder(4, "TT");
-            String dnaSequence = "TCAATGTCTT";
-            for (int i = 0; i < dnaSequence.length(); i++) {
-                System.out.println(kmerEncoder.addNucleotide(dnaSequence.charAt(i)).getEncodedKmers());
-            }
-            System.out.println(kmerEncoder.getEncodedKmers());
+//            DNAKmerEncoder kmerEncoder = new DNAKmerEncoder(4, "TT");
+//            String dnaSequence = "TCAATGTCTT";
+//            for (int i = 0; i < dnaSequence.length(); i++) {
+//                System.out.println(kmerEncoder.addNucleotide(dnaSequence.charAt(i)).getEncodedKmers());
+//            }
+//            System.out.println(kmerEncoder.getEncodedKmers());
+            DNAEncoder.generateToAAAndBase11AndNumberFR();
         }
     }
 }
