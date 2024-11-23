@@ -92,4 +92,8 @@ public class Bucket {
     public long[] getContent() {
         return content;
     }
+
+    public int getName() {
+        return name;
+    }
 }

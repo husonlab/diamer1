@@ -215,8 +215,7 @@ public class Indexer {
                 // CASE: batch is full -> process the batch
                 if (processedReads % BATCH_SIZE == 0) {
 
-                    // Submit a new FastaBatchProcessor thread to process the batch
-                    // todo change to fastq
+                    // Submit a new FastQBatchProcessor thread to process the batch
                     threadPoolExecutor.submit(new FastQBatchProcessor(batch, buckets, currentBucketRange, processedReads - BATCH_SIZE));
                     batch = new Sequence[BATCH_SIZE];
 
@@ -296,7 +295,7 @@ public class Indexer {
         System.out.println("[Indexer] Converting buckets to arrays and sorting...");
 
         final int threads = Math.min(MAX_THREADS, bucketLists.length);
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 threads,
                 threads,
                 500L,
@@ -306,17 +305,28 @@ public class Indexer {
 
         Bucket[] buckets = new Bucket[bucketLists.length];
         for (int i = 0; i < bucketLists.length; i++) {
-            final ConcurrentLinkedQueue<Long> bucketList = bucketLists[i];
-            final Bucket bucket = new Bucket(i + currentBucketRange[0]);
-            buckets[i] = bucket;
-            threadPoolExecutor.submit(() -> {
-                bucket.setContent(bucketList.stream().mapToLong(Long::longValue).toArray());
-                bucketList.clear();
-                bucket.sort();
-            });
+            threadPoolExecutor.submit(new BucketListConverter(bucketLists[i], new Bucket(i + currentBucketRange[0])));
         }
 
-        shutdownThreadPoolExecutor(threadPoolExecutor);
+        while (threadPoolExecutor.getActiveCount() > 0) {
+            try {
+                System.out.println("Active threads: " + threadPoolExecutor.getActiveCount());
+                System.out.println("Queue size: " + threadPoolExecutor.getQueue().size());
+                System.out.println("Completed tasks: " + threadPoolExecutor.getCompletedTaskCount());
+                System.out.println("Task count: " + threadPoolExecutor.getTaskCount());
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        System.out.println("Active threads: " + threadPoolExecutor.getActiveCount());
+        System.out.println("Queue size: " + threadPoolExecutor.getQueue().size());
+        System.out.println("Completed tasks: " + threadPoolExecutor.getCompletedTaskCount());
+        System.out.println("Task count: " + threadPoolExecutor.getTaskCount());
+        System.out.println("Shutting down thread pool executor...");
+        threadPoolExecutor.shutdown();
+
+        //shutdownThreadPoolExecutor(threadPoolExecutor);
         System.out.println("[Indexer] Finished converting buckets.");
         return buckets;
     }
