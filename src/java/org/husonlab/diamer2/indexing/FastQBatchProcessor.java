@@ -34,7 +34,7 @@ public class FastQBatchProcessor implements Runnable {
                 kmerEncoder.addNucleotide(sequence.charAt(i));
             }
             for (int i = (15*3); i < sequence.length(); i++) {
-                long[] encodedKmers = kmerEncoder.addNucleotide(sequence.charAt(i)).getEncodedKmers();
+                long[] encodedKmers = kmerEncoder.addNucleotide(sequence.charAt(i));
                 int bucketId1 = (int) (encodedKmers[0] & 0b1111111111);
                 int bucketId2 = (int) (encodedKmers[1] & 0b1111111111);
                 if (bucketId1 < currentBucketRange[1] - currentBucketRange[0]) {

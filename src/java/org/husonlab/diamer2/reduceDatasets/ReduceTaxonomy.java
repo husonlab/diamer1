@@ -13,10 +13,10 @@
 //
 //public class ReduceTaxonomy {
 //
-//    private static final String pathNodes = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\nodes.dmp";
-//    private static final String pathNodeLabels = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\taxdmp\\names.dmp";
-//    private static final String pathAccessionsFull = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\prot.accession2taxid.FULL100.gz";
-//    private static final String pathAccessionsDead = "C:\\Users\\noel\\Documents\\diamer2\\src\\test\\resources\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
+//    private static final String pathNodes = "C:\\Users\\noel\\Documents\\diamer2\\src\\testNCBI\\resources\\NCBI\\taxdmp\\nodes.dmp";
+//    private static final String pathNodeLabels = "C:\\Users\\noel\\Documents\\diamer2\\src\\testNCBI\\resources\\NCBI\\taxdmp\\names.dmp";
+//    private static final String pathAccessionsFull = "C:\\Users\\noel\\Documents\\diamer2\\src\\testNCBI\\resources\\NCBI\\reduced\\prot.accession2taxid.FULL100.gz";
+//    private static final String pathAccessionsDead = "C:\\Users\\noel\\Documents\\diamer2\\src\\testNCBI\\resources\\NCBI\\reduced\\dead_prot.accession2taxid100.gz";
 //    private static final String pathOutput = "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\";
 //    public static void main(String[] args) throws IOException {
 //        NCBIReader.Tree tree = NCBIReader.readTaxonomy(pathNodes);

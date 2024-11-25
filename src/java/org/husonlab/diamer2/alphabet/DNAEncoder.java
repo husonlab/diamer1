@@ -1,9 +1,6 @@
 package org.husonlab.diamer2.alphabet;
 
-import org.husonlab.diamer2.util.Pair;
-
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 
 public class DNAEncoder {
@@ -13,7 +10,7 @@ public class DNAEncoder {
      * @param codon DNA codon
      * @return corresponding amino acid
      */
-    private static char toAA(String codon) {
+    public static char toAA(String codon) {
         switch (codon) {
             case "TTT", "TTC" -> { return 'F'; }
             case "TTA", "TTG", "CTT", "CTC", "CTA", "CTG" -> { return 'L'; }
@@ -40,7 +37,12 @@ public class DNAEncoder {
         }
     }
 
-    public static short toAAAndBase11AndNumber(String codon) {
+    /**
+     * Translates a DNA codon to the base 11 alphabet.
+     * @param codon DNA codon
+     * @return number representation of the codon in base 11 encoding
+     */
+    public static short toAAAndBase11(String codon) {
         switch (codon) {
             case "GAT", "GAC",                                  // D
                  "GAA", "GAG",                                  // E
@@ -97,7 +99,7 @@ public class DNAEncoder {
      * @param codon DNA codon
      * @return short array with the number representation of the codon in forward [0] and reverse [1] orientation.
      */
-    public static short[] toAAAndBase11AndNumberFR(String codon) {
+    public static short[] toAAAndBase11FR(String codon) {
         switch (codon) {
             case "ACC", "GCC", "TCC" -> { return new short[]{(short)1, (short)4}; }
             case "CTT" -> { return new short[]{(short)2, (short)5}; }
@@ -141,8 +143,8 @@ public class DNAEncoder {
         HashMap<String, LinkedList<String>> encodingToCodons = new HashMap<>();
         for (String codon : codons) {
             String reverse = new StringBuilder(codon).reverse().toString();
-            int codonEncoding = toAAAndBase11AndNumber(codon);
-            int reverseEncoding = toAAAndBase11AndNumber(reverse);
+            int codonEncoding = toAAAndBase11(codon);
+            int reverseEncoding = toAAAndBase11(reverse);
             String encoding = "(short)" + codonEncoding + ", " + "(short)" + reverseEncoding;
             encodingToCodons.computeIfAbsent(encoding, k -> new LinkedList<>());
             encodingToCodons.computeIfPresent(encoding, (k, v) -> { v.add(codon); return v; });
