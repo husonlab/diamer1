@@ -2,7 +2,7 @@ package org.husonlab.diamer2.alphabet;
 
 public class AAEncoder {
     /**
-     * Converts a protein sequence to an alphabet of size 11 and the reduced sequence further to a long.
+     * Converts a protein sequence to an alphabet of size 11.
      * @param sequence amino acid sequence
      * @return long representation of the sequence in a base 11 alphabet
      */

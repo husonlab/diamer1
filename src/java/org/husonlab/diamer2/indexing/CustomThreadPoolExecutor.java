@@ -24,10 +24,14 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
 
     @Override
     protected void afterExecute(Runnable r, Throwable t) {
-        if (!Objects.isNull(t)) {
-            t.printStackTrace();
-        }
         super.afterExecute(r, t);
+        if (t == null && r instanceof Future<?> && ((Future<?>) r).isDone()) {
+            try {
+                Object result = ((Future<?>) r).get();
+            } catch (Throwable th) {
+                t = th;
+            }}
+        if (t != null) t.printStackTrace();
     }
 
     @Override

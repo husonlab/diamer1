@@ -21,7 +21,7 @@ public class BucketMapConverter implements Runnable{
         long[] bucketArray = new long[bucketMap.size()];
         int i = 0;
         for (ConcurrentHashMap.Entry<Long, Integer> entry : bucketMap.entrySet()) {
-            bucketArray[i] = (entry.getKey() << 22) | entry.getValue();
+            bucketArray[i] = ((entry.getKey() << 10) & 0xffffffffffc00000L ) | entry.getValue();
             i++;
         }
         bucket.setContent(bucketArray);

@@ -47,5 +47,3 @@ public class FastQBatchProcessor implements Runnable {
         }
     }
 }
-// 11000011100010011100010111011001101011110111111111
-// 11000011

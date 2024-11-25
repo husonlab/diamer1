@@ -19,6 +19,15 @@
   * ~ 350GB
   * bucket size ~ 13.660.000
   * ~ 3h/128 buckets
+* Indexing start 25.11.2024 11:05
+  * -Xmx 400 -t 64 -b 128
+  * 
+## Indexing Reads
+* with 5GB, 16 threads and 8 buckets in one run:
+  * ~ 5h
+* with 200GB, 32 threads and 128 buckets in one run:
+  * Started 10:45
+  * Finished 11:25, but only because file system was slow for about 20 min
 
 # Questions:
 * How to handle weired amino acid letters?
@@ -78,7 +87,7 @@
 * dead_prot.accession2taxid: 158,629,501 entries
 
 # Test dataset:
-* 4,642,104 lines -> 1,160,526 reads
+* 4,642,104 lines: 1,160,526 reads
 
 # Bash commands
 ## Extracting n sequences from a fasta file

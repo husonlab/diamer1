@@ -165,7 +165,7 @@ public class Indexer {
 
         HashMap<Integer, String> readHeaderMap = new HashMap<>();
 
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
                 MAX_THREADS,
                 500L,
@@ -233,6 +233,8 @@ public class Indexer {
                 Thread writeReadHeaders = new Thread(() -> {
                     System.out.println("[Indexer] Started writing read headers to file...");
                     try (BufferedWriter bw = new BufferedWriter (new FileWriter(outPath.toString() + "/header_index.txt"))) {
+                        bw.write(readHeaderMap.size());
+                        bw.newLine();
                         readHeaderMap.forEach((key, value) -> {
                             try {
                                 bw.write(key + "\t" + value + "\n");
@@ -305,28 +307,24 @@ public class Indexer {
 
         Bucket[] buckets = new Bucket[bucketLists.length];
         for (int i = 0; i < bucketLists.length; i++) {
-            threadPoolExecutor.submit(new BucketListConverter(bucketLists[i], new Bucket(i + currentBucketRange[0])));
+            Bucket bucket = new Bucket(i + currentBucketRange[0]);
+            buckets[i] = bucket;
+            ConcurrentLinkedQueue<Long> bucketList = bucketLists[i];
+            threadPoolExecutor.submit(() -> {
+                try {
+                    System.out.println("[Indexer] Converting bucket " + bucket.getName() + " to array...");
+                    bucket.setContent(bucketList.stream().mapToLong(Long::longValue).toArray());
+                    bucketList.clear();
+                    System.out.println("[Indexer] Sorting bucket " + bucket.getName() + "...");
+                    bucket.sort();
+                    System.out.println("[Indexer] Finished converting bucket " + bucket.getName() + ".");
+                } catch (Throwable t) {
+                    t.printStackTrace();
+                }
+            });
         }
 
-        while (threadPoolExecutor.getActiveCount() > 0) {
-            try {
-                System.out.println("Active threads: " + threadPoolExecutor.getActiveCount());
-                System.out.println("Queue size: " + threadPoolExecutor.getQueue().size());
-                System.out.println("Completed tasks: " + threadPoolExecutor.getCompletedTaskCount());
-                System.out.println("Task count: " + threadPoolExecutor.getTaskCount());
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-        System.out.println("Active threads: " + threadPoolExecutor.getActiveCount());
-        System.out.println("Queue size: " + threadPoolExecutor.getQueue().size());
-        System.out.println("Completed tasks: " + threadPoolExecutor.getCompletedTaskCount());
-        System.out.println("Task count: " + threadPoolExecutor.getTaskCount());
-        System.out.println("Shutting down thread pool executor...");
-        threadPoolExecutor.shutdown();
-
-        //shutdownThreadPoolExecutor(threadPoolExecutor);
+        shutdownThreadPoolExecutor(threadPoolExecutor);
         System.out.println("[Indexer] Finished converting buckets.");
         return buckets;
     }
@@ -351,10 +349,12 @@ public class Indexer {
         for (Bucket bucket : buckets) {
             threadPoolExecutor.submit(() -> {
                 try {
+                    System.out.println("[Indexer] Starting to write bucket " + bucket.getName());
                     bucket.writeToFile(path);
-                } catch (IOException e) {
+                    System.out.println("[Indexer] Finished writing bucket " + bucket.getName());
+                } catch (Throwable t) {
                     System.err.println("[Indexer] Error writing bucket to file.");
-                    e.printStackTrace();
+                    t.printStackTrace();
                 }
             });
         }
@@ -363,7 +363,7 @@ public class Indexer {
         System.out.println("[Indexer] Finished writing buckets.");
     }
 
-    private static void shutdownThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor) {
+    public static void shutdownThreadPoolExecutor(ThreadPoolExecutor threadPoolExecutor) {
         threadPoolExecutor.shutdown();
         try {
             System.out.println("[Indexer] Waiting for threads to finish...");
