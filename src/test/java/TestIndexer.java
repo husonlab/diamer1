@@ -18,9 +18,9 @@ public class TestIndexer {
 
     @Test
     public void testIndexer() throws IOException {
-//        Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/testNCBI/nodes.dmp"), new File("src/test/resources/testNCBI/names.dmp"));
-//        Indexer indexer = new Indexer(tree, 4, 50, 1, 64);
-//        indexer.indexDB(new File("src/test/resources/testNCBI/db.fsa"), Path.of("src/test/resources/testNCBI/index"));
+        Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/testNCBI/nodes.dmp"), new File("src/test/resources/testNCBI/names.dmp"));
+        Indexer indexer = new Indexer(tree, 4, 50, 1, 64);
+        indexer.indexDB(new File("src/test/resources/testNCBI/db.fsa"), Path.of("src/test/resources/testNCBI/index"));
         Bucket[] buckets = new Bucket[1024];
         for (int i = 0; i < 1024; i++) {
             buckets[i] = new Bucket(new File("src/test/resources/testNCBI/index/" + i + ".bin"));

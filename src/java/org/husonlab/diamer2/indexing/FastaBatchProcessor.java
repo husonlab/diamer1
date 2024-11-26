@@ -38,16 +38,15 @@ public class FastaBatchProcessor implements Runnable {
             }
             String sequence = fasta.getSequence();
             int taxId = Integer.parseInt(fasta.getHeader().split(" ")[0]);
-            for (int i = 0; i < sequence.length(); i++) {
-                if (i < 14) {
-                    encoder.addBack(AAEncoder.toBase11(sequence.charAt(i)));
-                } else {
-                    long kmerEnc =  encoder.addBack(AAEncoder.toBase11(sequence.charAt(i)));
-                    int bucketId = (int) (kmerEnc & 0b1111111111);
-                    if (bucketId >= currentBucketRange[0] && bucketId < currentBucketRange[1]) {
-                        bucketMaps[bucketId - currentBucketRange[0]].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
-                        bucketMaps[bucketId - currentBucketRange[0]].computeIfAbsent(kmerEnc, k -> taxId);
-                    }
+            for (int i = 0; i < 14; i++) {
+                encoder.addBack(AAEncoder.toBase11(sequence.charAt(i)));
+            }
+            for (int i = 14; i < sequence.length(); i++) {
+                long kmerEnc =  encoder.addBack(AAEncoder.toBase11(sequence.charAt(i)));
+                int bucketId = (int) (kmerEnc & 0b1111111111);
+                if (bucketId >= currentBucketRange[0] && bucketId < currentBucketRange[1]) {
+                    bucketMaps[bucketId - currentBucketRange[0]].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
+                    bucketMaps[bucketId - currentBucketRange[0]].computeIfAbsent(kmerEnc, k -> taxId);
                 }
             }
         }
