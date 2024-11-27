@@ -38,11 +38,25 @@ public class DNAEncoder {
     }
 
     /**
+     * Translates a DNA sequence to the base 11 amino acid alphabet.
+     * @param sequence DNA sequence
+     * @return number representation of the translated sequence in base 11 encoding
+     */
+    public static long toAAAndBase11(String sequence) {
+        long result = 0;
+        for (int i = 0; i < sequence.length() - 2; i += 3) {
+            String codon = sequence.substring(i, i + 3);
+            result = result * 11 + codonToAAAndBase11(codon);
+        }
+        return result;
+    }
+
+    /**
      * Translates a DNA codon to the base 11 alphabet.
      * @param codon DNA codon
      * @return number representation of the codon in base 11 encoding
      */
-    public static short toAAAndBase11(String codon) {
+    public static short codonToAAAndBase11(String codon) {
         switch (codon) {
             case "GAT", "GAC",                                  // D
                  "GAA", "GAG",                                  // E
@@ -143,8 +157,8 @@ public class DNAEncoder {
         HashMap<String, LinkedList<String>> encodingToCodons = new HashMap<>();
         for (String codon : codons) {
             String reverse = new StringBuilder(codon).reverse().toString();
-            int codonEncoding = toAAAndBase11(codon);
-            int reverseEncoding = toAAAndBase11(reverse);
+            int codonEncoding = codonToAAAndBase11(codon);
+            int reverseEncoding = codonToAAAndBase11(reverse);
             String encoding = "(short)" + codonEncoding + ", " + "(short)" + reverseEncoding;
             encodingToCodons.computeIfAbsent(encoding, k -> new LinkedList<>());
             encodingToCodons.computeIfPresent(encoding, (k, v) -> { v.add(codon); return v; });

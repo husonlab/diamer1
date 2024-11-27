@@ -30,20 +30,23 @@ public class BucketAssignmentProcessor implements Runnable {
         ) {
             int dbLength = db.readInt();
             int readsLength = reads.readInt();
+            if (dbLength == 0 || readsLength == 0) {
+                return;
+            }
             long dbEntry = db.readLong();
             int dbCount = 1;
-            long dbKmer = (dbEntry >> 22) & 0x40000000000L;
+            long dbKmer = (dbEntry >> 22) & 0xFFFFFFFFFFFL;
             for (int readsCount = 0; readsCount < readsLength; readsCount++) {
                 long readsEntry = reads.readLong();
-                long readKmer = (readsEntry >> 22) & 0x40000000000L;
+                long readKmer = (readsEntry >> 22) & 0xFFFFFFFFFFFL;
                 while (dbKmer < readKmer && dbCount < dbLength) {
                     dbEntry = db.readLong();
-                    dbKmer = (dbEntry >> 22) & 0x40000000000L;
+                    dbKmer = (dbEntry >> 22) & 0xFFFFFFFFFFFL;
                     dbCount++;
                 }
                 if (dbKmer == readKmer) {
-                    int taxId = (int) (dbEntry & 0x400000);
-                    int readId = (int) (readsEntry & 0x400000);
+                    int taxId = (int) (dbEntry & 0x3FFFFF);
+                    int readId = (int) (readsEntry & 0x3FFFFF);
                     readAssignments[readId].taxIds().computeIfPresent(taxId, (k, v) -> v + 1);
                     readAssignments[readId].taxIds().putIfAbsent(taxId, 1);
                 }

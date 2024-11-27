@@ -84,7 +84,7 @@ public class Indexer {
      */
     private ConcurrentHashMap<Long, Integer>[] indexDBCurrentRange(File fastaFile) throws IOException {
 
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
                 MAX_THREADS,
                 500L,
@@ -225,7 +225,7 @@ public class Indexer {
             }
             // submit the last batch for processing if not empty
             if (batch[0] != null) {
-                threadPoolExecutor.submit(new FastQBatchProcessor(batch, buckets, currentBucketRange, processedReads - BATCH_SIZE));
+                threadPoolExecutor.submit(new FastQBatchProcessor(batch, buckets, currentBucketRange, processedReads - processedReads % BATCH_SIZE));
             }
 
             // Write the read headers to a file in a separate thread
@@ -233,7 +233,7 @@ public class Indexer {
                 Thread writeReadHeaders = new Thread(() -> {
                     System.out.println("[Indexer] Started writing read headers to file...");
                     try (BufferedWriter bw = new BufferedWriter (new FileWriter(outPath.toString() + "/header_index.txt"))) {
-                        bw.write(readHeaderMap.size());
+                        bw.write(Integer.toString(readHeaderMap.size()));
                         bw.newLine();
                         readHeaderMap.forEach((key, value) -> {
                             try {
@@ -274,7 +274,7 @@ public class Indexer {
         System.out.println("[Indexer] Converting buckets to arrays and sorting...");
 
         final int threads = Math.min(MAX_THREADS, bucketMaps.length);
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 threads,
                 threads,
                 500L,

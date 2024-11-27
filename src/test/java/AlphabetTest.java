@@ -35,7 +35,7 @@ public class AlphabetTest {
     @Test
     public void testDNAEncoder() {
         assertEquals('A', DNAEncoder.toAA("GCT"));
-        assertEquals(5, DNAEncoder.toAAAndBase11("TTT"));
+        assertEquals(5, DNAEncoder.codonToAAAndBase11("TTT"));
         assertArrayEquals(new short[]{4, 4}, DNAEncoder.toAAAndBase11FR("CCC"));
     }
 

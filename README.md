@@ -19,9 +19,10 @@
   * ~ 350GB
   * bucket size ~ 13.660.000
   * ~ 3h/128 buckets
-* Indexing start 25.11.2024 11:05
-  * -Xmx 400 -t 64 -b 128
-  * 
+* Indexing start 27.11.2024
+```shell
+java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/nr_taxid_full.fsa -o /beegfs/HPCscratch/noel/dbindex/
+```
 ## Indexing Reads
 * with 5GB, 16 threads and 8 buckets in one run:
   * ~ 5h

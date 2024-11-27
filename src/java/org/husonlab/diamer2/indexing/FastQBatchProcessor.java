@@ -27,23 +27,23 @@ public class FastQBatchProcessor implements Runnable {
             if (fastq == null || fastq.getSequence().length() < (15*3)) {
                 continue;
             }
-            index++;
             String sequence = fastq.getSequence();
             DNAKmerEncoder kmerEncoder = new DNAKmerEncoder(15, sequence.substring(0, 2));
             for (int i = 2; i < (15*3) - 1; i++) {
                 kmerEncoder.addNucleotide(sequence.charAt(i));
             }
-            for (int i = (15*3); i < sequence.length(); i++) {
+            for (int i = ((15 * 3) - 1); i < sequence.length(); i++) {
                 long[] encodedKmers = kmerEncoder.addNucleotide(sequence.charAt(i));
                 int bucketId1 = (int) (encodedKmers[0] & 0b1111111111);
                 int bucketId2 = (int) (encodedKmers[1] & 0b1111111111);
-                if (bucketId1 < currentBucketRange[1] - currentBucketRange[0]) {
-                    bucketLists[bucketId1].add(((encodedKmers[0] << 10) & 0xffffffffffc00000L ) | index);
+                if (bucketId1 >= currentBucketRange[0] && bucketId1 < currentBucketRange[1]) {
+                    bucketLists[bucketId1 - currentBucketRange[0]].add(((encodedKmers[0] << 10) & 0xffffffffffc00000L ) | index);
                 }
-                if (bucketId2 < currentBucketRange[1] - currentBucketRange[0]) {
-                    bucketLists[bucketId2].add(((encodedKmers[0] << 10) & 0xffffffffffc00000L ) | index);
+                if (bucketId2 >= currentBucketRange[0] && bucketId2 < currentBucketRange[1]) {
+                    bucketLists[bucketId2 - currentBucketRange[0]].add(((encodedKmers[1] << 10) & 0xffffffffffc00000L ) | index);
                 }
             }
+            index++;
         }
     }
 }
