@@ -181,7 +181,7 @@ public class Main {
                     NCBIReader.AccessionMapping accessionMapping = new NCBIReader.AccessionMapping(mappingFile, accessionColumn, taxidColumn);
                     accessionMappings.add(accessionMapping);
                 }
-                Tree tree = NCBIReader.readTaxonomyWithAccessions(nodes, names, accessionMappings.toArray(new NCBIReader.AccessionMapping[0]));
+                Tree tree = NCBIReader.readTaxonomyWithAccessions(nodes, names, accessionMappings.toArray(new NCBIReader.AccessionMapping[0]), true);
                 NCBIReader.preprocessNR(database, output, tree);
             } catch (IOException | ParseException e) {
                 e.printStackTrace();

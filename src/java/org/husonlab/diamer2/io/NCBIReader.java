@@ -1,9 +1,6 @@
 package org.husonlab.diamer2.io;
 
-import org.checkerframework.checker.units.qual.A;
 import org.husonlab.diamer2.alphabet.AAEncoder;
-import org.husonlab.diamer2.alphabet.DNAEncoder;
-import org.husonlab.diamer2.indexing.FastaBatchProcessor;
 import org.husonlab.diamer2.logging.ProgressLogger;
 import org.husonlab.diamer2.seq.Sequence;
 import org.jetbrains.annotations.NotNull;
@@ -11,10 +8,8 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.graph.Node;

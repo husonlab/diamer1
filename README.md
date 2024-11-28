@@ -1,6 +1,9 @@
 # Process:
 ## 1. Annotating nr database with taxon ids
 * Started 28.11.2024 12:20
+````shell
+ java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings=/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1;/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2
+````
 ### 1.1 Reading nodes and names
 ### 1.2 reading prot.accession2taxid map
 * ConcurrentHashMap:
