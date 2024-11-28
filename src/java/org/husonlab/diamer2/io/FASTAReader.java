@@ -1,17 +1,64 @@
 package org.husonlab.diamer2.io;
 
+import org.husonlab.diamer2.logging.ProgressLogger;
 import org.husonlab.diamer2.seq.Sequence;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.Buffer;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
-public class FASTAReader {
+public class FASTAReader implements AutoCloseable {
+
+    private String header;
+    private StringBuilder sequence;
+    private BufferedReader br;
+    private String line;
+
+    public FASTAReader(BufferedReader br) throws IOException {
+        this.header = null;
+        this.sequence = new StringBuilder();
+        this.br = br;
+        line = br.readLine();
+    }
+
+    public Sequence getNextSequence() throws IOException {
+        if (line != null && line.startsWith(">")) {
+            header = line;
+            sequence = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                line = line.strip();
+                if (line.startsWith(">")) {
+                    return new Sequence(header, sequence.toString());
+                } else {
+                    sequence.append(line);
+                }
+            }
+            return new Sequence(header, sequence.toString());
+        } else {
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith(">")) {
+                    return getNextSequence();
+                }
+            }
+            return null;
+        }
+    }
+
+    public ArrayList<Sequence> getNSequences(int n) throws IOException {
+        ArrayList<Sequence> sequences = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            Sequence seq = getNextSequence();
+            if (seq == null) {
+                break;
+            }
+            sequences.add(seq);
+        }
+        return sequences;
+    }
 
     public static ArrayList<Sequence> read(String filename) throws IOException {
         /*
@@ -55,5 +102,10 @@ public class FASTAReader {
             sequences.add(new Sequence(header, sequence.toString()));
         }
         return sequences;
+    }
+
+    @Override
+    public void close() throws IOException {
+        br.close();
     }
 }

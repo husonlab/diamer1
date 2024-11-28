@@ -1,6 +1,17 @@
 package org.husonlab.diamer2.alphabet;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 public class AAEncoder {
+
+    public static Character[] alphabetArray = new Character[]{
+            'B', 'D', 'E', 'K', 'N', 'O', 'Q', 'R', 'X', 'Z',
+            'A', 'S', 'T', 'I', 'J', 'L', 'V', 'G', 'P', 'F', 'Y', 'C', 'U', 'H', 'M', 'W'
+    };
+
+    public static HashSet<Character> alphabet = new HashSet<Character>(Arrays.asList(alphabetArray));
+
     /**
      * Converts a protein sequence to the number representation in an alphabet of size 11.
      * @param sequence amino acid sequence
@@ -45,5 +56,21 @@ public class AAEncoder {
             case 'W' -> { return 10; }
             default -> throw new IllegalArgumentException("Invalid amino acid: " + aa);
         }
+    }
+
+    /**
+     * Reduces the alphabet of the sequence to the amino acids that can be encoded in the base 11 alphabet by
+     * the @link{toBase11} method.
+     * @param seq amino acid sequence
+     * @return sequence with only amino acids that can be encoded in the base 11 alphabet
+     */
+    public static String enforceAlphabet(String seq) {
+        StringBuilder sb = new StringBuilder();
+        for (char aa : seq.toCharArray()) {
+            if (alphabet.contains(aa)) {
+                sb.append(aa);
+            }
+        }
+        return sb.toString();
     }
 }

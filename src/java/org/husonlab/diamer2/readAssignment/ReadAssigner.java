@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.readAssignment;
 
 import org.husonlab.diamer2.graph.Tree;
+import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -50,7 +51,7 @@ public class ReadAssigner {
     }
 
     public void assignReads(Path dbIndex, Path readsIndex) {
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
                 MAX_THREADS,
                 500L,

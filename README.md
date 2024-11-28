@@ -1,5 +1,6 @@
 # Process:
 ## 1. Annotating nr database with taxon ids
+* Started 28.11.2024 12:20
 ### 1.1 Reading nodes and names
 ### 1.2 reading prot.accession2taxid map
 * ConcurrentHashMap:
@@ -20,6 +21,7 @@
   * bucket size ~ 13.660.000
   * ~ 3h/128 buckets
 * Indexing start 27.11.2024
+  * ~45 min per run (64 buckets)
 ```shell
 java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/nr_taxid_full.fsa -o /beegfs/HPCscratch/noel/dbindex/
 ```
@@ -29,6 +31,10 @@ java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp
 * with 200GB, 32 threads and 128 buckets in one run:
   * Started 10:45
   * Finished 11:25, but only because file system was slow for about 20 min
+* Started 28.11.2024 14:05
+````shell
+java -Xmx100g -jar diamer2.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/noel/test_dataset/Zymo-GridION-EVEN-3Peaks-R103-merged.fq -o /beegfs/HPCscratch/noel/test_dataset/index/ 
+````
 
 # Questions:
 * How to handle weired amino acid letters?
@@ -94,6 +100,10 @@ java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp
 ## Extracting n sequences from a fasta file
 ````shell
 awk '/^>/ {n++} n>1000 {exit} {print}' input.fasta > output.fasta
+````
+## Zipping folder with content
+````shell
+zip -r output.zip input/
 ````
 
 ## Source links

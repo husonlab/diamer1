@@ -18,7 +18,7 @@ public class DBIndexerTest {
     public void testDBIndexer() throws IOException {
         Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/testNCBI/nodes.dmp"), new File("src/test/resources/testNCBI/names.dmp"));
         Indexer indexer = new Indexer(tree, 4, 50, 1, 64);
-        indexer.indexDB(new File("src/test/resources/testNCBI/db.fsa"), Path.of("src/test/resources/testNCBI/db_index"));
+        indexer.indexDB(new File("src/test/resources/testNCBI/db_preprocessed.fsa"), Path.of("src/test/resources/testNCBI/db_index"));
         Bucket[] buckets = new Bucket[1024];
 
         int uniqueKmerCount = 0;
@@ -26,7 +26,7 @@ public class DBIndexerTest {
             buckets[i] = new Bucket(new File("src/test/resources/testNCBI/db_index/" + i + ".bin"));
             uniqueKmerCount += Objects.requireNonNull(buckets[i].getContent()).length;
         }
-        assertEquals(1336, uniqueKmerCount);
+        assertEquals(1322, uniqueKmerCount);
 
         TestKmer[] testKmers = {
             new TestKmer("NQFLFAGIELILRKY", 1, 0),

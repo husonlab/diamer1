@@ -2,7 +2,6 @@ package org.husonlab.diamer2.indexing;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Objects;
 import java.util.concurrent.*;
 
 public class CustomThreadPoolExecutor extends ThreadPoolExecutor {

@@ -2,8 +2,6 @@ package org.husonlab.diamer2.alphabet;
 
 import java.util.LinkedList;
 
-import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11;
-
 public class AAKmerEncoder {
 
     private final int k;
@@ -27,6 +25,11 @@ public class AAKmerEncoder {
         encodedKmer = 0;
     }
 
+    /**
+     * Adds a char to the front of the kmer. The last char is removed.
+     * @param aaEncoding encoding of the new char
+     * @return long representation of the new kmer
+     */
     public long addFront(short aaEncoding) {
         encodedKmer = (encodedKmer - kmer.pollLast()) / alphabetSize + aaEncoding * (long)Math.pow(alphabetSize, k - 1);
         kmer.addFirst(aaEncoding);

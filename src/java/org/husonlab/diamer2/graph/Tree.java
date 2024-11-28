@@ -3,18 +3,18 @@ package org.husonlab.diamer2.graph;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.HashMap;
 
 public class Tree {
-    public final ConcurrentHashMap<Integer, Node> idMap;
+    public final HashMap<Integer, Node> idMap;
     @Nullable
-    public final ConcurrentHashMap<String, Integer> accessionMap;
-    public Tree(ConcurrentHashMap<Integer, Node> idMap, @Nullable ConcurrentHashMap<String, Integer> accessionMap) {
+    public final HashMap<String, Integer> accessionMap;
+    public Tree(HashMap<Integer, Node> idMap, @Nullable HashMap<String, Integer> accessionMap) {
         this.idMap = idMap;
         this.accessionMap = accessionMap;
     }
 
-    public Tree(ConcurrentHashMap<Integer, Node> idMap) {
+    public Tree(HashMap<Integer, Node> idMap) {
         this.idMap = idMap;
         this.accessionMap = null;
     }

@@ -95,7 +95,7 @@ public class Indexer {
         // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
         final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
         for (int i = 0; i < currentBucketRange[1] - currentBucketRange[0]; i++) {
-            bucketMaps[i] = new ConcurrentHashMap<Long, Integer>(21000000); // initial capacity 21000000
+            bucketMaps[i] = new ConcurrentHashMap<Long, Integer>(); // initial capacity 21000000
         }
 
         // Read the Sequence database and process the sequences in batches
@@ -338,7 +338,7 @@ public class Indexer {
         System.out.println("[Indexer] Writing buckets to files...");
 
         final int threads = Math.min(MAX_THREADS, buckets.length);
-        ThreadPoolExecutor threadPoolExecutor = new ThreadPoolExecutor(
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 threads,
                 threads,
                 500L,

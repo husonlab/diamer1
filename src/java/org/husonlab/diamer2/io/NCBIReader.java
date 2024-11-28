@@ -1,16 +1,21 @@
 package org.husonlab.diamer2.io;
 
+import org.checkerframework.checker.units.qual.A;
+import org.husonlab.diamer2.alphabet.AAEncoder;
+import org.husonlab.diamer2.alphabet.DNAEncoder;
+import org.husonlab.diamer2.indexing.FastaBatchProcessor;
+import org.husonlab.diamer2.logging.ProgressLogger;
+import org.husonlab.diamer2.seq.Sequence;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.zip.GZIPInputStream;
-import java.util.concurrent.TimeUnit;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.graph.Node;
 
@@ -28,8 +33,8 @@ public class NCBIReader {
             @NotNull File namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings) throws IOException {
 
-        final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>(2700000);
-        final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>(1400000000);
+        final HashMap<Integer, Node> idMap = new HashMap<>(2700000);
+        final HashMap<String, Integer> accessionMap = new HashMap<>(1400000000);
         final Tree tree = new Tree(idMap, accessionMap);
 
         return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
@@ -49,8 +54,8 @@ public class NCBIReader {
             @NotNull AccessionMapping[] accessionMappings,
             boolean debug) throws IOException {
 
-        final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
-        final ConcurrentHashMap<String, Integer> accessionMap = new ConcurrentHashMap<>();
+        final HashMap<Integer, Node> idMap = new HashMap<>();
+        final HashMap<String, Integer> accessionMap = new HashMap<>();
         final Tree tree = new Tree(idMap, accessionMap);
 
         return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
@@ -81,11 +86,10 @@ public class NCBIReader {
      * Reads the NCBI taxonomy from the nodes and names dumpfiles.
      * @param nodesDumpfile path to the nodes dumpfile (nodes.dmp)
      * @param namesDumpfile path to the names dumpfile (names.dmp)
-     * @throws IOException
      */
     @NotNull
     public static Tree readTaxonomy(@NotNull File nodesDumpfile, @NotNull File namesDumpfile){
-        final ConcurrentHashMap<Integer, Node> idMap = new ConcurrentHashMap<>();
+        final HashMap<Integer, Node> idMap = new HashMap<>();
         final Tree tree = new Tree(idMap);
         System.out.println("[NCBIReader] Reading nodes dumpfile...");
         readNodesDumpfile(nodesDumpfile, tree);
@@ -97,55 +101,69 @@ public class NCBIReader {
     }
 
     /**
-     * Annotates the entries of the NCBI nr database with the taxon id of the MRCA.
-     * The headers in the output file start with the taxon id.
-     * @param pathNrInput: path to the input nr file
-     * @param pathNrOutput: path to the output nr file
+     * Preprocesses the NR database to have only the taxid of the LCA in the headers of the sequences.
+     * Skips sequences that can not be found in the taxonomy.
+     * Handles non-amino acid characters.
+     * @param nr: input nr database
+     * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-public static void annotateNrWithLCA(String pathNrInput, String pathNrOutput, Tree tree) throws IOException {
-    int skipped = 0;
-    int processed = 0;
-    int oldProcessed = 0;
-    try (BufferedReader br = Files.newBufferedReader(Paths.get(pathNrInput));
-         BufferedWriter bw = Files.newBufferedWriter(Paths.get(pathNrOutput))) {
-        String line;
-        boolean skipping = false;
-        long timerStart = System.currentTimeMillis();
-        while ((line = br.readLine()) != null) {
-            if (line.startsWith(">")) {
-                processed++;
+    public static void preprocessNR(File nr, File output, Tree tree) throws IOException {
+        ProgressLogger progressLogger = new ProgressLogger("Fastas", "[NRPreprocessor]", 60000);
+        int processedFastas = 0;
+        int skippedFastas = 0;
+        Sequence fasta;
+
+        try (BufferedReader br = Files.newBufferedReader(nr.toPath());
+             FASTAReader fastaReader = new FASTAReader(br);
+             BufferedWriter bw = Files.newBufferedWriter(output.toPath());
+             BufferedWriter bwSkipped = Files.newBufferedWriter(Path.of(output.getParent(), "skipped_sequences.fsa"))) {
+            while ((fasta = fastaReader.getNextSequence()) != null) {
+                processedFastas++;
+
+                // Extract taxIds and compute LCA taxId
+                String header = fasta.getHeader();
+                String[] values = header.split(" ");
                 ArrayList<Integer> taxIds = new ArrayList<>();
-                for (String value : line.split(" ")) {
+                for (String value : values) {
                     if (value.startsWith(">") && tree.accessionMap.containsKey(value.substring(1))) {
                         taxIds.add(tree.accessionMap.get(value.substring(1)));
                     }
                 }
+                int taxId;
                 if (!taxIds.isEmpty()) {
-                    skipping = false;
-                    int taxId = taxIds.get(0);
+                    taxId = taxIds.get(0);
                     for (int i = 1; i < taxIds.size(); i++) {
                         taxId = tree.findLCA(taxId, taxIds.get(i));
                     }
-                    bw.write(">%d %s\n".formatted(taxId, line));
                 } else {
-                    skipping = true;
-                    skipped++;
+                    skippedFastas++;
+                    bwSkipped.write(header);
+                    bwSkipped.newLine();
+                    bwSkipped.write(fasta.getSequence());
+                    bwSkipped.newLine();
+                    continue;
                 }
-            } else if (!skipping) {
-                bw.write(line);
-                bw.newLine();
-            }
-            if (System.currentTimeMillis() - timerStart > 5000) {
-                long timerEnd = System.currentTimeMillis();
-                System.out.printf("[NCBIReader] Processed %d entries. %f entries per second.\n", processed, (processed - oldProcessed) / ((timerEnd - timerStart) * 10E-2));
-                oldProcessed = processed;
-                timerStart = timerEnd;
+                header = ">%d".formatted(taxId);
+
+                // Split the sequence by stop codons
+                ArrayList<Sequence> fastas = new ArrayList<>();
+                for (String sequence : fasta.getSequence().split("\\*")) {
+                    fastas.add(new Sequence(header, AAEncoder.enforceAlphabet(sequence)));
+                }
+
+                // Write the sequences to the output file
+                for (Sequence fasta2 : fastas) {
+                    bw.write(fasta2.getHeader());
+                    bw.newLine();
+                    bw.write(fasta2.getSequence());
+                    bw.newLine();
+                }
+                progressLogger.logProgress(processedFastas);
             }
         }
+        System.out.printf("[NCBIReader] Skipped %d entries in the nr file, as no accession could be found in the taxonomy.\n", skippedFastas);
     }
-    System.out.printf("[NCBIReader] Skipped %d entries in the nr file, as no accession could be found in the taxonomy.\n", skipped);
-}
 
     /**
      * Reads the NCBI nodes.dmp file and creates a map of tax_id -> Node objects.

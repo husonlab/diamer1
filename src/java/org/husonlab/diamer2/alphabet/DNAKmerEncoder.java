@@ -1,6 +1,5 @@
 package org.husonlab.diamer2.alphabet;
 
-import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11;
 import static org.husonlab.diamer2.alphabet.DNAEncoder.toAAAndBase11FR;
 
 public class DNAKmerEncoder {

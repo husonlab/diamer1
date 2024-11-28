@@ -10,6 +10,7 @@ import org.husonlab.diamer2.readAssignment.ReadAssigner;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 
@@ -117,6 +118,14 @@ public class Main {
                     .type(Path.class)
                     .build()
         );
+        options.addOption(
+                Option.builder()
+                    .longOpt("mappings")
+                    .argName("File,Integer,Integer;File,Integer,Integer...")
+                    .desc("Mapping file(s) and columns of accession and taxid.")
+                    .hasArg()
+                    .build()
+        );
         HelpFormatter helpFormatter = new HelpFormatter();
 
         if (args.length == 0 || args[0].equals("-h") || args[0].equals("--help")) {
@@ -157,6 +166,27 @@ public class Main {
 
         if (cli.hasOption("preprocess")) {
             System.out.println("Preprocessing");
+            try {
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                File database = cli.getParsedOptionValue("d");
+                File output = new File(cli.getOptionValue("o"));
+                String mappings = cli.getOptionValue("mappings");
+                ArrayList<NCBIReader.AccessionMapping> accessionMappings = new ArrayList<>();
+                for (String mapping : mappings.split(";")) {
+                    String[] parts = mapping.split(",");
+                    String mappingFile = parts[0];
+                    int accessionColumn = Integer.parseInt(parts[1]);
+                    int taxidColumn = Integer.parseInt(parts[2]);
+                    NCBIReader.AccessionMapping accessionMapping = new NCBIReader.AccessionMapping(mappingFile, accessionColumn, taxidColumn);
+                    accessionMappings.add(accessionMapping);
+                }
+                Tree tree = NCBIReader.readTaxonomyWithAccessions(nodes, names, accessionMappings.toArray(new NCBIReader.AccessionMapping[0]));
+                NCBIReader.preprocessNR(database, output, tree);
+            } catch (IOException | ParseException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         } else if (cli.hasOption("indexdb")) {
             if (!cli.hasOption("no") || !cli.hasOption("na") || !cli.hasOption("d")) {
                 System.err.println("Missing NCBI nodes and names files for indexing database task.");

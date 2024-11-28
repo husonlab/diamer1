@@ -4,6 +4,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Bucket {
     private final int name;
@@ -74,6 +76,27 @@ public class Bucket {
         } else {
             throw new NullPointerException("Bucket is empty and can not be written to file.");
         }
+    }
+
+    public static ArrayList<Bucket> readBuckets(Path path) {
+        return readBucketRange(path, 0, 1024);
+    }
+
+    public static ArrayList<Bucket> readBucketRange(Path path, int start, int end) {
+        ArrayList<Bucket> buckets = new ArrayList<>();
+        for (int i = start; i < end; i++) {
+            File file = path.resolve(i + ".bin").toFile();
+            if (file.exists()) {
+                try {
+                    buckets.add(new Bucket(file));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.err.println("Bucket not found: " + i);
+            }
+        }
+        return buckets;
     }
 
     /**

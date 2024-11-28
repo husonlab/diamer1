@@ -11,7 +11,7 @@ public class Sequence {
         @param sequence: the sequence of the Sequence entry
          */
         this.header = header;
-        this.sequence = sequence;
+        this.sequence = sequence.replace("\n", "").replace(" ", "");
     }
 
     public String getHeader() {
@@ -37,6 +37,12 @@ public class Sequence {
         return reverseComplement.toString();
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Sequence seq && seq.header.equals(header) && seq.sequence.equals(sequence);
+    }
+
+    @Override
     public String toString() {
         return ">%s\n%s".formatted(header, sequence);
     }
