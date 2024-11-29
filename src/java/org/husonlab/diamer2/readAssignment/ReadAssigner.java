@@ -3,10 +3,9 @@ package org.husonlab.diamer2.readAssignment;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
+import java.nio.Buffer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.concurrent.*;
@@ -36,8 +35,8 @@ public class ReadAssigner {
         }
     }
 
-    public void readHeaderIndex(File file) throws IOException {
-        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
+    public void readHeaderIndex(Path readIndex) throws IOException {
+        try (BufferedReader reader = new BufferedReader(new FileReader(readIndex.resolve("header_index.txt").toFile()))) {
             int length = Integer.parseInt(reader.readLine());
             readAssignments = new ReadAssignment[length];
             String line;
@@ -51,19 +50,18 @@ public class ReadAssigner {
     }
 
     public void assignReads(Path dbIndex, Path readsIndex) {
+        System.out.println("[ReadAssigner] Assigning reads ...");
+
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
                 MAX_THREADS,
                 500L,
                 TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(MAX_THREADS * 2),
+                new ArrayBlockingQueue<>(MAX_THREADS),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
-        for (int[] currentRange : bucketRangesToProcess) {
-            currentBucketRange = currentRange;
-            for (int i = currentBucketRange[0]; i < currentBucketRange[1]; i++) {
-                threadPoolExecutor.execute(new BucketAssignmentProcessor(i, readAssignments, dbIndex, readsIndex));
-            }
+        for (int i = 0; i < 1024; i++) {
+            threadPoolExecutor.execute(new BucketAssignmentProcessor(i, readAssignments, dbIndex, readsIndex));
         }
 
         System.out.println("[ReadAssigner] Waiting for threads to finish ...");
@@ -75,5 +73,24 @@ public class ReadAssigner {
         return readAssignments;
     }
 
-    public record ReadAssignment(String header, ConcurrentHashMap<Integer, Integer> taxIds) {}
+    public void writeReadAssignments(File file) throws IOException {
+        System.out.println("[ReadAssigner] Writing read assignments to file: " + file.getAbsolutePath());
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+            writer.write(readAssignments.length + "\n");
+            for (ReadAssignment readAssignment : readAssignments) {
+                writer.write(readAssignment.toString() + "\n");
+            }
+        }
+    }
+
+    public record ReadAssignment(String header, ConcurrentHashMap<Integer, Integer> taxIds) {
+        @Override
+        public String toString() {
+            StringBuilder sb = new StringBuilder();
+            sb.append(header).append("\t");
+            taxIds.forEach((taxId, count) -> sb.append(taxId).append(":").append(count).append(" "));
+            sb.deleteCharAt(sb.length() - 1);
+            return sb.toString();
+        }
+    }
 }

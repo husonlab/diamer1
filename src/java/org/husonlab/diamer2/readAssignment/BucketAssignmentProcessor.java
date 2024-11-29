@@ -28,7 +28,7 @@ public class BucketAssignmentProcessor implements Runnable {
         if (!dbBucket.exists() ||
             !readBucket.exists()
         ) {
-            System.err.println("Bucket not found: " + bucketId);
+            System.err.println("[ReadAssigner][WARN] Bucket not found: " + bucketId);
             return;
         }
 
@@ -41,9 +41,10 @@ public class BucketAssignmentProcessor implements Runnable {
             int dbLength = db.readInt();
             int readsLength = reads.readInt();
             if (dbLength == 0 || readsLength == 0) {
-                System.err.println("Empty bucket: " + bucketId);
+                System.err.println("[ReadAssigner][WARN] Empty bucket: " + bucketId);
                 return;
             }
+            System.out.println("[ReadAssigner] Processing bucket: " + bucketId);
             long dbEntry = db.readLong();
             int dbCount = 1;
             long dbKmer = (dbEntry >> 22) & 0xFFFFFFFFFFFL;

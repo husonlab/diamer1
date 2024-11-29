@@ -2,7 +2,7 @@
 ## 1. Annotating nr database with taxon ids
 * Started 28.11.2024 12:20
 ````shell
- java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings=/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1;/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2
+ java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings="/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2;/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1"
 ````
 ### 1.1 Reading nodes and names
 ### 1.2 reading prot.accession2taxid map
@@ -28,6 +28,12 @@
 ```shell
 java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/nr_taxid_full.fsa -o /beegfs/HPCscratch/noel/dbindex/
 ```
+
+## 3. Read Assignment
+* 64 buckets, 16 threads, 5gb
+  * ~15 min
+  * ~5 gb
+
 ## Indexing Reads
 * with 5GB, 16 threads and 8 buckets in one run:
   * ~ 5h
@@ -97,6 +103,7 @@ java -Xmx100g -jar diamer2.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/n
 * dead_prot.accession2taxid: 158,629,501 entries
 
 # Test dataset:
+
 * 4,642,104 lines: 1,160,526 reads
 
 # Bash commands

@@ -1,17 +1,16 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.alphabet.DNAEncoder;
-import org.husonlab.diamer2.alphabet.DNAKmerEncoder;
+import org.husonlab.diamer2.benchmarking.RankMapping;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
+import org.husonlab.diamer2.readAssignment.ReadAssignment;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 
 public class Main {
@@ -39,6 +38,12 @@ public class Main {
         );
         computationOptions.addOption(
                 Option.builder()
+                        .longOpt("assignreads")
+                        .desc("Assign the reads")
+                        .build()
+        );
+        computationOptions.addOption(
+                Option.builder()
                         .longOpt("debug")
                         .build()
         );
@@ -55,76 +60,76 @@ public class Main {
         );
         options.addOption(
                 Option.builder("m")
-                    .longOpt("memory")
-                    .argName("Number")
-                    .desc("Memory in GB")
-                    .hasArgs()
-                    .type(Integer.class)
-                    .converter((Converter<Integer, NumberFormatException>) Integer::parseInt)
-                    .build()
+                        .longOpt("memory")
+                        .argName("Number")
+                        .desc("Memory in GB")
+                        .hasArgs()
+                        .type(Integer.class)
+                        .converter((Converter<Integer, NumberFormatException>) Integer::parseInt)
+                        .build()
         );
         options.addOption(
                 Option.builder("b")
-                    .longOpt("buckets")
-                    .argName("Number")
-                    .desc("Number of buckets to process in one cycle.")
-                    .hasArg()
-                    .type(Integer.class)
-                    .build()
+                        .longOpt("buckets")
+                        .argName("Number")
+                        .desc("Number of buckets to process in one cycle.")
+                        .hasArg()
+                        .type(Integer.class)
+                        .build()
         );
         options.addOption(
                 Option.builder("no")
-                    .longOpt("nodes")
-                    .argName("File")
-                    .desc("NCBI taxonomy nodes.dmp file")
-                    .hasArg()
-                    .type(File.class)
-                    .build()
+                        .longOpt("nodes")
+                        .argName("File")
+                        .desc("NCBI taxonomy nodes.dmp file")
+                        .hasArg()
+                        .type(File.class)
+                        .build()
         );
         options.addOption(
                 Option.builder("na")
-                    .longOpt("names")
-                    .argName("File")
-                    .desc("NCBI taxonomy names.dmp file")
-                    .hasArg()
-                    .type(File.class)
-                    .build()
+                        .longOpt("names")
+                        .argName("File")
+                        .desc("NCBI taxonomy names.dmp file")
+                        .hasArg()
+                        .type(File.class)
+                        .build()
         );
         options.addOption(
                 Option.builder("ac")
-                    .longOpt("accessions")
-                    .argName("File")
-                    .desc("NCBI accession mapping file(s)")
-                    .hasArg()
-                    .numberOfArgs(Option.UNLIMITED_VALUES)
-                    .type(File.class)
-                    .build()
+                        .longOpt("accessions")
+                        .argName("File")
+                        .desc("NCBI accession mapping file(s)")
+                        .hasArg()
+                        .numberOfArgs(Option.UNLIMITED_VALUES)
+                        .type(File.class)
+                        .build()
         );
         options.addOption(
                 Option.builder("d")
-                    .longOpt("database")
-                    .argName("File")
-                    .desc("Database file in fastA format")
-                    .hasArg()
-                    .type(File.class)
-                    .build()
+                        .longOpt("database")
+                        .argName("File")
+                        .desc("Database file in fastA format")
+                        .hasArgs()
+                        .type(File.class)
+                        .build()
         );
         options.addOption(
                 Option.builder("o")
-                    .longOpt("output")
-                    .argName("Path")
-                    .desc("Output path")
-                    .hasArg()
-                    .type(Path.class)
-                    .build()
+                        .longOpt("output")
+                        .argName("Path")
+                        .desc("Output path")
+                        .hasArg()
+                        .type(Path.class)
+                        .build()
         );
         options.addOption(
                 Option.builder()
-                    .longOpt("mappings")
-                    .argName("File,Integer,Integer;File,Integer,Integer...")
-                    .desc("Mapping file(s) and columns of accession and taxid.")
-                    .hasArg()
-                    .build()
+                        .longOpt("mappings")
+                        .argName("File,Integer,Integer;File,Integer,Integer...")
+                        .desc("Mapping file(s) and columns of accession and taxid.")
+                        .hasArg()
+                        .build()
         );
         HelpFormatter helpFormatter = new HelpFormatter();
 
@@ -154,7 +159,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        int maxMemory = (int)(Runtime.getRuntime().maxMemory() * 1e-9);
+        int maxMemory = (int) (Runtime.getRuntime().maxMemory() * 1e-9);
         try {
             Integer parsedMemory = cli.getParsedOptionValue("m");
             if (parsedMemory != null) {
@@ -181,7 +186,7 @@ public class Main {
                     NCBIReader.AccessionMapping accessionMapping = new NCBIReader.AccessionMapping(mappingFile, accessionColumn, taxidColumn);
                     accessionMappings.add(accessionMapping);
                 }
-                Tree tree = NCBIReader.readTaxonomyWithAccessions(nodes, names, accessionMappings.toArray(new NCBIReader.AccessionMapping[0]), true);
+                Tree tree = NCBIReader.readTaxonomyWithAccessions(nodes, names, accessionMappings.toArray(new NCBIReader.AccessionMapping[0]));
                 NCBIReader.preprocessNR(database, output, tree);
             } catch (IOException | ParseException e) {
                 e.printStackTrace();
@@ -224,18 +229,53 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-        } else if (cli.hasOption("debug")) {
-            System.out.println("Debugging");
+        } else if(cli.hasOption("assignreads")) {
+            System.out.println("Assigning reads");
             try {
-                File readIndex = cli.getParsedOptionValue("d");
-                ReadAssigner readAssigner = new ReadAssigner(null, maxThreads);
-                readAssigner.readHeaderIndex(readIndex);
-                readAssigner.assignReads(Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\reduced\\8M_index"), Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\index"));
-                ReadAssigner.ReadAssignment[] readAssignments = readAssigner.getReadAssignments();
-                System.out.println(Arrays.toString(readAssignments));
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                String[] paths = cli.getOptionValues("d");
+                Path dbIndex = Path.of(paths[0]);
+                Path readsIndex = Path.of(paths[1]);
+                File output = new File(cli.getOptionValue("o"));
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads);
+                readAssigner.readHeaderIndex(readsIndex);
+                readAssigner.assignReads(dbIndex, readsIndex);
+                readAssigner.writeReadAssignments(output);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
+            }
+        } else if (cli.hasOption("debug")) {
+            System.out.println("Debugging");
+            try {
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                File file = new File(cli.getOptionValue("d"));
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                ReadAssignment readAssignment = new ReadAssignment(tree, file);
+                readAssignment.printStatistics();
+                readAssignment.printTopAssignments(20);
+                System.out.println("Top Kmer assignments");
+                readAssignment.printTopKmerAssignments(20);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        } else if (cli.hasOption("rankmapping")) {
+            System.out.println("rankmapping");
+            try {
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                Path dbIndex = Path.of(cli.getOptionValue("d"));
+                File output = new File(cli.getOptionValue("o"));
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                RankMapping rankMapping = new RankMapping(dbIndex, tree);
+                rankMapping.writeRankMapping(0, 1, output);
+            } catch (ParseException e) {
+                e.printStackTrace();
             }
         }
     }

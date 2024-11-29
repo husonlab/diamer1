@@ -95,7 +95,7 @@ public class Indexer {
         // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
         final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
         for (int i = 0; i < currentBucketRange[1] - currentBucketRange[0]; i++) {
-            bucketMaps[i] = new ConcurrentHashMap<Long, Integer>(); // initial capacity 21000000
+            bucketMaps[i] = new ConcurrentHashMap<Long, Integer>(57000000); // initial capacity 57000000
         }
 
         // Read the Sequence database and process the sequences in batches

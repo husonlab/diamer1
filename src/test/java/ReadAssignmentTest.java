@@ -16,7 +16,7 @@ public class ReadAssignmentTest {
     public void testReadAssignment() throws IOException {
         Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/testNCBI/nodes.dmp"), new File("src/test/resources/testNCBI/names.dmp"));
         ReadAssigner readAssigner = new ReadAssigner(tree, 1);
-        readAssigner.readHeaderIndex(new File("src/test/resources/testNCBI/reads_index/header_index.txt"));
+        readAssigner.readHeaderIndex(Path.of("src/test/resources/testNCBI/reads_index"));
         readAssigner.assignReads(Path.of("src/test/resources/testNCBI/db_index"), Path.of("src/test/resources/testNCBI/reads_index"));
         ReadAssigner.ReadAssignment[] readAssignments = readAssigner.getReadAssignments();
         assertEquals(6, readAssignments.length);
