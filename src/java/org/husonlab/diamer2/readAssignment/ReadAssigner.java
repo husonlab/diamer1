@@ -4,10 +4,9 @@ import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
 
 import java.io.*;
-import java.nio.Buffer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.LinkedList;
+import java.util.Objects;
 import java.util.concurrent.*;
 
 import static org.husonlab.diamer2.indexing.Indexer.shutdownThreadPoolExecutor;
@@ -17,7 +16,7 @@ public class ReadAssigner {
     private final int MAX_THREADS;
     private final LinkedList<int[]> bucketRangesToProcess;
     private int[] currentBucketRange = new int[2];
-    private ReadAssignment[] readAssignments;
+    private Read[] reads;
 
     public ReadAssigner(Tree tree, int MAX_THREADS) {
         // Initialize the parameters of the Indexer
@@ -38,13 +37,13 @@ public class ReadAssigner {
     public void readHeaderIndex(Path readIndex) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(readIndex.resolve("header_index.txt").toFile()))) {
             int length = Integer.parseInt(reader.readLine());
-            readAssignments = new ReadAssignment[length];
+            reads = new Read[length];
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("\t");
                 int readId = Integer.parseInt(parts[0]);
                 String header = parts[1];
-                readAssignments[readId] = new ReadAssignment(header, new ConcurrentHashMap<Integer, Integer>());
+                reads[readId] = new Read(header, new ConcurrentLinkedQueue<>());
             }
         }
     }
@@ -61,7 +60,7 @@ public class ReadAssigner {
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
         for (int i = 0; i < 1024; i++) {
-            threadPoolExecutor.execute(new BucketAssignmentProcessor(i, readAssignments, dbIndex, readsIndex));
+            threadPoolExecutor.execute(new BucketAssignmentProcessor(i, reads, dbIndex, readsIndex));
         }
 
         System.out.println("[ReadAssigner] Waiting for threads to finish ...");
@@ -69,28 +68,68 @@ public class ReadAssigner {
         System.out.println("[ReadAssigner] Finished assigning reads.");
     }
 
-    public ReadAssignment[] getReadAssignments() {
-        return readAssignments;
+    public Read[] getReadAssignments() {
+        return reads;
     }
 
     public void writeReadAssignments(File file) throws IOException {
         System.out.println("[ReadAssigner] Writing read assignments to file: " + file.getAbsolutePath());
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-            writer.write(readAssignments.length + "\n");
-            for (ReadAssignment readAssignment : readAssignments) {
-                writer.write(readAssignment.toString() + "\n");
+            writer.write(reads.length + "\n");
+            for (Read read : reads) {
+                writer.write(read.toString() + "\n");
             }
         }
     }
 
-    public record ReadAssignment(String header, ConcurrentHashMap<Integer, Integer> taxIds) {
+    public record Read(String header, ConcurrentLinkedQueue<ReadAssignment> readAssignments) {
         @Override
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append(header).append("\t");
-            taxIds.forEach((taxId, count) -> sb.append(taxId).append(":").append(count).append(" "));
+            readAssignments.forEach(readAssignment -> sb
+                    .append(readAssignment.taxId())
+                    .append(":")
+                    .append(readAssignment.count()).append(" "));
             sb.deleteCharAt(sb.length() - 1);
             return sb.toString();
+        }
+
+        public void addReadAssignment(int taxId) {
+            for (ReadAssignment assignment : readAssignments) {
+                if (assignment.taxId() == taxId) {
+                    assignment.incrementCount();
+                    return;
+                }
+            }
+            readAssignments.add(new ReadAssignment(taxId, 1));
+        }
+    }
+
+    public static final class ReadAssignment {
+        private final int taxId;
+        private int count;
+
+        public ReadAssignment(int taxId, int count) {
+            this.taxId = taxId;
+            this.count = count;
+        }
+
+        public void incrementCount() {
+                count++;
+            }
+
+        public int taxId() {
+            return taxId;
+        }
+
+        public int count() {
+            return count;
+        }
+
+        @Override
+        public String toString() {
+            return taxId + ": " + count;
         }
     }
 }

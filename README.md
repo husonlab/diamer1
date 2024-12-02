@@ -33,6 +33,9 @@ java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp
 * 64 buckets, 16 threads, 5gb
   * ~15 min
   * ~5 gb
+* 1024 buckets, 64 threads, 50 gb
+  * ~ 30 min
+  * ~ 32 gb
 
 ## Indexing Reads
 * with 5GB, 16 threads and 8 buckets in one run:

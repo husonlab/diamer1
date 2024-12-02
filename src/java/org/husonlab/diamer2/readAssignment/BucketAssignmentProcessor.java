@@ -3,20 +3,19 @@ package org.husonlab.diamer2.readAssignment;
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class BucketAssignmentProcessor implements Runnable {
 
     private final int bucketId;
-    private final ReadAssigner.ReadAssignment[] readAssignments;
+    private final ReadAssigner.Read[] reads;
     private final Path dbIndex;
     private final Path readsIndex;
 
-    public BucketAssignmentProcessor(int bucketId, ReadAssigner.ReadAssignment[] readAssignments, Path dbIndex, Path readsIndex) {
+    public BucketAssignmentProcessor(int bucketId, ReadAssigner.Read[] reads, Path dbIndex, Path readsIndex) {
         this.bucketId = bucketId;
-        this.readAssignments = readAssignments;
+        this.reads = reads;
         this.dbIndex = dbIndex;
         this.readsIndex = readsIndex;
     }
@@ -59,8 +58,7 @@ public class BucketAssignmentProcessor implements Runnable {
                 if (dbKmer == readKmer) {
                     int taxId = (int) (dbEntry & 0x3FFFFF);
                     int readId = (int) (readsEntry & 0x3FFFFF);
-                    readAssignments[readId].taxIds().computeIfPresent(taxId, (k, v) -> v + 1);
-                    readAssignments[readId].taxIds().putIfAbsent(taxId, 1);
+                    this.reads[readId].addReadAssignment(taxId);
                 }
             }
         } catch (Exception e) {

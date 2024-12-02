@@ -253,15 +253,12 @@ public class Main {
                 File nodes = cli.getParsedOptionValue("no");
                 File names = cli.getParsedOptionValue("na");
                 File file = new File(cli.getOptionValue("d"));
+                Path path = Path.of(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                ReadAssignment readAssignment = new ReadAssignment(tree, file);
-                readAssignment.printStatistics();
-                readAssignment.printTopAssignments(20);
-                System.out.println("Top Kmer assignments");
-                readAssignment.printTopKmerAssignments(20);
-            } catch (IOException e) {
-                e.printStackTrace();
+                ReadAssignment.statistics(tree, file, path);
             } catch (ParseException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         } else if (cli.hasOption("rankmapping")) {
