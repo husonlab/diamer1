@@ -48,6 +48,13 @@ java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp
 java -Xmx100g -jar diamer2.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/noel/test_dataset/Zymo-GridION-EVEN-3Peaks-R103-merged.fq -o /beegfs/HPCscratch/noel/test_dataset/index/ 
 ````
 
+# Kraken2
+## DB setup
+````shell
+kraken2-build --protein --download-library nr --db kraken_db
+kraken2-build --build --threads 64 --db kraken_db
+````
+
 # Questions:
 * How to handle weired amino acid letters?
 * How to handle stop codons?
