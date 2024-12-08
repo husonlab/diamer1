@@ -30,6 +30,16 @@ java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp
 ```
 
 ## 3. Read Assignment
+
+````shell
+java -jar diamer2.jar --assignreads -t 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/dbindex/ /beegfs/HPCscratch/noel/test_dataset/index/ -o /beegfs/HPCscratch/noel/test_dataset/read_assignments.tsv
+````
+
+## 4. Statistics
+````shell
+java -jar diamer2.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/test_dataset/read_assignments.tsv -o /beegfs/HPCscratch/noel/test_dataset/statistics/
+````
+
 * 64 buckets, 16 threads, 5gb
   * ~15 min
   * ~5 gb

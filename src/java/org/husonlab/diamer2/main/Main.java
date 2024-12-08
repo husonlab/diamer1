@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
+import org.husonlab.diamer2.alphabet.DNAEncoder;
 import org.husonlab.diamer2.benchmarking.RankMapping;
 import org.husonlab.diamer2.graph.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
@@ -40,6 +41,12 @@ public class Main {
                 Option.builder()
                         .longOpt("assignreads")
                         .desc("Assign the reads")
+                        .build()
+        );
+        computationOptions.addOption(
+                Option.builder()
+                        .longOpt("statistics")
+                        .desc("Compute statistics")
                         .build()
         );
         computationOptions.addOption(
@@ -247,8 +254,8 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-        } else if (cli.hasOption("debug")) {
-            System.out.println("Debugging");
+        } else if (cli.hasOption("statistics")) {
+            System.out.println("Statistics");
             try {
                 File nodes = cli.getParsedOptionValue("no");
                 File names = cli.getParsedOptionValue("na");
@@ -274,6 +281,9 @@ public class Main {
             } catch (ParseException e) {
                 e.printStackTrace();
             }
+        } else if (cli.hasOption("debug")) {
+            System.out.println("Debugging");
+            DNAEncoder.generateToAAAndBase11AndNumberFR();
         }
     }
 }

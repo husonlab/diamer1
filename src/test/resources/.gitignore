@@ -3,3 +3,4 @@ NCBI/
 out/
 test_dataset/
 read_assignment/
+known_test_reads/

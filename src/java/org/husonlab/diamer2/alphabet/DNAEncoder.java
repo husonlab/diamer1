@@ -6,6 +6,34 @@ import java.util.LinkedList;
 public class DNAEncoder {
 
     /**
+     * Translates a DNA nucleotide to its complement.
+     * @param nucleotide DNA nucleotide
+     * @return complement of the nucleotide
+     */
+    public static char reverseComplement(char nucleotide) {
+        switch (nucleotide) {
+            case 'A' -> { return 'T'; }
+            case 'T' -> { return 'A'; }
+            case 'C' -> { return 'G'; }
+            case 'G' -> { return 'C'; }
+            default -> throw new IllegalArgumentException("Invalid nucleotide: " + nucleotide);
+        }
+    }
+
+    /**
+     * Translates a DNA sequence to its complement.
+     * @param sequence DNA sequence
+     * @return reverse complement of the sequence
+     */
+    public static String reverseComplement(String sequence) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = sequence.length() - 1; i >= 0; i--) {
+            sb.append(reverseComplement(sequence.charAt(i)));
+        }
+        return sb.toString();
+    }
+
+    /**
      * Translates a DNA codon to an amino acid.
      * @param codon DNA codon
      * @return corresponding amino acid
@@ -115,31 +143,29 @@ public class DNAEncoder {
      */
     public static short[] toAAAndBase11FR(String codon) {
         switch (codon) {
-            case "ACC", "GCC", "TCC" -> { return new short[]{(short)1, (short)4}; }
-            case "CTT" -> { return new short[]{(short)2, (short)5}; }
-            case "CGA", "TGA" -> { return new short[]{(short)0, (short)1}; }
-            case "ACA", "ACG", "ACT", "GCA", "GCG", "GCT", "TCA", "TCG", "TCT" -> { return new short[]{(short)1, (short)1}; }
-            case "GGT" -> { return new short[]{(short)3, (short)10}; }
-            case "AAA", "AAC", "AAG", "AAT", "AGA", "CAA", "CAG", "CGC", "GAA", "GAC", "GAG", "GAT", "TAA", "TAG" -> { return new short[]{(short)0, (short)0}; }
-            case "AGG", "CGG" -> { return new short[]{(short)0, (short)3}; }
-            case "AGC", "AGT" -> { return new short[]{(short)1, (short)0}; }
-            case "GTA" -> { return new short[]{(short)2, (short)9}; }
-            case "ATG" -> { return new short[]{(short)9, (short)2}; }
-            case "GGG" -> { return new short[]{(short)3, (short)3}; }
-            case "TGG" -> { return new short[]{(short)10, (short)3}; }
-            case "CCC" -> { return new short[]{(short)4, (short)4}; }
-            case "TTC" -> { return new short[]{(short)5, (short)2}; }
-            case "TGT" -> { return new short[]{(short)7, (short)7}; }
-            case "TAT" -> { return new short[]{(short)6, (short)6}; }
-            case "CCA", "CCG", "CCT" -> { return new short[]{(short)4, (short)1}; }
-            case "TTT" -> { return new short[]{(short)5, (short)5}; }
-            case "CAC" -> { return new short[]{(short)8, (short)8}; }
-            case "CAT" -> { return new short[]{(short)8, (short)6}; }
-            case "CGT" -> { return new short[]{(short)0, (short)7}; }
-            case "GGA", "GGC" -> { return new short[]{(short)3, (short)0}; }
-            case "TGC" -> { return new short[]{(short)7, (short)0}; }
-            case "TAC" -> { return new short[]{(short)6, (short)8}; }
-            case "ATA", "ATC", "ATT", "CTA", "CTC", "CTG", "GTC", "GTG", "GTT", "TTA", "TTG" -> { return new short[]{(short)2, (short)2}; }
+            case "ACC", "GCC", "TCC" -> { return new short[]{(short)1, (short)3}; }
+            case "ATA", "GTA" -> { return new short[]{(short)2, (short)6}; }
+            case "AGA", "CGA", "CGC", "CGT", "TGA" -> { return new short[]{(short)0, (short)1}; }
+            case "ACT", "AGC", "AGT", "GCT" -> { return new short[]{(short)1, (short)1}; }
+            case "ACG", "GCG", "TCA", "TCG", "TCT" -> { return new short[]{(short)1, (short)0}; }
+            case "AAC", "AAG", "AAT", "CAA", "CAG", "GAC", "GAG", "GAT", "TAA", "TAG" -> { return new short[]{(short)0, (short)2}; }
+            case "GGG" -> { return new short[]{(short)3, (short)4}; }
+            case "AAA", "GAA" -> { return new short[]{(short)0, (short)5}; }
+            case "GTG" -> { return new short[]{(short)2, (short)8}; }
+            case "AGG", "CGG" -> { return new short[]{(short)0, (short)4}; }
+            case "ATG" -> { return new short[]{(short)9, (short)8}; }
+            case "TGG" -> { return new short[]{(short)10, (short)4}; }
+            case "CCC" -> { return new short[]{(short)4, (short)3}; }
+            case "TTC", "TTT" -> { return new short[]{(short)5, (short)0}; }
+            case "CCG", "CCT" -> { return new short[]{(short)4, (short)0}; }
+            case "CCA" -> { return new short[]{(short)4, (short)10}; }
+            case "CAT" -> { return new short[]{(short)8, (short)9}; }
+            case "TAC", "TAT" -> { return new short[]{(short)6, (short)2}; }
+            case "TGC", "TGT" -> { return new short[]{(short)7, (short)1}; }
+            case "GGA", "GGC", "GGT" -> { return new short[]{(short)3, (short)1}; }
+            case "CAC" -> { return new short[]{(short)8, (short)2}; }
+            case "ACA", "GCA" -> { return new short[]{(short)1, (short)7}; }
+            case "ATC", "ATT", "CTA", "CTC", "CTG", "CTT", "GTC", "GTT", "TTA", "TTG" -> { return new short[]{(short)2, (short)0}; }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);
         }
     }
@@ -156,7 +182,7 @@ public class DNAEncoder {
                 "TCG", "TCT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"};
         HashMap<String, LinkedList<String>> encodingToCodons = new HashMap<>();
         for (String codon : codons) {
-            String reverse = new StringBuilder(codon).reverse().toString();
+            String reverse = reverseComplement(codon);
             int codonEncoding = codonToAAAndBase11(codon);
             int reverseEncoding = codonToAAAndBase11(reverse);
             String encoding = "(short)" + codonEncoding + ", " + "(short)" + reverseEncoding;
