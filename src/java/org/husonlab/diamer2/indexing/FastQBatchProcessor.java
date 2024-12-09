@@ -2,9 +2,7 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.alphabet.DNAKmerEncoder;
 import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.util.Pair;
 
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class FastQBatchProcessor implements Runnable {

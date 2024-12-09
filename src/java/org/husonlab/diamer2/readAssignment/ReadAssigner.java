@@ -6,7 +6,6 @@ import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.LinkedList;
-import java.util.Objects;
 import java.util.concurrent.*;
 
 import static org.husonlab.diamer2.indexing.Indexer.shutdownThreadPoolExecutor;
@@ -18,7 +17,7 @@ public class ReadAssigner {
     private Read[] reads;
 
     public ReadAssigner(Tree tree, int MAX_THREADS) {
-        // Initialize the parameters of the Indexer
+        // Initialize the parameters of the read assigner
         this.tree = tree;
         this.MAX_THREADS = MAX_THREADS;
         this.bucketRangesToProcess = new LinkedList<>();
@@ -33,6 +32,12 @@ public class ReadAssigner {
         }
     }
 
+    /**
+     * Function to read a header index file that maps the read id to the headers.
+     * Format:  length
+     *          readId \t header
+     * @param readIndex path to the header index file
+     */
     public void readHeaderIndex(Path readIndex) throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(readIndex.resolve("header_index.txt").toFile()))) {
             int length = Integer.parseInt(reader.readLine());
@@ -44,6 +49,9 @@ public class ReadAssigner {
                 String header = parts[1];
                 reads[readId] = new Read(header, new ConcurrentLinkedQueue<>());
             }
+        } catch (IOException e) {
+            System.err.println("[ERROR][ReadAssigner] Error reading header index file: " + e.getMessage());
+            throw e;
         }
     }
 

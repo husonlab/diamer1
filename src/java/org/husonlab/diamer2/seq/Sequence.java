@@ -22,6 +22,10 @@ public class Sequence {
         return sequence;
     }
 
+    /**
+     * Get the reverse complement of the DNA sequence.
+     * @return the reverse complement of the DNA sequence
+     */
     public String getReverseComplement() {
         StringBuilder reverseComplement = new StringBuilder();
         for (int i = sequence.length() - 1; i >= 0; i--) {

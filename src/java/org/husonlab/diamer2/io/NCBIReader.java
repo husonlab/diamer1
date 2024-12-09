@@ -1,6 +1,8 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.alphabet.AAEncoder;
+import org.husonlab.diamer2.logging.Logger;
+import org.husonlab.diamer2.logging.ProgressBar;
 import org.husonlab.diamer2.logging.ProgressLogger;
 import org.husonlab.diamer2.seq.Sequence;
 import org.jetbrains.annotations.NotNull;
@@ -18,25 +20,6 @@ public class NCBIReader {
 
     /**
      * Parses the NCBI taxonomy, including the node names and the amino acid accessions.
-     * @param nodesDumpfile: nodes.dmp, containing the taxonomy nodes (format: tax_id | parent_tax_id | rank)
-     * @param namesDumpfile: names.dmp, containing the taxonomy names (format: tax_id | name)
-     * @param accessionMappings: array of AccessionMapping objects, containing the path to the mapping file and the column indices for the accession and tax_id.
-     */
-    @NotNull
-    public static Tree readTaxonomyWithAccessions(
-            @NotNull File nodesDumpfile,
-            @NotNull File namesDumpfile,
-            @NotNull AccessionMapping[] accessionMappings) throws IOException {
-
-        final HashMap<Integer, Node> idMap = new HashMap<>(2700000);
-        final HashMap<String, Integer> accessionMap = new HashMap<>(1400000000);
-        final Tree tree = new Tree(idMap, accessionMap);
-
-        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
-    }
-
-    /**
-     * Parses the NCBI taxonomy, including the node names and the amino acid accessions.
      * Does not set initial HashMap capacities to allow for dynamic resizing in smaller datasets.
      * @param nodesDumpfile: nodes.dmp, containing the taxonomy nodes (format: tax_id | parent_tax_id | rank)
      * @param namesDumpfile: names.dmp, containing the taxonomy names (format: tax_id | name)
@@ -49,11 +32,13 @@ public class NCBIReader {
             @NotNull AccessionMapping[] accessionMappings,
             boolean debug) throws IOException {
 
-        final HashMap<Integer, Node> idMap = new HashMap<>();
-        final HashMap<String, Integer> accessionMap = new HashMap<>();
-        final Tree tree = new Tree(idMap, accessionMap);
-
-        return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
+        if (debug) {
+            final Tree tree = new Tree(new HashMap<>(), new HashMap<>());
+            return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
+        } else {
+            final Tree tree = new Tree(new HashMap<>(2700000), new HashMap<>(1400000000));
+            return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
+        }
     }
 
     @NotNull
@@ -62,18 +47,17 @@ public class NCBIReader {
             @NotNull File namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings,
             @NotNull Tree tree) throws IOException {
-        System.out.println("[NCBIReader] Reading nodes dumpfile...");
+        Logger logger = new Logger("NCBIReader", true);
+        logger.logInfo("Reading nodes dumpfile...");
         readNodesDumpfile(nodesDumpfile, tree);
-        System.out.println("[NCBIReader] Reading names dumpfile...");
+        logger.logInfo("Reading names dumpfile...");
         readNamesDumpfile(namesDumpfile, tree);
         for (AccessionMapping mapping : accessionMappings) {
-            System.out.println("[NCBIReader] Reading accession mapping from " + mapping.mappingFile);
+            logger.logInfo("Reading accession mapping from " + mapping.mappingFile);
             readAccessionMap(mapping.mappingFile, mapping.accessionCol, mapping.taxIdCol, tree);
         }
-        System.out.printf(
-                "[NCBIReader] Finished reading taxonomy. Tree with %d nodes and %d accessions.\n",
-                tree.idMap.size(), tree.accessionMap.size()
-        );
+        logger.logInfo("Finished reading taxonomy. Tree with %d nodes and %d accessions."
+                .formatted(tree.idMap.size(), tree.accessionMap.size()));
         return tree;
     }
 
@@ -84,14 +68,15 @@ public class NCBIReader {
      */
     @NotNull
     public static Tree readTaxonomy(@NotNull File nodesDumpfile, @NotNull File namesDumpfile){
+        Logger logger = new Logger("NCBIReader", true);
         final HashMap<Integer, Node> idMap = new HashMap<>();
         final Tree tree = new Tree(idMap);
-        System.out.println("[NCBIReader] Reading nodes dumpfile...");
+        logger.logInfo("Reading nodes dumpfile...");
         readNodesDumpfile(nodesDumpfile, tree);
-        System.out.println("[NCBIReader] Reading names dumpfile...");
+        logger.logInfo("Reading names dumpfile...");
         readNamesDumpfile(namesDumpfile, tree);
-        System.out.printf(
-                "[NCBIReader] Finished reading taxonomy. Tree with %d nodes.\n", idMap.size());
+        logger.logInfo("Finished reading taxonomy. Tree with %d nodes and %d accessions."
+                .formatted(tree.idMap.size(), tree.accessionMap.size()));
         return tree;
     }
 
@@ -166,8 +151,11 @@ public class NCBIReader {
      * @param tree: Tree with idMap to store the nodes
      */
     private static void readNodesDumpfile(File nodesDumpfile, Tree tree){
+        ProgressBar progressBar = new ProgressBar(nodesDumpfile.length(), 20);
+        Logger logger = new Logger("NCBIReader", 50, false).addElement(progressBar);
         HashMap<Integer, Integer> parentMap = new HashMap<>();
-        try (BufferedReader br = Files.newBufferedReader(nodesDumpfile.toPath())) {
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile));
+             BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t\\|\t");
@@ -178,10 +166,12 @@ public class NCBIReader {
                 tree.idMap.put(taxId, node);
                 // parents are recorded separately since the node objects might not have been created yet
                 parentMap.put(taxId, parentTaxId);
+                progressBar.setProgress(cis.getReadBytes());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+        progressBar.finish();
         // set the parent-child relationships after all nodes have been created
         parentMap.forEach( (nodeId, parentId) -> {
             Node node = tree.idMap.get(nodeId);
