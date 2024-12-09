@@ -58,4 +58,26 @@ public class Tree {
         }
         return path;
     }
+
+    public Node getSpecies(Node node) {
+        return getRank(node, "species");
+    }
+
+    public Node getGenus(Node node) {
+        return getRank(node, "genus");
+    }
+
+    public Node getRank(Node node, String rank) {
+        Node rankNode = null;
+        Node previousNode = null;
+        while (node != previousNode && node != null) {
+            if (node.getRank().equals(rank)) {
+                rankNode = node;
+                break;
+            }
+            previousNode = node;
+            node = node.getParent();
+        }
+        return rankNode;
+    }
 }

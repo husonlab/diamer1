@@ -15,7 +15,6 @@ public class ReadAssigner {
     private final Tree tree;
     private final int MAX_THREADS;
     private final LinkedList<int[]> bucketRangesToProcess;
-    private int[] currentBucketRange = new int[2];
     private Read[] reads;
 
     public ReadAssigner(Tree tree, int MAX_THREADS) {
@@ -87,7 +86,7 @@ public class ReadAssigner {
         public String toString() {
             StringBuilder sb = new StringBuilder();
             sb.append(header).append("\t");
-            readAssignments.forEach(readAssignment -> sb
+            getSortedAssignments().forEach(readAssignment -> sb
                     .append(readAssignment.taxId())
                     .append(":")
                     .append(readAssignment.count()).append(" "));
@@ -103,6 +102,12 @@ public class ReadAssigner {
                 }
             }
             readAssignments.add(new ReadAssignment(taxId, 1));
+        }
+
+        public LinkedList<ReadAssignment> getSortedAssignments() {
+            LinkedList<ReadAssignment> sortedAssignments = new LinkedList<>(readAssignments);
+            sortedAssignments.sort((a1, a2) -> Integer.compare(a2.count(), a1.count()));
+            return sortedAssignments;
         }
     }
 

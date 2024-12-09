@@ -14,7 +14,7 @@ public class ReadAssignment {
     private Read[] reads;
     Tree tree;
 
-    public ReadAssignment(Tree tree, File file) throws IOException {
+    public ReadAssignment(Tree tree, File file) {
         this.tree = tree;
         try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
             reads = new Read[Integer.parseInt(reader.readLine())];
@@ -118,10 +118,12 @@ public class ReadAssignment {
 
         int unclassifiedReads = 0;
         int classifiedReads = 0;
-        HashMap<Integer, Integer> taxonKmerCounts = new HashMap<>();
-        HashMap<String, Integer> kmerRanks = new HashMap<>();
-        HashMap<String, Integer> rankOfBestMatch = new HashMap<>();
-        HashMap<String, Integer> bestSpeciesMatches = new HashMap<>();
+        HashMap<Integer, Integer> taxonKmerCounts = new HashMap<>();    // taxon id -> kmer count
+        HashMap<String, Integer> kmerRanks = new HashMap<>();           // rank -> kmer count
+        HashMap<String, Integer> rankOfBestMatch = new HashMap<>();     // rank -> read count
+        HashMap<String, Integer> bestSpeciesMatches = new HashMap<>();  // species string (assignment with the highest count) -> read count
+        HashMap<Integer, Integer> kmersPerGenus = new HashMap<>();      // genus tax id -> kmer count
+        HashMap<Integer, Integer> kmersPerSpecies = new HashMap<>();    // species tax id -> kmer count
 
         try(BufferedReader reader = new BufferedReader(new FileReader(file))) {
             reader.readLine(); // skip the first line with the number of reads
@@ -137,14 +139,28 @@ public class ReadAssignment {
                         String[] assignmentParts = assignmentStrings[i].split(":");
                         int taxId = Integer.parseInt(assignmentParts[0]);
                         int count = Integer.parseInt(assignmentParts[1]);
-                        assignments[i] = new Assignment(tree.idMap.get(taxId), count);
+                        Assignment assignment = new Assignment(tree.idMap.get(taxId), count);
+                        assignments[i] = assignment;
+
+                        Node assignmentSpecies = tree.getSpecies(assignment.taxon);
+                        Node assignmentGenus = tree.getGenus(assignment.taxon);
 
                         kmerRanks.computeIfPresent(assignments[i].taxon.getRank(), (k, v) -> v + count);
                         kmerRanks.computeIfAbsent(assignments[i].taxon.getRank(), k -> count);
 
                         taxonKmerCounts.computeIfPresent(taxId, (k, v) -> v + count);
                         taxonKmerCounts.computeIfAbsent(taxId, k -> count);
+
+                        if (assignmentSpecies != null) {
+                            kmersPerSpecies.computeIfPresent(assignmentSpecies.getTaxId(), (k, v) -> v + count);
+                            kmersPerSpecies.computeIfAbsent(assignmentSpecies.getTaxId(), k -> count);
+                        }
+                        if (assignmentGenus != null) {
+                            kmersPerGenus.computeIfPresent(assignmentGenus.getTaxId(), (k, v) -> v + count);
+                            kmersPerGenus.computeIfAbsent(assignmentGenus.getTaxId(), k -> count);
+                        }
                     }
+                    assignments = Arrays.stream(assignments).sorted().toArray(Assignment[]::new);
 
                     rankOfBestMatch.computeIfPresent(assignments[assignments.length - 1].taxon.getRank(), (k, v) -> v + 1);
                     rankOfBestMatch.computeIfAbsent(assignments[assignments.length - 1].taxon.getRank(), k -> 1);
@@ -216,6 +232,34 @@ public class ReadAssignment {
                     .forEach(e -> {
                         try {
                             bw.write(e.getKey() + "\t" + e.getValue() + "\n");
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    });
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(outpath.resolve("kmersPerGenus.tsv").toFile()))){
+            bw.write("Genus\tCount\n");
+            kmersPerGenus
+                    .entrySet()
+                    .stream()
+                    .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
+                    .forEach(e -> {
+                        try {
+                            bw.write(tree.idMap.get(e.getKey()) + "\t" + e.getValue() + "\n");
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    });
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(outpath.resolve("kmersPerSpecies.tsv").toFile()))){
+            bw.write("Species\tCount\n");
+            kmersPerSpecies
+                    .entrySet()
+                    .stream()
+                    .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
+                    .forEach(e -> {
+                        try {
+                            bw.write(tree.idMap.get(e.getKey()) + "\t" + e.getValue() + "\n");
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }

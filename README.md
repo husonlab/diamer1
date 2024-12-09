@@ -62,6 +62,7 @@ java -Xmx100g -jar diamer2.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/n
 ## DB setup
 ````shell
 kraken2-build --protein --download-library nr --db kraken_db
+kraken2-build --threads 64 --download-taxonomy --protein --db kraken_db
 kraken2-build --build --threads 64 --db kraken_db
 ````
 
