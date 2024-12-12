@@ -33,12 +33,8 @@ public class ProgressBar implements LoggerElement {
             int bars = percent * length / 100;
             StringBuilder sb = new StringBuilder();
             sb.append("[");
-            for (int i = 0; i < bars; i++) {
-                sb.append("=");
-            }
-            for (int i = bars; i < length; i++) {
-                sb.append(" ");
-            }
+            sb.append("=".repeat(Math.max(0, bars)));
+            sb.append(" ".repeat(Math.max(0, length - bars)));
             sb.append("] ");
             sb.append(percent);
             sb.append("%");

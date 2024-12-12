@@ -28,13 +28,13 @@ public class Main {
         computationOptions.addOption(
                 Option.builder()
                         .longOpt("indexdb")
-                        .desc("Index the database")
+                        .desc("DBIndexIO the database")
                         .build()
         );
         computationOptions.addOption(
                 Option.builder()
                         .longOpt("indexreads")
-                        .desc("Index the reads")
+                        .desc("DBIndexIO the reads")
                         .build()
         );
         computationOptions.addOption(
@@ -239,16 +239,12 @@ public class Main {
         } else if(cli.hasOption("assignreads")) {
             System.out.println("Assigning reads");
             try {
-                File nodes = cli.getParsedOptionValue("no");
-                File names = cli.getParsedOptionValue("na");
                 String[] paths = cli.getOptionValues("d");
                 Path dbIndex = Path.of(paths[0]);
                 Path readsIndex = Path.of(paths[1]);
                 File output = new File(cli.getOptionValue("o"));
-                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads);
-                readAssigner.readHeaderIndex(readsIndex);
-                readAssigner.assignReads(dbIndex, readsIndex);
+                ReadAssigner readAssigner = new ReadAssigner(maxThreads, dbIndex, readsIndex);
+                readAssigner.assignReads();
                 readAssigner.writeReadAssignments(output);
             } catch (Exception e) {
                 e.printStackTrace();

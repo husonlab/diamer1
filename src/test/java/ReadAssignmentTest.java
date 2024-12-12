@@ -13,11 +13,10 @@ import static org.junit.Assert.assertNotNull;
 public class ReadAssignmentTest {
 
     @Test
-    public void testReadAssignment() throws IOException {
+    public void testReadAssignment() throws Exception {
         Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/testNCBI/nodes.dmp"), new File("src/test/resources/testNCBI/names.dmp"));
-        ReadAssigner readAssigner = new ReadAssigner(tree, 1);
-        readAssigner.readHeaderIndex(Path.of("src/test/resources/testNCBI/reads_index"));
-        readAssigner.assignReads(Path.of("src/test/resources/testNCBI/db_index"), Path.of("src/test/resources/testNCBI/reads_index"));
+        ReadAssigner readAssigner = new ReadAssigner(1, Path.of("src/test/resources/testNCBI/db_index"), Path.of("src/test/resources/testNCBI/reads_index"));
+        readAssigner.assignReads();
         ReadAssigner.Read[] reads = readAssigner.getReadAssignments();
         assertEquals(6, reads.length);
         assertEquals(1, reads[0].readAssignments().size());

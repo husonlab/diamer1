@@ -1,5 +1,10 @@
 package org.husonlab.diamer2.readAssignment;
 
+import org.husonlab.diamer2.io.BucketReader;
+import org.husonlab.diamer2.io.DBIndexIO;
+import org.husonlab.diamer2.io.ReadIndexIO;
+import org.husonlab.diamer2.logging.Logger;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,50 +13,38 @@ import java.nio.file.Paths;
 
 public class BucketAssignmentProcessor implements Runnable {
 
-    private final int bucketId;
+    Logger logger;
     private final ReadAssigner.Read[] reads;
-    private final Path dbIndex;
-    private final Path readsIndex;
+    private final DBIndexIO dbIndex;
+    private final ReadIndexIO readIndex;
+    private final int bucketId;
 
-    public BucketAssignmentProcessor(int bucketId, ReadAssigner.Read[] reads, Path dbIndex, Path readsIndex) {
-        this.bucketId = bucketId;
+    public BucketAssignmentProcessor(ReadAssigner.Read[] reads, DBIndexIO dbIndex, ReadIndexIO readIndex, int bucketId) {
+        this.logger = new Logger("BucketAssignmentProcessor", false);
         this.reads = reads;
         this.dbIndex = dbIndex;
-        this.readsIndex = readsIndex;
+        this.readIndex = readIndex;
+        this.bucketId = bucketId;
     }
 
     @Override
     public void run() {
-        File dbBucket = Paths.get(dbIndex.toString(), bucketId + ".bin").toFile();
-        File readBucket = Paths.get(readsIndex.toString(), bucketId + ".bin").toFile();
-        if (!dbBucket.exists() ||
-            !readBucket.exists()
-        ) {
-            System.err.println("[ReadAssigner][WARN] Bucket not found: " + bucketId);
-            return;
-        }
-
-        try (
-                FileInputStream fis1 = new FileInputStream(dbBucket);
-                DataInputStream db = new DataInputStream(fis1);
-                FileInputStream fis2 = new FileInputStream(readBucket);
-                DataInputStream reads = new DataInputStream(fis2)
-        ) {
-            int dbLength = db.readInt();
-            int readsLength = reads.readInt();
+        try (BucketReader db = dbIndex.getBucketReader(bucketId);
+             BucketReader reads = readIndex.getBucketReader(bucketId)) {
+            int dbLength = db.getLength();
+            int readsLength = reads.getLength();
             if (dbLength == 0 || readsLength == 0) {
-                System.err.println("[ReadAssigner][WARN] Empty bucket: " + bucketId);
+                logger.logWarning("Bucket " + bucketId + " is empty.");
                 return;
             }
-            System.out.println("[ReadAssigner] Processing bucket: " + bucketId);
-            long dbEntry = db.readLong();
+            long dbEntry = db.next();
             int dbCount = 1;
             long dbKmer = (dbEntry >> 22) & 0xFFFFFFFFFFFL;
             for (int readsCount = 0; readsCount < readsLength; readsCount++) {
-                long readsEntry = reads.readLong();
+                long readsEntry = reads.next();
                 long readKmer = (readsEntry >> 22) & 0xFFFFFFFFFFFL;
                 while (dbKmer < readKmer && dbCount < dbLength) {
-                    dbEntry = db.readLong();
+                    dbEntry = db.next();
                     dbKmer = (dbEntry >> 22) & 0xFFFFFFFFFFFL;
                     dbCount++;
                 }

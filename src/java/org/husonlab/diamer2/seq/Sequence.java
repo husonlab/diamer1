@@ -1,23 +1,35 @@
 package org.husonlab.diamer2.seq;
 
+/**
+ * Represents a sequence with a header and a sequence string.
+ */
 public class Sequence {
 
     String header;
     String sequence;
 
+    /**
+     * Create a new Sequence object.
+     * @param header the header of the sequence
+     * @param sequence the sequence of the sequence
+     */
     public Sequence(String header, String sequence) {
-        /*
-        @param header: the header of the Sequence entry without ">"
-        @param sequence: the sequence of the Sequence entry
-         */
         this.header = header;
         this.sequence = sequence.replace("\n", "").replace(" ", "");
     }
 
+    /**
+     * Get the header of the sequence.
+     * @return the header of the sequence
+     */
     public String getHeader() {
         return header;
     }
 
+    /**
+     * Get the sequence string.
+     * @return the sequence
+     */
     public String getSequence() {
         return sequence;
     }

@@ -60,27 +60,6 @@ public class ReadAssignment {
         return rankCounts;
     }
 
-//    public void printStatistics() {
-//        int totalReads = reads.length;
-//        int readsWithAssignments = (int) Arrays.stream(reads).filter(read -> read.assignments().length > 0).count();
-//        int readsWithoutAssignments = totalReads - readsWithAssignments;
-//        int totalAssignments = Arrays.stream(reads).mapToInt(read -> read.assignments().length).sum();
-//        int uniqueTaxIds = Arrays.stream(reads).flatMap(read -> Arrays.stream(read.assignments())).mapToInt(assignment -> assignment.taxId()).distinct().toArray().length;
-//        int totalTaxIds = Arrays.stream(reads).flatMap(read -> Arrays.stream(read.assignments())).mapToInt(assignment -> assignment.taxId()).sum();
-//        int maxAssignments = Arrays.stream(reads).mapToInt(read -> read.assignments().length).max().orElse(0);
-//        int minAssignments = Arrays.stream(reads).mapToInt(read -> read.assignments().length).min().orElse(0);
-//        double avgAssignments = Arrays.stream(reads).mapToInt(read -> read.assignments().length).average().orElse(0);
-//        System.out.println("Total reads: " + totalReads);
-//        System.out.println("Reads with assignments: " + readsWithAssignments);
-//        System.out.println("Reads without assignments: " + readsWithoutAssignments);
-//        System.out.println("Total assignments: " + totalAssignments);
-//        System.out.println("Unique tax ids: " + uniqueTaxIds);
-//        System.out.println("Total tax ids: " + totalTaxIds);
-//        System.out.println("Max assignments: " + maxAssignments);
-//        System.out.println("Min assignments: " + minAssignments);
-//        System.out.println("Avg assignments: " + avgAssignments);
-//    }
-
     public void printTopAssignments(int n) {
         // count for each Node how many reads are assigned to it
         HashMap<Node, Integer> nodeCounts = new HashMap<>();

@@ -49,7 +49,7 @@ public class Indexer {
     }
 
     /**
-     * Index a Sequence database and write the indexed buckets to files.
+     * DBIndexIO a Sequence database and write the indexed buckets to files.
      * @param fastaFile Path to the Sequence database.
      * @param outPath Path to write the index buckets to.
      * @throws IOException If an error occurs during reading the database or writing the buckets.
@@ -77,7 +77,7 @@ public class Indexer {
     }
 
     /**
-     * Index the selected range (currentBucketRange) of buckets from the Sequence database.
+     * DBIndexIO the selected range (currentBucketRange) of buckets from the Sequence database.
      * @param fastaFile Path to the Sequence database.
      * @return Array of ConcurrentHashMaps with the kmers and their taxIds for each bucket.
      * @throws IOException If an error occurs during reading the database.
