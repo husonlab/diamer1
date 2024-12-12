@@ -22,7 +22,7 @@ public class DBIndexIO {
      * is missing
      */
     public DBIndexIO(Path indexFolder) throws FileNotFoundException {
-        this.logger = new Logger("DBIndexIO", false);
+        this.logger = new Logger("DBIndexIO");
         if (!indexFolder.toFile().isDirectory()) {
             logger.logWarning("DBIndexIO folder does not exist.");
             throw new FileNotFoundException("DBIndexIO folder does not exist.");
@@ -37,7 +37,7 @@ public class DBIndexIO {
      */
     private void checkAvailableBuckets() {
         for (int i = 0; i < 1024; i++) {
-            File bucket = indexFolder.resolve("bucket" + i + ".bin").toFile();
+            File bucket = indexFolder.resolve(i + ".bin").toFile();
             if (bucket.exists()) {
                 availableBuckets[i] = true;
             } else {
@@ -47,15 +47,13 @@ public class DBIndexIO {
         }
     }
 
-
-
     @Nullable
     public BucketReader getBucketReader(int bucket) {
         if (!availableBuckets[bucket]) {
             logger.logWarning("Bucket " + bucket + " is missing.");
             return null;
         }
-        return new BucketReader(indexFolder.resolve("bucket" + bucket + ".bin").toFile());
+        return new BucketReader(indexFolder.resolve(bucket + ".bin").toFile());
     }
 
     public Path getIndexFolder() {

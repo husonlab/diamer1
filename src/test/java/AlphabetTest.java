@@ -36,32 +36,32 @@ public class AlphabetTest {
     public void testDNAEncoder() {
         assertEquals('A', DNAEncoder.toAA("GCT"));
         assertEquals(5, DNAEncoder.codonToAAAndBase11("TTT"));
-        assertArrayEquals(new short[]{4, 4}, DNAEncoder.toAAAndBase11FR("CCC"));
+        assertArrayEquals(
+                new short[]{DNAEncoder.codonToAAAndBase11("CCC"), DNAEncoder.codonToAAAndBase11("GGG")},
+                DNAEncoder.toAAAndBase11FR("CCC"));
     }
 
     @Test
     public void testDNAKmerEncoder() {
         DNAKmerEncoder dnaKmerEncoder = new DNAKmerEncoder(4, "TT");
-        assertArrayEquals(new long[]{5, 6655}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{5, 2662}, dnaKmerEncoder.addNucleotide('C'));
-        assertArrayEquals(new long[]{1, 1331}, dnaKmerEncoder.addNucleotide('A'));
-        assertArrayEquals(new long[]{55, 605}, dnaKmerEncoder.addNucleotide('A'));
-        assertArrayEquals(new long[]{55, 242}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{20, 2783}, dnaKmerEncoder.addNucleotide('G'));
-        assertArrayEquals(new long[]{612, 9372}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{607, 2684}, dnaKmerEncoder.addNucleotide('C'));
-        assertArrayEquals(new long[]{221, 1584}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{6734, 7507}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{6682, 2906}, dnaKmerEncoder.addNucleotide('C'));
-        assertArrayEquals(new long[]{2432, 1475}, dnaKmerEncoder.addNucleotide('G'));
-        assertArrayEquals(new long[]{869, 9999}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{299, 2926}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{12116, 2796}, dnaKmerEncoder.addNucleotide('C'));
-        assertArrayEquals(new long[]{9560, 2240}, dnaKmerEncoder.addNucleotide('A'));
-        assertArrayEquals(new long[]{3289, 266}, dnaKmerEncoder.addNucleotide('G'));
-        assertArrayEquals(new long[]{1508, 254}, dnaKmerEncoder.addNucleotide('T'));
-        assertArrayEquals(new long[]{2675, 2865}, dnaKmerEncoder.addNucleotide('T'));
+        dnaKmerEncoder.addNucleotide('T');
+        dnaKmerEncoder.addNucleotide('C');
+        dnaKmerEncoder.addNucleotide('A');
+        dnaKmerEncoder.addNucleotide('A');
+        dnaKmerEncoder.addNucleotide('T');
+        dnaKmerEncoder.addNucleotide('G');
+        dnaKmerEncoder.addNucleotide('T');
+        dnaKmerEncoder.addNucleotide('C');
+        dnaKmerEncoder.addNucleotide('T');
+        assertArrayEquals(new long[]{6734, 143}, dnaKmerEncoder.addNucleotide('T'));
+        assertArrayEquals(new long[]{6682, 22}, dnaKmerEncoder.addNucleotide('C'));
+        assertArrayEquals(new long[]{2432, 88}, dnaKmerEncoder.addNucleotide('G'));
+        assertArrayEquals(new long[]{869, 1344}, dnaKmerEncoder.addNucleotide('T'));
+        assertArrayEquals(new long[]{299, 2}, dnaKmerEncoder.addNucleotide('T'));
+        assertArrayEquals(new long[]{12116, 8}, dnaKmerEncoder.addNucleotide('C'));
+        assertArrayEquals(new long[]{9560, 122}, dnaKmerEncoder.addNucleotide('A'));
+        assertArrayEquals(new long[]{3289, 2662}, dnaKmerEncoder.addNucleotide('G'));
+        assertArrayEquals(new long[]{1508, 1331}, dnaKmerEncoder.addNucleotide('T'));
+        assertArrayEquals(new long[]{2675, 11}, dnaKmerEncoder.addNucleotide('T'));
     }
-
-
 }

@@ -13,7 +13,7 @@ import static org.junit.Assert.assertEquals;
 public class FASTAReaderTest {
     @Test
     public void testFASTAReader() throws IOException {
-        try (BufferedReader br = Files.newBufferedReader(Path.of("src/test/resources/testNCBI/db.fsa"));
+        try (BufferedReader br = Files.newBufferedReader(Path.of("src/test/resources/database/db.fsa"));
              FASTAReader fastaReader = new FASTAReader(br)) {
 
             assertEquals(new Sequence(

@@ -1,8 +1,7 @@
 package org.husonlab.diamer2.logging;
 
-public class ProgressBar implements LoggerElement {
+public class ProgressBar extends LoggerElement {
 
-    private Logger logger;
     private final long total;
     private long current;
     private final int length;
@@ -12,18 +11,9 @@ public class ProgressBar implements LoggerElement {
         this.length = length;
     }
 
-    public void setLogger(Logger logger) {
-        this.logger = logger;
-    }
-
     public void setProgress(long current) {
         this.current = current;
         this.logger.notifyProgress();
-    }
-
-    @Override
-    public Logger getLogger() {
-        return null;
     }
 
     @Override
@@ -45,12 +35,21 @@ public class ProgressBar implements LoggerElement {
 
     public void finish() {
         this.current = this.total;
-        this.logger.log();
+        logger.log();
         System.out.println();
     }
 
-    @Override
-    public LogType getLogType() {
-        return LogType.OVERWRITE;
+    public long getProgress() {
+        return this.current;
+    }
+
+    public void incrementProgress() {
+        this.current++;
+        this.logger.notifyProgress();
+    }
+
+    public void incrementProgress(int amount) {
+        this.current += amount;
+        this.logger.notifyProgress();
     }
 }

@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.benchmarking;
 
 
-import org.husonlab.diamer2.graph.Tree;
+import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.indexing.Bucket;
 
 import java.io.File;

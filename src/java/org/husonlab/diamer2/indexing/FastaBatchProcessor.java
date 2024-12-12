@@ -2,7 +2,7 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.alphabet.AAEncoder;
 import org.husonlab.diamer2.alphabet.AAKmerEncoder;
-import org.husonlab.diamer2.graph.Tree;
+import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.seq.Sequence;
 
 import java.util.concurrent.ConcurrentHashMap;

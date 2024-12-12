@@ -355,7 +355,7 @@ TTT	Phe	F	Phenylalanine
 ### Synchronization with the synchronized keyword
 * ``synchronized (obj) {...}`` can be used to encapsulate a code block that should run mutually exclusive on one thread.
   * The keyword will try to own the objects monitor lock.
-    * It the lock is owned by another thread, the current thread places itself on the wait set of this object and waits.
+    * If the lock is owned by another thread, the current thread places itself on the wait set of this object and waits.
     * Once the monitor lock is free, it can continue execution.
   * For this to work, the synchronized keyword has to be used on the same object for all synchronized threads.
   * This block can than only be executed by one thread at a time.

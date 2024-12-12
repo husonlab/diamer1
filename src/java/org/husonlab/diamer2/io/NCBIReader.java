@@ -1,9 +1,7 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.alphabet.AAEncoder;
-import org.husonlab.diamer2.logging.Logger;
-import org.husonlab.diamer2.logging.ProgressBar;
-import org.husonlab.diamer2.logging.ProgressLogger;
+import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
 import org.jetbrains.annotations.NotNull;
 
@@ -13,8 +11,8 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.zip.GZIPInputStream;
-import org.husonlab.diamer2.graph.Tree;
-import org.husonlab.diamer2.graph.Node;
+import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.taxonomy.Node;
 
 public class NCBIReader {
 
@@ -47,7 +45,7 @@ public class NCBIReader {
             @NotNull File namesDumpfile,
             @NotNull AccessionMapping[] accessionMappings,
             @NotNull Tree tree) throws IOException {
-        Logger logger = new Logger("NCBIReader", true);
+        Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Reading nodes dumpfile...");
         readNodesDumpfile(nodesDumpfile, tree);
         logger.logInfo("Reading names dumpfile...");
@@ -68,15 +66,15 @@ public class NCBIReader {
      */
     @NotNull
     public static Tree readTaxonomy(@NotNull File nodesDumpfile, @NotNull File namesDumpfile){
-        Logger logger = new Logger("NCBIReader", true);
+        Logger logger = new Logger("NCBIReader").addElement(new Time());
         final HashMap<Integer, Node> idMap = new HashMap<>();
-        final Tree tree = new Tree(idMap);
+        final Tree tree = new Tree();
         logger.logInfo("Reading nodes dumpfile...");
         readNodesDumpfile(nodesDumpfile, tree);
         logger.logInfo("Reading names dumpfile...");
         readNamesDumpfile(namesDumpfile, tree);
-        logger.logInfo("Finished reading taxonomy. Tree with %d nodes and %d accessions."
-                .formatted(tree.idMap.size(), tree.accessionMap.size()));
+        logger.logInfo("Finished reading taxonomy. Tree with %d nodes."
+                .formatted(tree.idMap.size()));
         return tree;
     }
 
@@ -152,7 +150,8 @@ public class NCBIReader {
      */
     private static void readNodesDumpfile(File nodesDumpfile, Tree tree){
         ProgressBar progressBar = new ProgressBar(nodesDumpfile.length(), 20);
-        Logger logger = new Logger("NCBIReader", 50, false).addElement(progressBar);
+        Logger progressBarLogger = new OneLineLogger("NCBIReader", 100)
+                .addElement(progressBar);
         HashMap<Integer, Integer> parentMap = new HashMap<>();
         try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile));
              BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
@@ -168,10 +167,10 @@ public class NCBIReader {
                 parentMap.put(taxId, parentTaxId);
                 progressBar.setProgress(cis.getReadBytes());
             }
+            progressBar.finish();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        progressBar.finish();
         // set the parent-child relationships after all nodes have been created
         parentMap.forEach( (nodeId, parentId) -> {
             Node node = tree.idMap.get(nodeId);
@@ -187,7 +186,11 @@ public class NCBIReader {
      * @param tree: Tree with idMap of tax_id -> Node objects
      */
     public static void readNamesDumpfile(File namesDumpfile, Tree tree) {
-        try (BufferedReader br = Files.newBufferedReader(namesDumpfile.toPath())) {
+        ProgressBar progressBar = new ProgressBar(namesDumpfile.length(), 20);
+        Logger progressBarLogger = new OneLineLogger("NCBIReader", 100)
+                .addElement(progressBar);
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(namesDumpfile));
+             BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t\\|\t");
@@ -195,9 +198,14 @@ public class NCBIReader {
                 String label = values[1];
                 Node node = tree.idMap.get(taxId);
                 node.addLabel(label);
+                if (values.length > 3 && values[3].equals("scientific name")) {
+                    node.setScientificName(label);
+                }
+                progressBar.setProgress(cis.getReadBytes());
             }
+            progressBar.finish();
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
     public static void readAccessionMap(String accessionMapFile, int accessionCol, int taxIdCol, Tree tree) throws IOException {

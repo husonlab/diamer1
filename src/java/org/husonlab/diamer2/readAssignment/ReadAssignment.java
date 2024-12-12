@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.readAssignment;
 
-import org.husonlab.diamer2.graph.Node;
-import org.husonlab.diamer2.graph.Tree;
+import org.husonlab.diamer2.taxonomy.Node;
+import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.io.*;
 import java.nio.file.Path;

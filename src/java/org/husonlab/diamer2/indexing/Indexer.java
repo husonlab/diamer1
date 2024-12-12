@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.graph.Tree;
+import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.logging.ProgressLogger;
 import org.husonlab.diamer2.seq.Sequence;
 

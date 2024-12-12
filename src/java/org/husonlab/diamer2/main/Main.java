@@ -3,7 +3,7 @@ package org.husonlab.diamer2.main;
 import org.apache.commons.cli.*;
 import org.husonlab.diamer2.alphabet.DNAEncoder;
 import org.husonlab.diamer2.benchmarking.RankMapping;
-import org.husonlab.diamer2.graph.Tree;
+import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
@@ -239,11 +239,14 @@ public class Main {
         } else if(cli.hasOption("assignreads")) {
             System.out.println("Assigning reads");
             try {
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 String[] paths = cli.getOptionValues("d");
                 Path dbIndex = Path.of(paths[0]);
                 Path readsIndex = Path.of(paths[1]);
                 File output = new File(cli.getOptionValue("o"));
-                ReadAssigner readAssigner = new ReadAssigner(maxThreads, dbIndex, readsIndex);
+                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
                 readAssigner.assignReads();
                 readAssigner.writeReadAssignments(output);
             } catch (Exception e) {
