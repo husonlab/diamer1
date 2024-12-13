@@ -11,7 +11,7 @@
 * ``LEDNIRRVIADIRPQ`` 3 times (tax3, 4, 5)
 * different kmers: 1336
 
-# reads.fq
+# readAssignment.fq
 * read1
   * length 503
   * kmers 918

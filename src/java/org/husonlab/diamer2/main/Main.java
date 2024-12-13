@@ -247,8 +247,8 @@ public class Main {
                 Path readsIndex = Path.of(paths[1]);
                 File output = new File(cli.getOptionValue("o"));
                 ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
-                readAssigner.assignReads();
-                readAssigner.writeReadAssignments(output);
+                ReadAssignment assignment = readAssigner.assignReads();
+                assignment.writeAssignments(output);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -261,10 +261,9 @@ public class Main {
                 File file = new File(cli.getOptionValue("d"));
                 Path path = Path.of(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                ReadAssignment.statistics(tree, file, path);
+                ReadAssignment readAssignment = new ReadAssignment(tree, file);
+                readAssignment.writeStatistics(path);
             } catch (ParseException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
                 e.printStackTrace();
             }
         } else if (cli.hasOption("rankmapping")) {

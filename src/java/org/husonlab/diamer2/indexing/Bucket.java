@@ -28,7 +28,7 @@ public class Bucket {
     }
 
     /**
-     * Reads a bucket from a binary file.
+     * ReadAssignment a bucket from a binary file.
      * @param file File to read the bucket from.
      */
     public Bucket(File file) throws IOException {

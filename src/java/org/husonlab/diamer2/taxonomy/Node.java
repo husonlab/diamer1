@@ -158,7 +158,8 @@ public class Node {
         return "(%s) %s (%d)"
                 .formatted(
                         !Objects.isNull(this.rank) ? this.rank : "no rank",
-                        this.labels.size() > 0 ? this.labels.get(0) : "no labels",
+                        !Objects.isNull(this.scientificName) ? this.scientificName :
+                                !this.labels.isEmpty() ? this.labels.getFirst() : "no labels",
                         this.taxId
                 );
     }

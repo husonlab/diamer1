@@ -67,6 +67,7 @@ kraken2-build --build --threads 64 --db kraken_db
 ````
 
 # Questions:
+* What output format do I need to display the result in SplitsTree?
 * How to handle weired amino acid letters?
 * How to handle stop codons?
 
@@ -125,7 +126,7 @@ kraken2-build --build --threads 64 --db kraken_db
 
 # Test dataset:
 
-* 4,642,104 lines: 1,160,526 reads
+* 4,642,104 lines: 1,160,526 readAssignment
 
 # Bash commands
 ## Extracting n sequences from a fasta file

@@ -1,12 +1,9 @@
 package org.husonlab.diamer2.io;
 
-import org.husonlab.diamer2.logging.ProgressLogger;
 import org.husonlab.diamer2.seq.Sequence;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
@@ -25,7 +22,7 @@ public class FASTAReader implements AutoCloseable {
         line = br.readLine();
     }
 
-    public Sequence getNextSequence() throws IOException {
+    public Sequence next() throws IOException {
         if (line != null && line.startsWith(">")) {
             header = line;
             sequence = new StringBuilder();
@@ -41,17 +38,17 @@ public class FASTAReader implements AutoCloseable {
         } else {
             while ((line = br.readLine()) != null) {
                 if (line.startsWith(">")) {
-                    return getNextSequence();
+                    return next();
                 }
             }
             return null;
         }
     }
 
-    public ArrayList<Sequence> getNSequences(int n) throws IOException {
+    public ArrayList<Sequence> next(int n) throws IOException {
         ArrayList<Sequence> sequences = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            Sequence seq = getNextSequence();
+            Sequence seq = next();
             if (seq == null) {
                 break;
             }

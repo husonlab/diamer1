@@ -60,7 +60,7 @@ public class NCBIReader {
     }
 
     /**
-     * Reads the NCBI taxonomy from the nodes and names dumpfiles.
+     * ReadAssignment the NCBI taxonomy from the nodes and names dumpfiles.
      * @param nodesDumpfile path to the nodes dumpfile (nodes.dmp)
      * @param namesDumpfile path to the names dumpfile (names.dmp)
      */
@@ -96,7 +96,7 @@ public class NCBIReader {
              FASTAReader fastaReader = new FASTAReader(br);
              BufferedWriter bw = Files.newBufferedWriter(output.toPath());
              BufferedWriter bwSkipped = Files.newBufferedWriter(Path.of(output.getParent(), "skipped_sequences.fsa"))) {
-            while ((fasta = fastaReader.getNextSequence()) != null) {
+            while ((fasta = fastaReader.next()) != null) {
                 processedFastas++;
 
                 // Extract taxIds and compute LCA taxId
@@ -144,7 +144,7 @@ public class NCBIReader {
     }
 
     /**
-     * Reads the NCBI nodes.dmp file and creates a map of tax_id -> Node objects.
+     * ReadAssignment the NCBI nodes.dmp file and creates a map of tax_id -> Node objects.
      * @param nodesDumpfile: path to the file
      * @param tree: Tree with idMap to store the nodes
      */
@@ -181,7 +181,7 @@ public class NCBIReader {
     }
 
     /**
-     * Reads the NCBI names.dmp file and adds the names to the corresponding Node objects.
+     * ReadAssignment the NCBI names.dmp file and adds the names to the corresponding Node objects.
      * @param namesDumpfile: path to the file
      * @param tree: Tree with idMap of tax_id -> Node objects
      */

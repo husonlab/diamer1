@@ -21,6 +21,13 @@ public class Indexer {
     private final LinkedList<int[]> bucketRangesToProcess;
     private int[] currentBucketRange = new int[2];
 
+    private boolean debug = false;
+
+    public Indexer(Tree tree, int MAX_THREADS, int MAX_QUEUE_SIZE, int BATCH_SIZE, int bucketsPerCycle, boolean debug) {
+        this(tree, MAX_THREADS, MAX_QUEUE_SIZE, BATCH_SIZE, bucketsPerCycle);
+        this.debug = debug;
+    }
+
     /**
      * Indexes a Sequence database (multifasta file) of AA sequences.
      * @param tree The taxonomy tree to use for finding the LCA of the kmers
@@ -94,8 +101,15 @@ public class Indexer {
 
         // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
         final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
-        for (int i = 0; i < currentBucketRange[1] - currentBucketRange[0]; i++) {
-            bucketMaps[i] = new ConcurrentHashMap<Long, Integer>(57000000); // initial capacity 57000000
+
+        if (!debug) {
+            for (int i = 0; i < bucketsPerCycle; i++) {
+                bucketMaps[i] = new ConcurrentHashMap<Long, Integer>(57000000); // initial capacity 57000000
+            }
+        } else {
+            for (int i = 0; i < bucketsPerCycle; i++) {
+                bucketMaps[i] = new ConcurrentHashMap<Long, Integer>();
+            }
         }
 
         // Read the Sequence database and process the sequences in batches
@@ -184,7 +198,7 @@ public class Indexer {
 
             // Initialize variable for Sequence reading
             Sequence[] batch = new Sequence[BATCH_SIZE];
-            ProgressLogger progressLogger = new ProgressLogger("Reads", "[Indexer]", 60000);
+            ProgressLogger progressLogger = new ProgressLogger("ReadAssignment", "[Indexer]", 60000);
             int processedReads = 0;
             String line;
 

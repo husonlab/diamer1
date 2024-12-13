@@ -21,7 +21,7 @@ public class FASTAReaderTest {
                     "NQFLFAGIELILRKYEITVYQLSADDLRSHKVRKDHVFFIECPLREENLHSLRKLYQYGARVCYLMRSSIECDRKNASQF" +
                             "IDITTEMNVFIAKVLKTINNSACPPAVNIVRLTNQEFSVGRLVLCGHSDVDIASELLITIRSSQDHINRVLKKLGGKSVAD" +
                             "IYLQRNVIYGSGTTLQKQKSR"
-            ), fastaReader.getNextSequence());
+            ), fastaReader.next());
 
             assertEquals(new Sequence(
                     ">A0A023PXE5.1",
@@ -30,16 +30,16 @@ public class FASTAReaderTest {
                             NLNLECYVTDRVTGRTERRGYLQQLEREKNSMLTHIRDLERLCYEITVYQLSADDLRSSAQSPSEPGAGELPGSTGGGSK
                             LTDGWSRYGALWIKYASTSQPADATIRPRIPQREWQSRPDQICWGVVGDDAPFSSLKGTTLTLLGTTIETTSFDAPDIDE
                             PAAGVDSSMPLYNKSMLAFLRSSMGVNPVVQAEL*PSRENAFMYAEWY123/()FISVACFLPLLHKPTFFKLVSSSCCF"""
-            ), fastaReader.getNextSequence());
+            ), fastaReader.next());
 
             assertEquals(new Sequence(
                     ">A0A023PXH4.1",
                     """
                             MITNFFIPELNNHDVQELWFQQDGATCHTARAIIDLLKDTFGDRLISRFGPVKWPPRSCDLTPLDYFLWGYVKSLVSADK
                             PQMLDHLEDNIRRVIADIRPQMLENVI"""
-            ), fastaReader.getNextSequence());
+            ), fastaReader.next());
 
-            ArrayList<Sequence> sequences = fastaReader.getNSequences(Integer.MAX_VALUE);
+            ArrayList<Sequence> sequences = fastaReader.next(Integer.MAX_VALUE);
             assertEquals(4, sequences.size());
         }
     }
