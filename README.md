@@ -64,6 +64,7 @@ java -Xmx100g -jar diamer2.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/n
 kraken2-build --protein --download-library nr --db kraken_db
 kraken2-build --threads 64 --download-taxonomy --protein --db kraken_db
 kraken2-build --build --threads 64 --db kraken_db
+kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq > 
 ````
 
 # Questions:
@@ -75,6 +76,10 @@ kraken2-build --build --threads 64 --db kraken_db
 * How to deal with identical protein groups?
   * Some proteins with identical protein sequences occure in different organisms (e.g. WP_012019010.1).
   * Actually their LCA will have to be calculated while reading in the taxonomy.
+* Bloom filter for usefull kmers
+* Keep nr in memory during indexing
+  * maybe in a compressed form (11 letter binary?)
+* Filter out low complexity regions?
 
 # Hashes
 
@@ -132,6 +137,10 @@ kraken2-build --build --threads 64 --db kraken_db
 ## Extracting n sequences from a fasta file
 ````shell
 awk '/^>/ {n++} n>1000 {exit} {print}' input.fasta > output.fasta
+````
+## Extracting every nth sequence
+````shell
+awk 'BEGIN {n=0} /^>/ {n++; if (n % 100 == 0) {p=1} else {p=0}} p' input.fasta > output.fasta
 ````
 ## Zipping folder with content
 ````shell

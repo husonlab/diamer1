@@ -25,6 +25,10 @@ public class BucketReader implements AutoCloseable {
         }
     }
 
+    public boolean hasNext() {
+        return position < length;
+    }
+
     public long next() {
         if (position >= length) {
             throw new RuntimeException("BucketReader: end of bucket reached");

@@ -198,7 +198,7 @@ public class NCBIReader {
                 String label = values[1];
                 Node node = tree.idMap.get(taxId);
                 node.addLabel(label);
-                if (values.length > 3 && values[3].equals("scientific name")) {
+                if (values.length > 3 && values[3].equals("scientific name\t|")) {
                     node.setScientificName(label);
                 }
                 progressBar.setProgress(cis.getReadBytes());

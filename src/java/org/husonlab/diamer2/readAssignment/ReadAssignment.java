@@ -5,23 +5,26 @@ import org.husonlab.diamer2.logging.OneLineLogger;
 import org.husonlab.diamer2.logging.ProgressBar;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
-public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
+public class ReadAssignment implements Iterable<ReadAssignment.Read> {
 
     private final Logger logger;
     private final Tree tree;
     private final int size;
+    private final Read[] readAssignments;
 
     public ReadAssignment(Tree tree, int size, HashMap<Integer, String> readHeaderMapping) {
-        super(size);
+        this.readAssignments = new ReadAssignment.Read[size];
         this.size = size;
         this.logger = new Logger("ReadAssignment");
         this.tree = tree;
-        readHeaderMapping.forEach((readId, header) -> this.add(readId, new Read(header)));
+        readHeaderMapping.forEach((readId, header) -> readAssignments[readId] = new Read(header));
     }
 
     public ReadAssignment(Tree tree, File readAssignmentFile) {
@@ -31,7 +34,7 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
         int lineNumber = 1;
         try(BufferedReader reader = new BufferedReader(new FileReader(readAssignmentFile))) {
             this.size = Integer.parseInt(reader.readLine());
-            super.ensureCapacity(size);
+            this.readAssignments = new ReadAssignment.Read[size];
 
             ProgressBar progressBar = new ProgressBar(size, 20);
             new OneLineLogger("ReadAssignment", 100).addElement(progressBar);
@@ -50,8 +53,9 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
                         int count = Integer.parseInt(assignmentParts[1]);
                         read.addReadAssignment(tree.idMap.get(taxId), count);
                     }
+                    readAssignments[lineNumber - 2] = read;
                 } else if (parts.length == 1) {
-                    this.add(read);
+                    readAssignments[lineNumber - 2] = read;
                 }
             }
             progressBar.finish();
@@ -62,13 +66,12 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
         }
     }
 
-    @Override
     public int size() {
         return this.size;
     }
 
     public void addReadAssignment(int readId, int taxId) {
-        this.get(readId).addReadAssignment(tree.idMap.get(taxId));
+        readAssignments[readId].addReadAssignment(tree.idMap.get(taxId));
     }
 
     public void writeAssignments(File file) {
@@ -98,22 +101,23 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
 
         this.forEach(read -> {
             read.getAssociations().forEach(association -> {
+                Node node = tree.idMap.get(association[0]);
                 kmerMatches.put(
-                        association.getNode(),
-                        kmerMatches.getOrDefault(association.getNode(), 0) + association.getCount()
+                        node,
+                        kmerMatches.getOrDefault(node, 0) + association[1]
                 );
-                Node species = tree.getSpecies(association.getNode());
+                Node species = tree.getSpecies(node);
                 if(species != null) {
                     kmerPerSpecies.put(
                             species,
-                            kmerPerSpecies.getOrDefault(species, 0) + association.getCount()
+                            kmerPerSpecies.getOrDefault(species, 0) + association[1]
                     );
                 }
-                Node genus = tree.getGenus(association.getNode());
+                Node genus = tree.getGenus(node);
                 if(genus != null) {
                     kmerPerGenus.put(
                             genus,
-                            kmerPerGenus.getOrDefault(genus, 0) + association.getCount()
+                            kmerPerGenus.getOrDefault(genus, 0) + association[1]
                     );
                 }
             });
@@ -124,7 +128,7 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
             writer.println("TaxId\tCount");
             kmerMatches.entrySet().stream()
                     .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
-                    .forEach(entry -> writer.println(entry.getKey().getTaxId() + "\t" + entry.getValue()));
+                    .forEach(entry -> writer.println(entry.getKey().toString() + "\t" + entry.getValue()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -132,7 +136,7 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
             writer.println("TaxId\tCount");
             kmerPerSpecies.entrySet().stream()
                     .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
-                    .forEach(entry -> writer.println(entry.getKey().getTaxId() + "\t" + entry.getValue()));
+                    .forEach(entry -> writer.println(entry.getKey().toString() + "\t" + entry.getValue()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -140,16 +144,46 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
             writer.println("TaxId\tCount");
             kmerPerGenus.entrySet().stream()
                     .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
-                    .forEach(entry -> writer.println(entry.getKey().getTaxId() + "\t" + entry.getValue()));
+                    .forEach(entry -> writer.println(entry.getKey().toString() + "\t" + entry.getValue()));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    @NotNull
+    @Override
+    public Iterator<Read> iterator() {
+        return new Iterator<Read>() {
+            private int index = 0;
+
+            @Override
+            public boolean hasNext() {
+                return index < size;
+            }
+
+            @Override
+            public Read next() {
+                return readAssignments[index++];
+            }
+        };
+    }
+
+    @Override
+    public void forEach(Consumer<? super Read> action) {
+        for (Read read : this) {
+            action.accept(read);
+        }
+    }
+
+    @Override
+    public Spliterator<Read> spliterator() {
+        return null;
+    }
+
     public static class Read {
 
         private final String header;
-        private final LinkedList<ReadTaxonAssiciation> readTaxonAssiciations;
+        private final LinkedList<int[]> readTaxonAssiciations;
 
         public Read(String header) {
             this.header = header;
@@ -158,34 +192,62 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
 
         /**
          * Adds a read assignment to the read. If the node is already assigned to the read, the count is incremented.
-         * @param node
+         * @param node the node to assign
          */
         public void addReadAssignment(Node node) {
             synchronized (this) {
-                for (ReadTaxonAssiciation readTaxonAssociation : readTaxonAssiciations) {
-                    if (readTaxonAssociation.getNode() == node) {
-                        readTaxonAssociation.incrementCount();
+                for (int[] readAssociation : readTaxonAssiciations) {
+                    int taxId = node.getTaxId();
+                    if (readAssociation[0] == taxId) {
+                        readAssociation[1]++;
                         return;
                     }
                 }
-                readTaxonAssiciations.add(new ReadTaxonAssiciation(node));
+                readTaxonAssiciations.add(new int[]{node.getTaxId(), 1});
             }
         }
 
         /**
          * Adds a read assignment to the read. If the node is already assigned to the read, the count is replaced.
-         * @param node
-         * @param count
+         * @param node the node to assign
+         * @param count the count of the assignment
          */
         public void addReadAssignment(Node node, int count) {
-            readTaxonAssiciations.add(new ReadTaxonAssiciation(node, count));
+            for (int[] readAssociation : readTaxonAssiciations) {
+                int taxId = node.getTaxId();
+                if (readAssociation[0] == taxId) {
+                    readAssociation[1] = count;
+                    return;
+                }
+            }
+            readTaxonAssiciations.add(new int[]{node.getTaxId(), count});
+        }
+
+        public void addReadAssignment(int taxId) {
+            for (int[] readAssociation : readTaxonAssiciations) {
+                if (readAssociation[0] == taxId) {
+                    readAssociation[1]++;
+                    return;
+                }
+            }
+            readTaxonAssiciations.add(new int[]{taxId, 1});
+        }
+
+        public void addReadAssignment(int taxId, int count) {
+            for (int[] readAssociation : readTaxonAssiciations) {
+                if (readAssociation[0] == taxId) {
+                    readAssociation[1] = count;
+                    return;
+                }
+            }
+            readTaxonAssiciations.add(new int[]{taxId, count});
         }
 
         public void sortAssociations() {
-            readTaxonAssiciations.sort((a1, a2) -> Integer.compare(a2.getCount(), a1.getCount()));
+            readTaxonAssiciations.sort((a1, a2) -> Integer.compare(a2[1], a1[1]));
         }
 
-        public LinkedList<ReadTaxonAssiciation> getAssociations() {
+        public LinkedList<int[]> getAssociations() {
             return readTaxonAssiciations;
         }
 
@@ -195,9 +257,9 @@ public class ReadAssignment extends ArrayList<ReadAssignment.Read> {
             sb.append(header).append("\t");
             sortAssociations();
             getAssociations().forEach(readTaxonAssiciation -> sb
-                    .append(readTaxonAssiciation.getNode().getTaxId())
+                    .append(readTaxonAssiciation[0])
                     .append(":")
-                    .append(readTaxonAssiciation.getCount()).append(" "));
+                    .append(readTaxonAssiciation[1]).append(" "));
             sb.deleteCharAt(sb.length() - 1);
             return sb.toString();
         }

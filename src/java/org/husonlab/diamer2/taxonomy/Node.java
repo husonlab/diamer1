@@ -153,6 +153,15 @@ public class Node {
         return scientificName;
     }
 
+    /**
+     * Get the scientific name or the first label of the node.
+     * @return the label of the node
+     */
+    public String getLabel() {
+        return scientificName != null ? scientificName :
+                !labels.isEmpty() ? labels.getFirst() : "no label";
+    }
+
     @Override
     public String toString() {
         return "(%s) %s (%d)"

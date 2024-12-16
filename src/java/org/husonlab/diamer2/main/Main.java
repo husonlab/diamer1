@@ -3,6 +3,7 @@ package org.husonlab.diamer2.main;
 import org.apache.commons.cli.*;
 import org.husonlab.diamer2.alphabet.DNAEncoder;
 import org.husonlab.diamer2.benchmarking.RankMapping;
+import org.husonlab.diamer2.io.DBIndexIO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
@@ -47,6 +48,12 @@ public class Main {
                 Option.builder()
                         .longOpt("statistics")
                         .desc("Compute statistics")
+                        .build()
+        );
+        computationOptions.addOption(
+                Option.builder()
+                        .longOpt("index_statistics")
+                        .desc("Compute statistics of an index")
                         .build()
         );
         computationOptions.addOption(
@@ -236,7 +243,7 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-        } else if(cli.hasOption("assignreads")) {
+        } else if (cli.hasOption("assignreads")) {
             System.out.println("Assigning reads");
             try {
                 File nodes = cli.getParsedOptionValue("no");
@@ -249,6 +256,7 @@ public class Main {
                 ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
                 ReadAssignment assignment = readAssigner.assignReads();
                 assignment.writeAssignments(output);
+                assignment.writeStatistics(Path.of(output.getParent()));
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -278,6 +286,20 @@ public class Main {
                 rankMapping.writeRankMapping(0, 1, output);
             } catch (ParseException e) {
                 e.printStackTrace();
+            }
+        } else if (cli.hasOption("index_statistics")) {
+            try {
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                File dbIndex = new File(cli.getOptionValue("d"));
+                File output = new File(cli.getOptionValue("o"));
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                DBIndexIO dbIndexIO = new DBIndexIO(dbIndex.toPath());
+                dbIndexIO.writeIndexStatistics(tree, output, maxThreads);
+            } catch (ParseException e) {
+                e.printStackTrace();
+            } catch (FileNotFoundException e) {
+                throw new RuntimeException(e);
             }
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");

@@ -22,6 +22,6 @@ public class OneLineLogger extends Logger {
     }
 
     public void log() {
-        System.out.print("\r" + super.getMessage());
+        System.out.print("\r[INFO]" + super.getMessage());
     }
 }
