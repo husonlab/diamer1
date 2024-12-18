@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.io;
 
-import org.husonlab.diamer2.alphabet.AAEncoder;
+import org.husonlab.diamer2.seq.alphabet.AAEncoder;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
 import org.jetbrains.annotations.NotNull;

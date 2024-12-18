@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.alphabet;
+package org.husonlab.diamer2.seq.alphabet;
 
 import java.util.Arrays;
 import java.util.HashSet;

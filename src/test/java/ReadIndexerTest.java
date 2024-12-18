@@ -1,12 +1,11 @@
-import org.husonlab.diamer2.alphabet.DNAEncoder;
 import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.indexing.Indexer;
+import org.husonlab.diamer2.io.BucketIO;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.Objects;
 
 import static org.junit.Assert.assertEquals;
@@ -19,7 +18,7 @@ public class ReadIndexerTest {
         Bucket[] buckets = new Bucket[1024];
         int kmerCount = 0;
         for (int i = 0; i < 1024; i++) {
-            buckets[i] = new Bucket(new File("src/test/resources/test_output/reads_index/" + i + ".bin"));
+            buckets[i] = new BucketIO(new File("src/test/resources/test_output/reads_index/" + i + ".bin"), i).read();
             kmerCount += Objects.requireNonNull(buckets[i].getContent()).length;
         }
         assertEquals(3392, kmerCount);

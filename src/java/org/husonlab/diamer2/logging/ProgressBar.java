@@ -2,13 +2,17 @@ package org.husonlab.diamer2.logging;
 
 public class ProgressBar extends LoggerElement {
 
-    private final long total;
+    private long total;
     private long current;
     private final int length;
 
     public ProgressBar(long total, int length) {
         this.total = total;
         this.length = length;
+    }
+
+    public void setTotal(long total) {
+        this.total = total;
     }
 
     public void setProgress(long current) {

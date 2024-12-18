@@ -1,4 +1,5 @@
-import org.husonlab.diamer2.alphabet.AAEncoder;
+import org.husonlab.diamer2.seq.alphabet.AAEncoder;
+import org.husonlab.diamer2.io.BucketIO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.indexing.Indexer;
@@ -23,7 +24,7 @@ public class DBIndexerTest {
 
         int uniqueKmerCount = 0;
         for (int i = 0; i < 1024; i++) {
-            buckets[i] = new Bucket(new File("src/test/resources/test_output/db_index/" + i + ".bin"));
+            buckets[i] = new BucketIO(new File("src/test/resources/test_output/db_index/" + i + ".bin"), i).read();
             uniqueKmerCount += Objects.requireNonNull(buckets[i].getContent()).length;
         }
         assertEquals(1322, uniqueKmerCount);

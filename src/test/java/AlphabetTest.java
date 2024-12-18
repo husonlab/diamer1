@@ -1,7 +1,7 @@
-import org.husonlab.diamer2.alphabet.AAEncoder;
-import org.husonlab.diamer2.alphabet.AAKmerEncoder;
-import org.husonlab.diamer2.alphabet.DNAEncoder;
-import org.husonlab.diamer2.alphabet.DNAKmerEncoder;
+import org.husonlab.diamer2.seq.alphabet.AAEncoder;
+import org.husonlab.diamer2.seq.alphabet.AAKmerEncoder;
+import org.husonlab.diamer2.seq.alphabet.DNAEncoder;
+import org.husonlab.diamer2.seq.alphabet.DNAKmerEncoder;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

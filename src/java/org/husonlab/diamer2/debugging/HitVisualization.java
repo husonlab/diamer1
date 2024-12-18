@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.debugging;
 
-import org.husonlab.diamer2.alphabet.AAEncoder;
-import org.husonlab.diamer2.alphabet.DNAEncoder;
+import org.husonlab.diamer2.seq.alphabet.AAEncoder;
+import org.husonlab.diamer2.seq.alphabet.DNAEncoder;
 
 import java.util.HashMap;
 

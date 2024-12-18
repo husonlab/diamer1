@@ -1,9 +1,9 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.alphabet.DNAEncoder;
-import org.husonlab.diamer2.benchmarking.RankMapping;
-import org.husonlab.diamer2.io.DBIndexIO;
+import org.husonlab.diamer2.seq.alphabet.DNAEncoder;
+import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
@@ -255,8 +255,8 @@ public class Main {
                 File output = new File(cli.getOptionValue("o"));
                 ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
                 ReadAssignment assignment = readAssigner.assignReads();
-                assignment.writeAssignments(output);
-                assignment.writeStatistics(Path.of(output.getParent()));
+                ReadAssignmentIO.writeAssignments(assignment, output);
+                ReadAssignmentIO.writeReadStatistics(assignment, Path.of(output.getParent()));
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -269,21 +269,8 @@ public class Main {
                 File file = new File(cli.getOptionValue("d"));
                 Path path = Path.of(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                ReadAssignment readAssignment = new ReadAssignment(tree, file);
-                readAssignment.writeStatistics(path);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        } else if (cli.hasOption("rankmapping")) {
-            System.out.println("rankmapping");
-            try {
-                File nodes = cli.getParsedOptionValue("no");
-                File names = cli.getParsedOptionValue("na");
-                Path dbIndex = Path.of(cli.getOptionValue("d"));
-                File output = new File(cli.getOptionValue("o"));
-                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                RankMapping rankMapping = new RankMapping(dbIndex, tree);
-                rankMapping.writeRankMapping(0, 1, output);
+                ReadAssignment readAssignment = ReadAssignmentIO.read(tree, file);
+                ReadAssignmentIO.writeReadStatistics(readAssignment, path);
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -294,8 +281,8 @@ public class Main {
                 File dbIndex = new File(cli.getOptionValue("d"));
                 File output = new File(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                DBIndexIO dbIndexIO = new DBIndexIO(dbIndex.toPath());
-                dbIndexIO.writeIndexStatistics(tree, output, maxThreads);
+                IndexIO indexIO = new IndexIO(dbIndex.toPath());
+                indexIO.writeIndexStatistics(tree, output, maxThreads);
             } catch (ParseException e) {
                 e.printStackTrace();
             } catch (FileNotFoundException e) {

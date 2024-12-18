@@ -5,14 +5,11 @@ import org.husonlab.diamer2.logging.Logger;
 import org.husonlab.diamer2.logging.OneLineLogger;
 import org.husonlab.diamer2.logging.ProgressBar;
 import org.husonlab.diamer2.taxonomy.Tree;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -21,50 +18,56 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents an index folder.
  */
-public class DBIndexIO {
+public class IndexIO {
     protected final Logger logger;
     protected final Path indexFolder;
-    protected final boolean[] availableBuckets;
+    protected final BucketIO[] bucketIOs;
 
     /**
      * Create a new DBIndexIO object.
      * @param indexFolder path to the index folder
-     * @throws FileNotFoundException if the index folder or the read header mapping file (in case of a READS index)
      * is missing
      */
-    public DBIndexIO(Path indexFolder) throws FileNotFoundException {
+    public IndexIO(Path indexFolder) {
         this.logger = new Logger("DBIndexIO");
         if (!indexFolder.toFile().isDirectory()) {
-            logger.logWarning("DBIndexIO folder does not exist.");
-            throw new FileNotFoundException("DBIndexIO folder does not exist.");
+            if (!indexFolder.toFile().isDirectory()) {
+                if (!indexFolder.toFile().mkdirs()) {
+                    throw new RuntimeException("Could not create index folder: " + indexFolder);
+                }
+            }
         }
         this.indexFolder = indexFolder;
-        this.availableBuckets = new boolean[1024];
-        checkAvailableBuckets();
+        this.bucketIOs = new BucketIO[1024];
+        for (int i = 0; i < 1024; i++) {
+            bucketIOs[i] = new BucketIO(indexFolder.resolve(i + ".bin").toFile(), i);
+        }
     }
 
     /**
      * Checks which of the bucket files are available.
+     * @return true if all buckets are available, false otherwise
      */
-    private void checkAvailableBuckets() {
+    public boolean bucketMissing() {
+        boolean bucketMissing = false;
         for (int i = 0; i < 1024; i++) {
-            File bucket = indexFolder.resolve(i + ".bin").toFile();
-            if (bucket.exists()) {
-                availableBuckets[i] = true;
-            } else {
-                logger.logWarning("Bucket " + i + " is missing.");
-                availableBuckets[i] = false;
+            if (!bucketIOs[i].exists()) {
+                bucketMissing = true;
             }
+        }
+        return bucketMissing;
+    }
+
+    public BucketIO.BucketReader getBucketReader(int bucketName) {
+        if (bucketIOs[bucketName].exists()) {
+            return bucketIOs[bucketName].getBucketReader();
+        } else {
+            throw new RuntimeException("Bucket " + bucketName + " is missing.");
         }
     }
 
-    @Nullable
-    public BucketReader getBucketReader(int bucket) {
-        if (!availableBuckets[bucket]) {
-            logger.logWarning("Bucket " + bucket + " is missing.");
-            return null;
-        }
-        return new BucketReader(indexFolder.resolve(bucket + ".bin").toFile());
+    public BucketIO getBucketIO(int bucketName) {
+        return bucketIOs[bucketName];
     }
 
     public void writeIndexStatistics(Tree tree, File output, int MAX_THREADS) {
@@ -80,32 +83,27 @@ public class DBIndexIO {
                 new ArrayBlockingQueue<>(1024),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
-        for (int i = 0; i < 1024; i++) {
-
-            if (availableBuckets[i]) {
-                int finalI = i;
+        for (BucketIO bucketIO : bucketIOs) {
+            if (bucketIO.exists()) {
                 threadPoolExecutor.submit(() -> {
-                    BucketReader reader = getBucketReader(finalI);
-                    if (reader != null) {
-                        while (reader.hasNext()) {
-                            long kmer = reader.next();
-                            int taxId = (int) (kmer & 0x3FFFFF);
-                            if (tree.idMap.containsKey(taxId)) {
-                                String rank = tree.idMap.get(taxId).getRank();
-                                rankKmers.put(rank, rankKmers.getOrDefault(rank, 0L) + 1);
-                            }
+                    BucketIO.BucketReader reader = bucketIO.getBucketReader();
+                    while (reader.hasNext()) {
+                        long kmer = reader.next();
+                        int taxId = (int) (kmer & 0x3FFFFF);
+                        if (tree.idMap.containsKey(taxId)) {
+                            String rank = tree.idMap.get(taxId).getRank();
+                            rankKmers.put(rank, rankKmers.getOrDefault(rank, 0L) + 1);
                         }
                     }
                     progressBar.incrementProgress();
                 });
             }
         }
-
         threadPoolExecutor.shutdown();
         try {
             threadPoolExecutor.awaitTermination(1, TimeUnit.DAYS);
         } catch (InterruptedException e) {
-            logger.logError("Error waiting for thread pool to finish: " + e.getMessage());
+            throw new RuntimeException("Error waiting for thread pool to finish.", e);
         }
 
         progressBar.finish();
@@ -129,11 +127,7 @@ public class DBIndexIO {
         return indexFolder;
     }
 
-    public boolean[] getAvailableBuckets() {
-        return availableBuckets;
-    }
-
     public boolean isBucketAvailable(int bucket) {
-        return availableBuckets[bucket];
+        return bucketIOs[bucket].exists();
     }
 }

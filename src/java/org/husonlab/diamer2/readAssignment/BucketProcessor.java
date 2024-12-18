@@ -1,28 +1,25 @@
 package org.husonlab.diamer2.readAssignment;
 
-import org.husonlab.diamer2.io.BucketReader;
-import org.husonlab.diamer2.io.DBIndexIO;
+import org.husonlab.diamer2.indexing.IndexEncoding;
+import org.husonlab.diamer2.io.BucketIO;
+import org.husonlab.diamer2.io.IndexIO;
 import org.husonlab.diamer2.io.ReadIndexIO;
 import org.husonlab.diamer2.logging.Logger;
-import org.husonlab.diamer2.taxonomy.Tree;
 
 public class BucketProcessor implements Runnable {
 
     Logger logger;
-    private final Tree tree;
     private final ReadAssignment readAssignment;
-    private final DBIndexIO dbIndex;
+    private final IndexIO dbIndex;
     private final ReadIndexIO readIndex;
     private final int bucketId;
 
     public BucketProcessor(
-            Tree tree,
             ReadAssignment readAssignment,
-            DBIndexIO dbIndex,
+            IndexIO dbIndex,
             ReadIndexIO readIndex,
             int bucketId) {
         this.logger = new Logger("BucketProcessor");
-        this.tree = tree;
         this.readAssignment = readAssignment;
         this.dbIndex = dbIndex;
         this.readIndex = readIndex;
@@ -31,8 +28,8 @@ public class BucketProcessor implements Runnable {
 
     @Override
     public void run() {
-        try (BucketReader db = dbIndex.getBucketReader(bucketId);
-             BucketReader reads = readIndex.getBucketReader(bucketId)) {
+        try (BucketIO.BucketReader db = dbIndex.getBucketReader(bucketId);
+             BucketIO.BucketReader reads = readIndex.getBucketReader(bucketId)) {
             int dbLength = db.getLength();
             int readsLength = reads.getLength();
             if (dbLength == 0 || readsLength == 0) {
@@ -41,23 +38,23 @@ public class BucketProcessor implements Runnable {
             }
             long dbEntry = db.next();
             int dbCount = 1;
-            long dbKmer = (dbEntry >> 22) & 0xFFFFFFFFFFFL;
+            long dbKmer = IndexEncoding.getKmer(dbEntry);
             for (int readsCount = 0; readsCount < readsLength; readsCount++) {
                 long readsEntry = reads.next();
-                long readKmer = (readsEntry >> 22) & 0xFFFFFFFFFFFL;
+                long readKmer = IndexEncoding.getKmer(readsEntry);
                 while (dbKmer < readKmer && dbCount < dbLength) {
                     dbEntry = db.next();
-                    dbKmer = (dbEntry >> 22) & 0xFFFFFFFFFFFL;
+                    dbKmer = IndexEncoding.getKmer(dbEntry);
                     dbCount++;
                 }
                 if (dbKmer == readKmer) {
-                    int taxId = (int) (dbEntry & 0x3FFFFF);
-                    int readId = (int) (readsEntry & 0x3FFFFF);
+                    int taxId = IndexEncoding.getTaxId(dbEntry);
+                    int readId = IndexEncoding.getReadId(readsEntry);
                     this.readAssignment.addReadAssignment(readId, taxId);
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException("Could not process bucket " + bucketId, e);
         }
     }
 }

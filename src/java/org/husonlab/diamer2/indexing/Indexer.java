@@ -1,6 +1,8 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.io.BucketIO;
+import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.logging.Logger;
 import org.husonlab.diamer2.logging.ProgressLogger;
 import org.husonlab.diamer2.seq.Sequence;
 
@@ -10,40 +12,45 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.concurrent.*;
 
-import static org.husonlab.diamer2.alphabet.AAEncoder.toBase11;
+import static org.husonlab.diamer2.seq.alphabet.AAEncoder.toBase11;
 
-public class Indexer {
-    private final Tree tree;
-    private final int MAX_THREADS;
-    private final int MAX_QUEUE_SIZE;
-    private final int BATCH_SIZE;
-    private final int bucketsPerCycle;
+public abstract class Indexer {
+    protected final Logger logger = new Logger("Indexer");
+    protected final File sequenceFile;
+    protected final Path indexDir;
+    protected final int MAX_THREADS;
+    protected final int MAX_QUEUE_SIZE;
+    protected final int BATCH_SIZE;
+    protected final int bucketsPerCycle;
     private final LinkedList<int[]> bucketRangesToProcess;
     private int[] currentBucketRange = new int[2];
-
-    private boolean debug = false;
-
-    public Indexer(Tree tree, int MAX_THREADS, int MAX_QUEUE_SIZE, int BATCH_SIZE, int bucketsPerCycle, boolean debug) {
-        this(tree, MAX_THREADS, MAX_QUEUE_SIZE, BATCH_SIZE, bucketsPerCycle);
-        this.debug = debug;
-    }
+    protected final IndexIO indexIO;
+    protected final boolean debug;
 
     /**
      * Indexes a Sequence database (multifasta file) of AA sequences.
-     * @param tree The taxonomy tree to use for finding the LCA of the kmers
      * @param MAX_THREADS Maximum number of threads to use.
      * @param MAX_QUEUE_SIZE Maximum number of batches to queue for processing in the ThreadPoolExecutor queue.
      * @param BATCH_SIZE Number of Sequence sequences to process in each batch (thread).
      * @param bucketsPerCycle Number of buckets to process in each indexing cycle (one run over the database).
      */
-    public Indexer(Tree tree, int MAX_THREADS, int MAX_QUEUE_SIZE, int BATCH_SIZE, int bucketsPerCycle) {
-        // Initialize the parameters of the Indexer
-        this.tree = tree;
+    public Indexer(
+            File sequenceFile,
+            Path indexDir,
+            int MAX_THREADS,
+            int MAX_QUEUE_SIZE,
+            int BATCH_SIZE,
+            int bucketsPerCycle,
+            boolean debug) {
+        this.sequenceFile = sequenceFile;
+        this.indexDir = indexDir;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
         this.bucketsPerCycle = bucketsPerCycle;
         this.bucketRangesToProcess = new LinkedList<>();
+        this.indexIO = new IndexIO(indexDir);
+        this.debug = debug;
         // Divide the 1024 buckets into ranges to process in each cycle
         int i = 0;
         while (i < 1024) {
@@ -54,6 +61,8 @@ public class Indexer {
             i += bucketsPerCycle;
         }
     }
+
+    abstract void index(File fastaFile, Path outPath) throws IOException;
 
     /**
      * DBIndexIO a Sequence database and write the indexed buckets to files.
@@ -364,7 +373,7 @@ public class Indexer {
             threadPoolExecutor.submit(() -> {
                 try {
                     System.out.println("[Indexer] Starting to write bucket " + bucket.getName());
-                    bucket.writeToFile(path);
+                    new BucketIO(path.resolve(bucket.getName() + ".bin").toFile(), bucket.getName()).write(bucket);
                     System.out.println("[Indexer] Finished writing bucket " + bucket.getName());
                 } catch (Throwable t) {
                     System.err.println("[Indexer] Error writing bucket to file.");
