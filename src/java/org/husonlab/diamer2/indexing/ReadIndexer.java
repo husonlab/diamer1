@@ -1,14 +1,12 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.io.CountingInputStream;
-import org.husonlab.diamer2.io.FASTAReader;
-import org.husonlab.diamer2.io.FASTQReader;
-import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.io.*;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class ReadIndexer {
@@ -16,7 +14,7 @@ public class ReadIndexer {
     private final Logger logger;
     private final File fastqFile;
     private final Path indexDir;
-    private final IndexIO indexIO;
+    private final ReadIndexIO readIndexIO;
     private final int MAX_THREADS;
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
@@ -27,12 +25,11 @@ public class ReadIndexer {
                      int MAX_THREADS,
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
-                     int bucketsPerCycle,
-                     boolean debug) {
+                     int bucketsPerCycle) {
         this.logger = new Logger("ReadIndexer");
         this.fastqFile = fastqFile;
         this.indexDir = indexDir;
-        this.indexIO = new IndexIO(indexDir);
+        this.readIndexIO = new ReadIndexIO(indexDir);
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
@@ -58,14 +55,14 @@ public class ReadIndexer {
                 TimeUnit.MILLISECONDS,
                 new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
                 new ThreadPoolExecutor.CallerRunsPolicy());
+        Phaser indexPhaser = new Phaser(1);
 
-        Phaser indexPhaser = new Phaser(0);
+        HashMap<Integer, String> readHeaderMap = new HashMap<>();
 
         for (int i = 0; i < 1024; i += bucketsPerCycle) {
             int rangeStart = i;
             int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
-            int processedReads = 0;
-            indexPhaser.register();
+            int readId = 0;
 
             progressMessage.setMessage("Indexing buckets " + rangeStart + " - " + rangeEnd);
 
@@ -83,11 +80,14 @@ public class ReadIndexer {
                 int batchPosition = 0;
                 Sequence seq;
                 while ((seq = fr.next()) != null) {
-                    processedReads++;
+                    if (i == 0) {
+                        readHeaderMap.put(readId, seq.getHeader());
+                    }
                     batch[batchPosition] = seq;
                     progressBar.setProgress(cis.getReadBytes());
 
                     if (batchPosition == BATCH_SIZE - 1) {
+                        indexPhaser.register();
                         threadPoolExecutor.submit(
                                 new FastQBatchProcessor(
                                         indexPhaser,
@@ -95,13 +95,14 @@ public class ReadIndexer {
                                         bucketLists,
                                         rangeStart,
                                         rangeEnd,
-                                        processedReads - BATCH_SIZE)
+                                        readId - BATCH_SIZE)
                         );
                         batch = new Sequence[BATCH_SIZE];
                         batchPosition = 0;
                     } else {
                         batchPosition++;
                     }
+                    readId++;
                 }
                 threadPoolExecutor.submit(
                         new FastQBatchProcessor(
@@ -110,20 +111,34 @@ public class ReadIndexer {
                                 bucketLists,
                                 rangeStart,
                                 rangeEnd,
-                                processedReads - processedReads % BATCH_SIZE));
+                                (readId - 1) - (readId - 1) % BATCH_SIZE));
                 progressBar.finish();
             }
 
             indexPhaser.arriveAndAwaitAdvance();
             logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
-            indexPhaser.register();
+
+            if (rangeStart == 0) {
+                indexPhaser.register();
+                threadPoolExecutor.submit(() -> {
+                    try {
+                        readIndexIO.writeReadHeaderMapping(readHeaderMap);
+                    } catch (RuntimeException e) {
+                        throw new RuntimeException("Error writing read header map.", e);
+                    } finally {
+                        indexPhaser.arriveAndDeregister();
+                    }
+                });
+            }
+
+            indexPhaser.arriveAndAwaitAdvance();
 
             for (int j = 0; j < bucketsPerCycle; j++) {
                 int finalJ = j;
+                indexPhaser.register();
                 threadPoolExecutor.submit(() -> {
                     try {
-                        indexPhaser.register();
-                        indexIO.getBucketIO(finalJ + rangeStart).write(new Bucket(finalJ, bucketLists[finalJ]));
+                        readIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketLists[finalJ]));
                     } catch (RuntimeException | IOException e) {
                         throw new RuntimeException("Error converting and writing bucket " + finalJ, e);
                     } finally {
@@ -133,7 +148,21 @@ public class ReadIndexer {
             }
             indexPhaser.arriveAndAwaitAdvance();
         }
-        return indexIO;
+        threadPoolExecutor.shutdown();
+        try {
+            if (threadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES)) {
+                logger.logInfo("Indexing complete.");
+            } else {
+                logger.logError("Indexing timed out.");
+                threadPoolExecutor.shutdownNow();
+                throw new RuntimeException("Indexing timed out.");
+            }
+        } catch (InterruptedException e) {
+            logger.logError("Indexing interrupted.");
+            threadPoolExecutor.shutdownNow();
+            throw new RuntimeException("Indexing interrupted.");
+        }
+        return readIndexIO;
     }
 }
 

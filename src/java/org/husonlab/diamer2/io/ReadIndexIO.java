@@ -1,9 +1,6 @@
 package org.husonlab.diamer2.io;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.HashMap;
 
@@ -14,10 +11,8 @@ public class ReadIndexIO extends IndexIO {
     /**
      * Create a new DBIndexIO object.
      * @param indexFolder path to the index folder
-     * @throws FileNotFoundException if the index folder or the read header mapping file (in case of a READS index)
-     *                               is missing
      */
-    public ReadIndexIO(Path indexFolder) throws FileNotFoundException {
+    public ReadIndexIO(Path indexFolder) {
         super(indexFolder);
         readHeaderMappingFile = indexFolder.resolve("header_index.txt").toFile();
     }
@@ -45,5 +40,18 @@ public class ReadIndexIO extends IndexIO {
             throw new RuntimeException("Could not read read header mapping file: " + readHeaderMappingFile, e);
         }
         return readHeaderMapping;
+    }
+
+    public void writeReadHeaderMapping(HashMap<Integer, String> readHeaderMapping) {
+        try {
+            try (PrintWriter writer = new PrintWriter(readHeaderMappingFile)) {
+                writer.println(readHeaderMapping.size());
+                for (int readId : readHeaderMapping.keySet()) {
+                    writer.println(readId + "\t" + readHeaderMapping.get(readId));
+                }
+            }
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Could not write read header mapping file: " + readHeaderMappingFile, e);
+        }
     }
 }

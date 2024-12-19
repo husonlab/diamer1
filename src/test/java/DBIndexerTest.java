@@ -1,8 +1,8 @@
+import org.husonlab.diamer2.indexing.DBIndexer;
 import org.husonlab.diamer2.seq.alphabet.AAEncoder;
 import org.husonlab.diamer2.io.BucketIO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.indexing.Bucket;
-import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.junit.Test;
 
@@ -18,8 +18,8 @@ public class DBIndexerTest {
     @Test
     public void testDBIndexer() throws IOException {
         Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/database/nodes.dmp"), new File("src/test/resources/database/names.dmp"));
-        Indexer indexer = new Indexer(tree, 4, 50, 1, 64, true);
-        indexer.indexDB(new File("src/test/resources/database/db_preprocessed.fsa"), Path.of("src/test/resources/test_output/db_index"));
+        DBIndexer dbIndexer = new DBIndexer(new File("src/test/resources/database/db_preprocessed.fsa"), Path.of("src/test/resources/test_output/db_index"), tree, 4, 50, 1, 64, true);
+        dbIndexer.index();
         Bucket[] buckets = new Bucket[1024];
 
         int uniqueKmerCount = 0;

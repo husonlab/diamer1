@@ -37,13 +37,12 @@ public class FastaBatchProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            phaser.register();
             for (Sequence fasta : sequences) {
                 if (fasta == null || fasta.getSequence().isEmpty() || fasta.getSequence().length() < 15) {
                     continue;
                 }
                 String sequence = fasta.getSequence();
-                int taxId = Integer.parseInt(fasta.getHeader().split(" ")[0]);
+                int taxId = Integer.parseInt(fasta.getHeader().substring(1).split(" ")[0]);
                 KmerExtractor.extractKmersProtein(sequence, 15).forEach(kmerEnc -> {
                     int bucketName = IndexEncoding.getBucketName(kmerEnc);
                     if (bucketName >= rangeStart && bucketName < rangeEnd) {

@@ -1,13 +1,9 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.io.BucketIO;
 import org.jetbrains.annotations.Nullable;
 
-import java.io.*;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class Bucket {
     private final int name;
@@ -42,6 +38,17 @@ public class Bucket {
             content[i] = IndexEncoding.getIndexEntry(entry.getKey(), entry.getValue());
             i++;
         }
+        sort();
+    }
+
+    /**
+     * Creates a bucket with the provided content of a concurrent LinkedQueue as used in read index generation.
+     * @param name Name (number) of the bucket.
+     * @param bucketList Content of the bucket as a concurrent linked queue.
+     */
+    public Bucket(int name, ConcurrentLinkedQueue<Long> bucketList) {
+        this.name = name;
+        content = bucketList.stream().mapToLong(Long::longValue).toArray();
         sort();
     }
 

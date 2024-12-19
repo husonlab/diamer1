@@ -1,9 +1,9 @@
-0	|	root	|		|	scientific name
-0	|	alternative root name	|		|	alternative name
-1	|	rank1	|		|
-2	|	rank2	|		|
-3	|	alternative name for organism 1	|		|	alternative name
-3	|	organism1	|		|	scientific name
-3	|	second name for organism1	|		|	alternative name
-4	|	organism2	|		|
-5	|	organism3	|		|
+0	|	root	|		|	scientific name	|
+0	|	alternative root name	|		|	alternative name	|
+1	|	rank1	|		|		|
+2	|	rank2	|		|		|
+3	|	alternative name for organism 1	|		|	alternative name	|
+3	|	organism1	|		|	scientific name	|
+3	|	second name for organism1	|		|	alternative name	|
+4	|	organism2	|		|		|
+5	|	organism3	|		|		|

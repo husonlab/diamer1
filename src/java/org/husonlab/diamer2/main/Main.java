@@ -1,11 +1,12 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
+import org.husonlab.diamer2.indexing.DBIndexer;
+import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.seq.alphabet.DNAEncoder;
 import org.husonlab.diamer2.io.IndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.taxonomy.Tree;
-import org.husonlab.diamer2.indexing.Indexer;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -224,8 +225,8 @@ public class Main {
                     System.exit(1);
                 }
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                Indexer indexer = new Indexer(tree, maxThreads, 1000, 100, bucketsPerCycle);
-                indexer.indexDB(database, output);
+                DBIndexer dbIndexer = new DBIndexer(database, output, tree, maxThreads, 1000, 100, bucketsPerCycle, false);
+                dbIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -236,9 +237,8 @@ public class Main {
                 int bucketsPerCycle = cli.getParsedOptionValue("b");
                 File reads = cli.getParsedOptionValue("d");
                 Path output = cli.getParsedOptionValue("o");
-
-                Indexer indexer = new Indexer(null, maxThreads, 64, 5000, bucketsPerCycle);
-                indexer.indexReads(reads, output);
+                ReadIndexer readIndexer = new ReadIndexer(reads, output, maxThreads, 1000, 100, bucketsPerCycle);
+                readIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -285,8 +285,6 @@ public class Main {
                 indexIO.writeIndexStatistics(tree, output, maxThreads);
             } catch (ParseException e) {
                 e.printStackTrace();
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
             }
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");

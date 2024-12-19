@@ -64,12 +64,11 @@ public class DBIndexer {
                 new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
-        Phaser indexPhaser = new Phaser(0);
+        Phaser indexPhaser = new Phaser(1);
 
         for (int i = 0; i < 1024; i += bucketsPerCycle) {
             int rangeStart = i;
             int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
-            indexPhaser.register();
 
             progressMessage.setMessage("Indexing buckets " + rangeStart + " - " + rangeEnd);
 
@@ -97,6 +96,7 @@ public class DBIndexer {
                     progressBar.setProgress(cis.getReadBytes());
 
                     if (batchPosition == BATCH_SIZE - 1) {
+                        indexPhaser.register();
                         threadPoolExecutor.submit(new FastaBatchProcessor(indexPhaser, batch, bucketMaps, tree, rangeStart, rangeEnd));
                         batch = new Sequence[BATCH_SIZE];
                         batchPosition = 0;
@@ -110,22 +110,35 @@ public class DBIndexer {
 
             indexPhaser.arriveAndAwaitAdvance();
             logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
-            indexPhaser.register();
 
             for (int j = 0; j < bucketsPerCycle; j++) {
                 int finalJ = j;
+                indexPhaser.register();
                 threadPoolExecutor.submit(() -> {
                     try {
-                        indexPhaser.register();
-                        indexIO.getBucketIO(finalJ + rangeStart).write(new Bucket(finalJ, bucketMaps[finalJ]));
+                        indexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ]));
                     } catch (RuntimeException | IOException e) {
-                        throw new RuntimeException("Error converting and writing bucket " + finalJ, e);
+                        throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
                     } finally {
                         indexPhaser.arriveAndDeregister();
                     }
                 });
             }
             indexPhaser.arriveAndAwaitAdvance();
+        }
+        threadPoolExecutor.shutdown();
+        try {
+            if (threadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES)) {
+                logger.logInfo("Indexing complete.");
+            } else {
+                logger.logError("Indexing timed out.");
+                threadPoolExecutor.shutdownNow();
+                throw new RuntimeException("Indexing timed out.");
+            }
+        } catch (InterruptedException e) {
+            logger.logError("Indexing interrupted.");
+            threadPoolExecutor.shutdownNow();
+            throw new RuntimeException("Indexing interrupted.");
         }
         return indexIO;
     }

@@ -33,7 +33,6 @@ public class FastQBatchProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            phaser.register();
             for (Sequence fastq : batch) {
                 if (fastq == null || fastq.getSequence().length() < (15*3)) {
                     continue;
@@ -57,7 +56,7 @@ public class FastQBatchProcessor implements Runnable {
                 index++;
             }
         } finally {
-            phaser.arrive();
+            phaser.arriveAndDeregister();
         }
     }
 }

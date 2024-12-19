@@ -1,5 +1,5 @@
 import org.husonlab.diamer2.indexing.Bucket;
-import org.husonlab.diamer2.indexing.Indexer;
+import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.BucketIO;
 import org.junit.Test;
 
@@ -13,8 +13,8 @@ import static org.junit.Assert.assertEquals;
 public class ReadIndexerTest {
     @Test
     public void testReadIndexer() throws IOException {
-        Indexer indexer = new Indexer(null, 4, 2, 2, 64);
-        indexer.indexReads(new File("src/test/resources/reads/reads.fq"), Path.of("src/test/resources/test_output/reads_index"));
+        ReadIndexer readIndexer = new ReadIndexer(new File("src/test/resources/reads/reads.fq"), Path.of("src/test/resources/test_output/reads_index"), 4, 2, 2, 64);
+        readIndexer.index();
         Bucket[] buckets = new Bucket[1024];
         int kmerCount = 0;
         for (int i = 0; i < 1024; i++) {
