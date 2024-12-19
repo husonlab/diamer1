@@ -70,40 +70,40 @@ public class DBIndexer {
             int rangeStart = i;
             int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
 
-            progressMessage.setMessage("Indexing buckets " + rangeStart + " - " + rangeEnd);
+            progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
 
             // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
             final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
-            if (!debug) {
-                for (int j = 0; j < bucketsPerCycle; j++) {
-                    bucketMaps[j] = new ConcurrentHashMap<Long, Integer>(57000000); // initial capacity 57000000
-                }
-            } else {
-                for (int j = 0; j < bucketsPerCycle; j++) {
-                    bucketMaps[j] = new ConcurrentHashMap<Long, Integer>();
-                }
-            }
 
             try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastaFile));
                  BufferedReader br = new BufferedReader(new InputStreamReader(cis));
                  FASTAReader fr = new FASTAReader(br)) {
+
+                if (!debug) {
+                    for (int j = 0; j < bucketsPerCycle; j++) {
+                        bucketMaps[j] = new ConcurrentHashMap<Long, Integer>(57000000); // initial capacity 57000000
+                    }
+                } else {
+                    for (int j = 0; j < bucketsPerCycle; j++) {
+                        bucketMaps[j] = new ConcurrentHashMap<Long, Integer>();
+                    }
+                }
+
                 progressBar.setProgress(0);
                 Sequence[] batch = new Sequence[BATCH_SIZE];
-                int batchPosition = 0;
+                int processedFastas = 0;
                 Sequence seq;
                 while ((seq = fr.next()) != null) {
-                    batch[batchPosition] = seq;
+                    batch[processedFastas % BATCH_SIZE] = seq;
                     progressBar.setProgress(cis.getReadBytes());
 
-                    if (batchPosition == BATCH_SIZE - 1) {
+                    if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(new FastaBatchProcessor(indexPhaser, batch, bucketMaps, tree, rangeStart, rangeEnd));
                         batch = new Sequence[BATCH_SIZE];
-                        batchPosition = 0;
-                    } else {
-                        batchPosition++;
                     }
                 }
+                indexPhaser.register();
                 threadPoolExecutor.submit(new FastaBatchProcessor(indexPhaser, batch, bucketMaps, tree, rangeStart, rangeEnd));
                 progressBar.finish();
             }

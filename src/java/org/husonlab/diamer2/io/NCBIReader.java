@@ -67,7 +67,6 @@ public class NCBIReader {
     @NotNull
     public static Tree readTaxonomy(@NotNull File nodesDumpfile, @NotNull File namesDumpfile){
         Logger logger = new Logger("NCBIReader").addElement(new Time());
-        final HashMap<Integer, Node> idMap = new HashMap<>();
         final Tree tree = new Tree();
         logger.logInfo("Reading nodes dumpfile...");
         readNodesDumpfile(nodesDumpfile, tree);
@@ -150,7 +149,7 @@ public class NCBIReader {
      */
     private static void readNodesDumpfile(File nodesDumpfile, Tree tree){
         ProgressBar progressBar = new ProgressBar(nodesDumpfile.length(), 20);
-        Logger progressBarLogger = new OneLineLogger("NCBIReader", 100)
+        new OneLineLogger("NCBIReader", 500)
                 .addElement(progressBar);
         HashMap<Integer, Integer> parentMap = new HashMap<>();
         try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile));
@@ -178,6 +177,7 @@ public class NCBIReader {
             node.setParent(parent);
             parent.addChild(node);
         });
+        tree.setRoot();
     }
 
     /**
@@ -187,7 +187,7 @@ public class NCBIReader {
      */
     public static void readNamesDumpfile(File namesDumpfile, Tree tree) {
         ProgressBar progressBar = new ProgressBar(namesDumpfile.length(), 20);
-        Logger progressBarLogger = new OneLineLogger("NCBIReader", 100)
+        Logger progressBarLogger = new OneLineLogger("NCBIReader", 500)
                 .addElement(progressBar);
         try (CountingInputStream cis = new CountingInputStream(new FileInputStream(namesDumpfile));
              BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {

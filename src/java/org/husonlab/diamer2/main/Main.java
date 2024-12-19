@@ -225,7 +225,7 @@ public class Main {
                     System.exit(1);
                 }
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                DBIndexer dbIndexer = new DBIndexer(database, output, tree, maxThreads, 1000, 100, bucketsPerCycle, false);
+                DBIndexer dbIndexer = new DBIndexer(database, output, tree, maxThreads, 1000, 100, bucketsPerCycle, true);
                 dbIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();

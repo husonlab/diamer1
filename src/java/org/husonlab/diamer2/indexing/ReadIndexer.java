@@ -37,8 +37,8 @@ public class ReadIndexer {
     }
 
     /**
-     * DBIndexIO a Sequence database and write the indexed buckets to files.
-     * @throws IOException If an error occurs during reading the database or writing the buckets.
+     * Indexes a FASTQ file of sequencing reads.
+     * @throws IOException If an error occurs during reading the file or writing the buckets.
      */
     public IndexIO index() throws IOException {
         logger.logInfo("Indexing " + fastqFile + " to " + indexDir);
@@ -57,6 +57,7 @@ public class ReadIndexer {
                 new ThreadPoolExecutor.CallerRunsPolicy());
         Phaser indexPhaser = new Phaser(1);
 
+        // HashMap to store readId to header mapping to be able to go back from id to header during read assignment
         HashMap<Integer, String> readHeaderMap = new HashMap<>();
 
         for (int i = 0; i < 1024; i += bucketsPerCycle) {
@@ -64,17 +65,19 @@ public class ReadIndexer {
             int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
             int readId = 0;
 
-            progressMessage.setMessage("Indexing buckets " + rangeStart + " - " + rangeEnd);
+            progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
 
             // Initialize Concurrent LinkedQueue to store index entries of each bucket
             final ConcurrentLinkedQueue<Long>[] bucketLists = new ConcurrentLinkedQueue[bucketsPerCycle];
-            for (int j = 0; j < bucketsPerCycle; j++) {
-                bucketLists[j] = new ConcurrentLinkedQueue<>();
-            }
 
             try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastqFile));
                  BufferedReader br = new BufferedReader(new InputStreamReader(cis));
                  FASTQReader fr = new FASTQReader(br)) {
+
+                for (int j = 0; j < bucketsPerCycle; j++) {
+                    bucketLists[j] = new ConcurrentLinkedQueue<>();
+                }
+
                 progressBar.setProgress(0);
                 Sequence[] batch = new Sequence[BATCH_SIZE];
                 int batchPosition = 0;
@@ -104,6 +107,7 @@ public class ReadIndexer {
                     }
                     readId++;
                 }
+                indexPhaser.register();
                 threadPoolExecutor.submit(
                         new FastQBatchProcessor(
                                 indexPhaser,

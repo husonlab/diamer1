@@ -8,6 +8,8 @@ import java.util.HashMap;
 public class Tree {
     public final HashMap<Integer, Node> idMap;
     @Nullable
+    private Node root;
+    @Nullable
     public final HashMap<String, Integer> accessionMap;
     public Tree(HashMap<Integer, Node> idMap, @Nullable HashMap<String, Integer> accessionMap) {
         this.idMap = idMap;
@@ -17,6 +19,22 @@ public class Tree {
     public Tree() {
         this.idMap = new HashMap<>();
         this.accessionMap = null;
+    }
+
+    public void setRoot(Node root) {
+        this.root = root;
+    }
+
+    /**
+     * Tries to find the root of the tree. Will work if the root has a self-loop or is the only node with no parent.
+     * Fails if there are multiple nodes with no parent.
+     */
+    public void setRoot() {
+        if (!idMap.isEmpty()) {
+            root = pathToRoot(idMap.values().iterator().next()).getLast();
+        } else {
+            root = null;
+        }
     }
 
     public Node findLCA(Node node1, Node node2) {
@@ -50,13 +68,32 @@ public class Tree {
 
     public ArrayList<Node> pathToRoot(Node node) {
         ArrayList<Node> path = new ArrayList<>();
-        Node prevNode = null;
-        while (node != prevNode) {
+        while (node.hasParent()) {
             path.add(node);
-            prevNode = node;
             node = node.getParent();
         }
+        path.add(node);
         return path;
+    }
+
+    public Tree getSubTree(ArrayList<Node> nodes) {
+        Tree tree = new Tree();
+        for (Node node : nodes) {
+            Node nodeCopy = node.copy();
+            tree.idMap.put(nodeCopy.getTaxId(), nodeCopy);
+            while (node.hasParent()) {
+                Node parent = node.getParent();
+                if (!tree.idMap.containsKey(parent.getTaxId())) {
+                    Node parentCopy = parent.copy();
+                    tree.idMap.put(parentCopy.getTaxId(), parentCopy);
+                }
+                nodeCopy.setParent(tree.idMap.get(parent.getTaxId()));
+                tree.idMap.get(parent.getTaxId()).addChild(nodeCopy);
+                node = parent;
+            }
+        }
+        tree.setRoot();
+        return tree;
     }
 
     public Node getSpecies(Node node) {
@@ -79,5 +116,9 @@ public class Tree {
             node = node.getParent();
         }
         return rankNode;
+    }
+
+    public Node getRoot() {
+        return root;
     }
 }

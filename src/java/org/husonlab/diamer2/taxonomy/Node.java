@@ -16,6 +16,7 @@ public class Node {
     private final ArrayList<String> labels;
     private String scientificName;
     private String rank;
+    private int weight;
 
     /**
      * Node with no parent.
@@ -65,6 +66,14 @@ public class Node {
         this.labels = new ArrayList<String>();
     }
 
+    public Node(int taxId, String rank, String scientificName, ArrayList<String> labels) {
+        this.taxId = taxId;
+        this.rank = rank;
+        this.scientificName = scientificName;
+        this.children = new ArrayList<Node>();
+        this.labels = labels;
+    }
+
     /**
      * Add a child to the node.
      * @param child the child to add
@@ -87,6 +96,10 @@ public class Node {
      */
     public void setParent(Node parent) {
         this.parent = parent;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 
     /**
@@ -160,6 +173,26 @@ public class Node {
     public String getLabel() {
         return scientificName != null ? scientificName :
                 !labels.isEmpty() ? labels.getFirst() : "no label";
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    /**
+     * Check if the node has a parent.
+     * @return false if the parent is null or the parent is the node itself.
+     */
+    public boolean hasParent() {
+        return !(parent == null || parent.equals(this));
+    }
+
+    /**
+     * Creates a copy of the node without the parent and children.
+     * @return a copy of the node
+     */
+    public Node copy() {
+        return new Node(taxId, rank, scientificName, labels);
     }
 
     @Override

@@ -14,6 +14,7 @@ public class OneLineLogger extends Logger {
         long currentTime = System.currentTimeMillis();
         if (currentTime - lastLogTime > intervalTime) {
             log();
+            lastLogTime = currentTime;
         }
     }
 
