@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.seq.KmerExtractor;
 import org.husonlab.diamer2.seq.alphabet.DNAKmerEncoder;
 import org.husonlab.diamer2.seq.Sequence;
 
@@ -39,20 +40,17 @@ public class FastQBatchProcessor implements Runnable {
                 }
                 String sequence = fastq.getSequence();
                 DNAKmerEncoder kmerEncoder = new DNAKmerEncoder(15, sequence.substring(0, 2));
-                for (int i = 2; i < (15*3) - 1; i++) {
-                    kmerEncoder.addNucleotide(sequence.charAt(i));
-                }
-                for (int i = ((15 * 3) - 1); i < sequence.length(); i++) {
-                    long[] encodedKmers = kmerEncoder.addNucleotide(sequence.charAt(i));
-                    int bucketName1 = IndexEncoding.getBucketName(encodedKmers[0]);
-                    int bucketName2 = IndexEncoding.getBucketName(encodedKmers[1]);
+
+                KmerExtractor.extractKmersDNA(sequence, 15).forEach(kmer -> {
+                    int bucketName1 = IndexEncoding.getBucketName(kmer[0]);
+                    int bucketName2 = IndexEncoding.getBucketName(kmer[1]);
                     if (bucketName1 >= rangeStart && bucketName1 < rangeEnd) {
-                        bucketLists[bucketName1 - rangeStart].add(IndexEncoding.getIndexEntry(encodedKmers[0], index));
+                        bucketLists[bucketName1 - rangeStart].add(IndexEncoding.getIndexEntry(kmer[0], index));
                     }
                     if (bucketName2 >= rangeStart && bucketName2 < rangeEnd) {
-                        bucketLists[bucketName2 - rangeStart].add(IndexEncoding.getIndexEntry(encodedKmers[1], index));
+                        bucketLists[bucketName2 - rangeStart].add(IndexEncoding.getIndexEntry(kmer[1], index));
                     }
-                }
+                });
                 index++;
             }
         } finally {
