@@ -4,6 +4,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public class Tree {
     public final HashMap<Integer, Node> idMap;
@@ -76,24 +77,39 @@ public class Tree {
         return path;
     }
 
-    public Tree getSubTree(ArrayList<Node> nodes) {
+    public Tree getWeightedSubTree(LinkedList<int[]> nodesAndWeights) {
         Tree tree = new Tree();
-        for (Node node : nodes) {
-            Node nodeCopy = node.copy();
-            tree.idMap.put(nodeCopy.getTaxId(), nodeCopy);
+        for (int[] nodeAndWeight : nodesAndWeights) {
+            int nodeId = nodeAndWeight[0];
+            int weight = nodeAndWeight[1];
+            Node node = idMap.get(nodeId);
+            Node finalNode = node;
+            Node nodeCopy = tree.idMap.computeIfAbsent(nodeId, k -> finalNode.copy());
+            nodeCopy.setWeight(weight);
+
             while (node.hasParent()) {
                 Node parent = node.getParent();
-                if (!tree.idMap.containsKey(parent.getTaxId())) {
-                    Node parentCopy = parent.copy();
-                    tree.idMap.put(parentCopy.getTaxId(), parentCopy);
+                if (tree.idMap.containsKey(parent.getTaxId())) {
+                    tree.idMap.get(parent.getTaxId()).addChild(nodeCopy);
+                    nodeCopy.setParent(tree.idMap.get(parent.getTaxId()));
+                    break;
                 }
-                nodeCopy.setParent(tree.idMap.get(parent.getTaxId()));
-                tree.idMap.get(parent.getTaxId()).addChild(nodeCopy);
+                Node parentCopy = tree.idMap.computeIfAbsent(parent.getTaxId(), k -> parent.copy());
+                parentCopy.addChild(nodeCopy);
+                nodeCopy.setParent(parentCopy);
                 node = parent;
+                nodeCopy = parentCopy;
             }
         }
         tree.setRoot();
         return tree;
+    }
+
+    public void accumulateWeights(Node root) {
+        for (Node child : root.getChildren()) {
+            accumulateWeights(child);
+            root.setCumulativeWeight(root.getWeight() + child.getCumulativeWeight());
+        }
     }
 
     public Node getSpecies(Node node) {

@@ -17,6 +17,7 @@ public class Node {
     private String scientificName;
     private String rank;
     private int weight;
+    private int cumulativeWeight;
 
     /**
      * Node with no parent.
@@ -26,6 +27,8 @@ public class Node {
         this.taxId = taxId;
         this.children = new ArrayList<Node>();
         this.labels = new ArrayList<String>();
+        this.weight = 0;
+        this.cumulativeWeight = 0;
     }
 
     /**
@@ -34,10 +37,8 @@ public class Node {
      * @param parent the parent of the node
      */
     public Node(int taxId, Node parent) {
-        this.taxId = taxId;
+        this(taxId);
         this.parent = parent;
-        this.children = new ArrayList<Node>();
-        this.labels = new ArrayList<String>();
     }
 
     /**
@@ -46,10 +47,8 @@ public class Node {
      * @param rank the rank of the node
      */
     public Node(int taxId, String rank) {
-        this.taxId = taxId;
+        this(taxId);
         this.rank = rank;
-        this.children = new ArrayList<Node>();
-        this.labels = new ArrayList<String>();
     }
 
     /**
@@ -59,19 +58,14 @@ public class Node {
      * @param rank the rank of the node
      */
     public Node(int taxId, Node parent, String rank) {
-        this.taxId = taxId;
-        this.parent = parent;
+        this(taxId, parent);
         this.rank = rank;
-        this.children = new ArrayList<Node>();
-        this.labels = new ArrayList<String>();
     }
 
     public Node(int taxId, String rank, String scientificName, ArrayList<String> labels) {
-        this.taxId = taxId;
-        this.rank = rank;
+        this(taxId, rank);
         this.scientificName = scientificName;
-        this.children = new ArrayList<Node>();
-        this.labels = labels;
+        this.labels.addAll(labels);
     }
 
     /**
@@ -79,7 +73,9 @@ public class Node {
      * @param child the child to add
      */
     public void addChild(Node child) {
-        children.add(child);
+        if (!children.contains(child)) {
+            children.add(child);
+        }
     }
 
     /**
@@ -100,6 +96,10 @@ public class Node {
 
     public void setWeight(int weight) {
         this.weight = weight;
+    }
+
+    public void setCumulativeWeight(int cumulativeWeight) {
+        this.cumulativeWeight = cumulativeWeight;
     }
 
     /**
@@ -179,12 +179,20 @@ public class Node {
         return weight;
     }
 
+    public int getCumulativeWeight() {
+        return cumulativeWeight;
+    }
+
     /**
      * Check if the node has a parent.
      * @return false if the parent is null or the parent is the node itself.
      */
     public boolean hasParent() {
         return !(parent == null || parent.equals(this));
+    }
+
+    public boolean isLeaf() {
+        return children.isEmpty();
     }
 
     /**

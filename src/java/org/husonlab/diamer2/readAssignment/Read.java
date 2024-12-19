@@ -8,6 +8,7 @@ public class Read {
 
     private final String header;
     private final LinkedList<int[]> readTaxonAssiciations;
+    private Node assignedNode;
 
     public Read(String header) {
         this.header = header;
@@ -69,12 +70,20 @@ public class Read {
         readTaxonAssiciations.add(new int[]{taxId, count});
     }
 
+    public void setAssignedNode(Node node) {
+        assignedNode = node;
+    }
+
     public void sortAssociations() {
         readTaxonAssiciations.sort((a1, a2) -> Integer.compare(a2[1], a1[1]));
     }
 
     public LinkedList<int[]> getAssociations() {
         return readTaxonAssiciations;
+    }
+
+    public Node getAssignedNode() {
+        return assignedNode;
     }
 
     @Override
