@@ -3,6 +3,7 @@ package org.husonlab.diamer2.io;
 import org.husonlab.diamer2.logging.Logger;
 import org.husonlab.diamer2.logging.OneLineLogger;
 import org.husonlab.diamer2.logging.ProgressBar;
+import org.husonlab.diamer2.readAssignment.AssignmentAlgorithms;
 import org.husonlab.diamer2.readAssignment.Read;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.taxonomy.Tree;
@@ -51,9 +52,9 @@ public class ReadAssignmentIO {
         return new ReadAssignment(tree, readAssignments);
     }
 
-    public static void writeAssignments(ReadAssignment readAssignment, File file) {
+    public static void writeRawAssignments(ReadAssignment readAssignment, File file) {
         Logger logger = new Logger("ReadAssignmentIO");
-        logger.logInfo("Writing read assignments to " + file.getAbsolutePath());
+        logger.logInfo("Writing raw read assignments to " + file.getAbsolutePath());
         ProgressBar progressBar = new ProgressBar(readAssignment.size(), 20);
         new OneLineLogger("ReadAssignmentIO", 100).addElement(progressBar);
         try (java.io.PrintWriter writer = new java.io.PrintWriter(file)) {
@@ -61,6 +62,28 @@ public class ReadAssignmentIO {
             for (Read read : readAssignment) {
                 progressBar.incrementProgress();
                 writer.println(read);
+            }
+            progressBar.finish();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void writeAssignments(ReadAssignment readAssignment, File file) {
+        Logger logger = new Logger("ReadAssignmentIO");
+        logger.logInfo("Writing read assignments to " + file.getAbsolutePath());
+        ProgressBar progressBar = new ProgressBar(readAssignment.size(), 20);
+        new OneLineLogger("ReadAssignmentIO", 100).addElement(progressBar);
+
+        AssignmentAlgorithms assignmentAlgorithms = new AssignmentAlgorithms(readAssignment.getTree());
+        try (PrintWriter writer = new PrintWriter(file)) {
+            writer.println(readAssignment.size());
+            for (Read read : readAssignment) {
+                assignmentAlgorithms.OVO(read, 0.5f);
+                progressBar.incrementProgress();
+                writer.print(read.getHeader());
+                writer.print("\t");
+                writer.println(read.getAssignedNode());
             }
             progressBar.finish();
         } catch (IOException e) {

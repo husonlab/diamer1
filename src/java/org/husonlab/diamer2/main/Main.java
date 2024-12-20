@@ -256,6 +256,7 @@ public class Main {
                 ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
                 ReadAssignment assignment = readAssigner.assignReads();
                 ReadAssignmentIO.writeAssignments(assignment, output);
+                ReadAssignmentIO.writeRawAssignments(assignment, Path.of(output.getParent(), "raw_assignments.tsv").toFile());
                 ReadAssignmentIO.writeReadStatistics(assignment, Path.of(output.getParent()));
             } catch (Exception e) {
                 e.printStackTrace();

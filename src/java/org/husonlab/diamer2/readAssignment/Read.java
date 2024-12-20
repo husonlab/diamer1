@@ -86,6 +86,10 @@ public class Read {
         return assignedNode;
     }
 
+    public String getHeader() {
+        return header;
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

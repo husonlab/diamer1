@@ -19,6 +19,7 @@ public class ReadAssignmentTest {
         ReadAssigner readAssigner = new ReadAssigner(tree,1, Path.of("src/test/resources/database/index"), Path.of("src/test/resources/reads/index"));
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeReadStatistics(assignment, Path.of("src/test/resources/test_output/read_assignment"));
+        ReadAssignmentIO.writeRawAssignments(assignment, new File("src/test/resources/test_output/read_assignment/raw_read_assignment.txt"));
         ReadAssignmentIO.writeAssignments(assignment, new File("src/test/resources/test_output/read_assignment/read_assignment.txt"));
         assertEquals(6, assignment.size());
 //        assertEquals(1, reads[0].readAssignments().size());

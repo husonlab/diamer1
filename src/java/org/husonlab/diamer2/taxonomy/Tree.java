@@ -106,6 +106,10 @@ public class Tree {
     }
 
     public void accumulateWeights(Node root) {
+        if (root.isLeaf()) {
+            root.setCumulativeWeight(root.getWeight());
+            return;
+        }
         for (Node child : root.getChildren()) {
             accumulateWeights(child);
             root.setCumulativeWeight(root.getWeight() + child.getCumulativeWeight());

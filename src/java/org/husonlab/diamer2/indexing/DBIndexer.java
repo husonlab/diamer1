@@ -3,6 +3,7 @@ package org.husonlab.diamer2.indexing;
 import org.husonlab.diamer2.io.CountingInputStream;
 import org.husonlab.diamer2.io.FASTAReader;
 import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.io.SequenceSupplier;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.taxonomy.Tree;
@@ -52,7 +53,7 @@ public class DBIndexer {
         logger.logInfo("Indexing " + fastaFile + " to " + indexDir);
         ProgressBar progressBar = new ProgressBar(fastaFile.length(), 20);
         Message progressMessage = new Message("");
-        new OneLineLogger("Indexer", 1000)
+        new OneLineLogger("DBIndexer", 1000)
                 .addElement(progressBar)
                 .addElement(progressMessage);
 
@@ -66,18 +67,21 @@ public class DBIndexer {
 
         Phaser indexPhaser = new Phaser(1);
 
-        for (int i = 0; i < 1024; i += bucketsPerCycle) {
-            int rangeStart = i;
-            int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
 
-            progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastaFile));
+             BufferedReader br = new BufferedReader(new InputStreamReader(cis));
+             FASTAReader fr = new FASTAReader(br);
+             SequenceSupplier sup = new SequenceSupplier(fr, true)) {
 
             // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
             final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
 
-            try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastaFile));
-                 BufferedReader br = new BufferedReader(new InputStreamReader(cis));
-                 FASTAReader fr = new FASTAReader(br)) {
+            for (int i = 0; i < 1024; i += bucketsPerCycle) {
+
+                int rangeStart = i;
+                int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
+
+                progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
 
                 if (!debug) {
                     for (int j = 0; j < bucketsPerCycle; j++) {
@@ -93,7 +97,7 @@ public class DBIndexer {
                 Sequence[] batch = new Sequence[BATCH_SIZE];
                 int processedFastas = 0;
                 Sequence seq;
-                while ((seq = fr.next()) != null) {
+                while ((seq = sup.next()) != null) {
                     batch[processedFastas % BATCH_SIZE] = seq;
                     progressBar.setProgress(cis.getReadBytes());
 
@@ -106,25 +110,28 @@ public class DBIndexer {
                 indexPhaser.register();
                 threadPoolExecutor.submit(new FastaBatchProcessor(indexPhaser, batch, bucketMaps, tree, rangeStart, rangeEnd));
                 progressBar.finish();
-            }
 
-            indexPhaser.arriveAndAwaitAdvance();
-            logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
+                indexPhaser.arriveAndAwaitAdvance();
+                logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
 
-            for (int j = 0; j < bucketsPerCycle; j++) {
-                int finalJ = j;
-                indexPhaser.register();
-                threadPoolExecutor.submit(() -> {
-                    try {
-                        indexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ]));
-                    } catch (RuntimeException | IOException e) {
-                        throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
-                    } finally {
-                        indexPhaser.arriveAndDeregister();
-                    }
-                });
+                for (int j = 0; j < bucketsPerCycle; j++) {
+                    int finalJ = j;
+                    indexPhaser.register();
+                    threadPoolExecutor.submit(() -> {
+                        try {
+                            indexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ]));
+                        } catch (RuntimeException | IOException e) {
+                            throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
+                        } finally {
+                            indexPhaser.arriveAndDeregister();
+                        }
+                    });
+                }
+                indexPhaser.arriveAndAwaitAdvance();
+                sup.reset();
             }
-            indexPhaser.arriveAndAwaitAdvance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         threadPoolExecutor.shutdown();
         try {

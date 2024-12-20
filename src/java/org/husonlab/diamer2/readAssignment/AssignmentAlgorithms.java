@@ -12,9 +12,17 @@ public class AssignmentAlgorithms {
         this.tree = tree;
     }
 
+    public void OVO(Read read, float ratio){
+        Node node = OVO(read.getAssociations(), ratio);
+        read.setAssignedNode(node);
+    }
+
     public Node OVO(LinkedList<int[]> nodesAndWeights, float ratio){
+        if (nodesAndWeights.isEmpty()){
+            return new Node(-1, "unassigned");
+        }
         Tree subTree = tree.getWeightedSubTree(nodesAndWeights);
-        subTree.accumulateWeights(tree.getRoot());
+        subTree.accumulateWeights(subTree.getRoot());
         return OVORecursive(subTree.getRoot(), ratio);
     }
 

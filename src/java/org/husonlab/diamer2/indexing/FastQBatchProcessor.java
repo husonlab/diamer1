@@ -39,7 +39,6 @@ public class FastQBatchProcessor implements Runnable {
                     continue;
                 }
                 String sequence = fastq.getSequence();
-                DNAKmerEncoder kmerEncoder = new DNAKmerEncoder(15, sequence.substring(0, 2));
 
                 KmerExtractor.extractKmersDNA(sequence, 15).forEach(kmer -> {
                     int bucketName1 = IndexEncoding.getBucketName(kmer[0]);

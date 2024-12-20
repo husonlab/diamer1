@@ -103,6 +103,10 @@ public class ReadAssignment implements Iterable<Read> {
         return null;
     }
 
+    public Tree getTree() {
+        return tree;
+    }
+
 
     /**
      * Represents the statistics of a read assignment.

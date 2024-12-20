@@ -73,12 +73,11 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * How to handle stop codons?
 
 # TODO
-* How to deal with identical protein groups?
-  * Some proteins with identical protein sequences occure in different organisms (e.g. WP_012019010.1).
-  * Actually their LCA will have to be calculated while reading in the taxonomy.
 * Bloom filter for usefull kmers
 * Keep nr in memory during indexing
   * maybe in a compressed form (11 letter binary?)
+    * 3 bases -> 24 bit
+    * 2 amino acids in base 11 for every reading frame -> 8 bit * 3 = 24 bit
 * Filter out low complexity regions?
 
 # Hashes
@@ -151,6 +150,7 @@ zip -r output.zip input/
 * [nr database](https://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/)
 * [taxon dumps](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
 * [accession mapping](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/)
+* [test dataset](https://lomanlab.github.io/mockcommunity/r10.html)
 
 ## generate reduced NCBI database dataset
 * Extracting the accessions that are part of the nr.fsa file with the [ExtractNrAcessions](src/java/org/husonlab/diamer2/reduceDatasets/ExtractNrAcessions.java) to see if all accessions in the taxon map are required to process the nr.fsa.

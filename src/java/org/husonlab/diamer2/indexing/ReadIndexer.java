@@ -44,7 +44,7 @@ public class ReadIndexer {
         logger.logInfo("Indexing " + fastqFile + " to " + indexDir);
         ProgressBar progressBar = new ProgressBar(fastqFile.length(), 20);
         Message progressMessage = new Message("");
-        new OneLineLogger("Indexer", 1000)
+        new OneLineLogger("ReadIndexer", 1000)
                 .addElement(progressBar)
                 .addElement(progressMessage);
 
@@ -60,19 +60,20 @@ public class ReadIndexer {
         // HashMap to store readId to header mapping to be able to go back from id to header during read assignment
         HashMap<Integer, String> readHeaderMap = new HashMap<>();
 
-        for (int i = 0; i < 1024; i += bucketsPerCycle) {
-            int rangeStart = i;
-            int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
-            int readId = 0;
-
-            progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastqFile));
+             BufferedReader br = new BufferedReader(new InputStreamReader(cis));
+             FASTQReader fr = new FASTQReader(br);
+             SequenceSupplier sup = new SequenceSupplier(fr, true)) {
 
             // Initialize Concurrent LinkedQueue to store index entries of each bucket
             final ConcurrentLinkedQueue<Long>[] bucketLists = new ConcurrentLinkedQueue[bucketsPerCycle];
 
-            try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastqFile));
-                 BufferedReader br = new BufferedReader(new InputStreamReader(cis));
-                 FASTQReader fr = new FASTQReader(br)) {
+            for (int i = 0; i < 1024; i += bucketsPerCycle) {
+                int rangeStart = i;
+                int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
+                int readId = 0;
+
+                progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
 
                 for (int j = 0; j < bucketsPerCycle; j++) {
                     bucketLists[j] = new ConcurrentLinkedQueue<>();
@@ -82,7 +83,7 @@ public class ReadIndexer {
                 Sequence[] batch = new Sequence[BATCH_SIZE];
                 int batchPosition = 0;
                 Sequence seq;
-                while ((seq = fr.next()) != null) {
+                while ((seq = sup.next()) != null) {
                     if (i == 0) {
                         readHeaderMap.put(readId, seq.getHeader());
                     }
@@ -117,40 +118,43 @@ public class ReadIndexer {
                                 rangeEnd,
                                 (readId - 1) - (readId - 1) % BATCH_SIZE));
                 progressBar.finish();
+
+                indexPhaser.arriveAndAwaitAdvance();
+                logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
+
+                if (rangeStart == 0) {
+                    indexPhaser.register();
+                    threadPoolExecutor.submit(() -> {
+                        try {
+                            readIndexIO.writeReadHeaderMapping(readHeaderMap);
+                        } catch (RuntimeException e) {
+                            throw new RuntimeException("Error writing read header map.", e);
+                        } finally {
+                            indexPhaser.arriveAndDeregister();
+                        }
+                    });
+                }
+
+                indexPhaser.arriveAndAwaitAdvance();
+
+                for (int j = 0; j < bucketsPerCycle; j++) {
+                    int finalJ = j;
+                    indexPhaser.register();
+                    threadPoolExecutor.submit(() -> {
+                        try {
+                            readIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketLists[finalJ]));
+                        } catch (RuntimeException | IOException e) {
+                            throw new RuntimeException("Error converting and writing bucket " + finalJ, e);
+                        } finally {
+                            indexPhaser.arriveAndDeregister();
+                        }
+                    });
+                }
+                indexPhaser.arriveAndAwaitAdvance();
+                sup.reset();
             }
-
-            indexPhaser.arriveAndAwaitAdvance();
-            logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
-
-            if (rangeStart == 0) {
-                indexPhaser.register();
-                threadPoolExecutor.submit(() -> {
-                    try {
-                        readIndexIO.writeReadHeaderMapping(readHeaderMap);
-                    } catch (RuntimeException e) {
-                        throw new RuntimeException("Error writing read header map.", e);
-                    } finally {
-                        indexPhaser.arriveAndDeregister();
-                    }
-                });
-            }
-
-            indexPhaser.arriveAndAwaitAdvance();
-
-            for (int j = 0; j < bucketsPerCycle; j++) {
-                int finalJ = j;
-                indexPhaser.register();
-                threadPoolExecutor.submit(() -> {
-                    try {
-                        readIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketLists[finalJ]));
-                    } catch (RuntimeException | IOException e) {
-                        throw new RuntimeException("Error converting and writing bucket " + finalJ, e);
-                    } finally {
-                        indexPhaser.arriveAndDeregister();
-                    }
-                });
-            }
-            indexPhaser.arriveAndAwaitAdvance();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         threadPoolExecutor.shutdown();
         try {
