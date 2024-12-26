@@ -3,6 +3,7 @@ package org.husonlab.diamer2.readAssignment;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 public class AssignmentAlgorithms {
@@ -17,7 +18,7 @@ public class AssignmentAlgorithms {
         read.setAssignedNode(node);
     }
 
-    public Node OVO(LinkedList<int[]> nodesAndWeights, float ratio){
+    public Node OVO(ArrayList<int[]> nodesAndWeights, float ratio){
         if (nodesAndWeights.isEmpty()){
             return new Node(-1, "unassigned");
         }

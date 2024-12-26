@@ -252,12 +252,12 @@ public class Main {
                 String[] paths = cli.getOptionValues("d");
                 Path dbIndex = Path.of(paths[0]);
                 Path readsIndex = Path.of(paths[1]);
-                File output = new File(cli.getOptionValue("o"));
+                Path output = Path.of(cli.getOptionValue("o"));
                 ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
                 ReadAssignment assignment = readAssigner.assignReads();
-                ReadAssignmentIO.writeAssignments(assignment, output);
-                ReadAssignmentIO.writeRawAssignments(assignment, Path.of(output.getParent(), "raw_assignments.tsv").toFile());
-                ReadAssignmentIO.writeReadStatistics(assignment, Path.of(output.getParent()));
+                //ReadAssignmentIO.writeAssignments(assignment, output.resolve("assignments.tsv").toFile());
+                ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
+                ReadAssignmentIO.writeReadStatistics(assignment, output);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);

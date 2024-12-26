@@ -77,7 +77,7 @@ public class Tree {
         return path;
     }
 
-    public Tree getWeightedSubTree(LinkedList<int[]> nodesAndWeights) {
+    public Tree getWeightedSubTree(ArrayList<int[]> nodesAndWeights) {
         Tree tree = new Tree();
         for (int[] nodeAndWeight : nodesAndWeights) {
             int nodeId = nodeAndWeight[0];
