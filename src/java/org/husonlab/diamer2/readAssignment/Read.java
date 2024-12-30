@@ -18,7 +18,7 @@ public class Read {
 
     /**
      * Adds a read assignment to the read. If the node is already assigned to the read, the count is incremented.
-     *
+     * Thread save operation.
      * @param node the node to assign
      */
     public void addReadAssignment(Node node) {

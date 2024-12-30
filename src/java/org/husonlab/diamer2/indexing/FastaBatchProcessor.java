@@ -1,15 +1,11 @@
 package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.seq.KmerExtractor;
-import org.husonlab.diamer2.seq.alphabet.AAEncoder;
-import org.husonlab.diamer2.seq.alphabet.AAKmerEncoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.seq.Sequence;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
-
-import static org.husonlab.diamer2.seq.alphabet.AAEncoder.toBase11;
 
 public class FastaBatchProcessor implements Runnable {
     private final Phaser phaser;
