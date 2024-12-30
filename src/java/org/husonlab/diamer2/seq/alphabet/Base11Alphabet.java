@@ -105,7 +105,7 @@ public class Base11Alphabet implements ReducedProteinAlphabet {
                 "TCG", "TCT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"};
         HashMap<String, LinkedList<String>> encodingToCodons = new HashMap<>();
         for (String codon : codons) {
-            String reverse = DNAEncoder.reverseComplement(codon);
+            String reverse = Utilities.reverseComplement(codon);
             int codonEncoding = codonToAAAndBase11(codon);
             int reverseEncoding = codonToAAAndBase11(reverse);
             String encoding = "(short)" + codonEncoding + ", " + "(short)" + reverseEncoding;

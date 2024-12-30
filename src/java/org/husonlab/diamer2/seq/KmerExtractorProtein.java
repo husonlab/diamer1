@@ -1,4 +1,6 @@
-package org.husonlab.diamer2.seq.alphabet;
+package org.husonlab.diamer2.seq;
+
+import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 
 public class KmerExtractorProtein extends KmerExtractor {
 

@@ -3,7 +3,7 @@ package org.husonlab.diamer2.main;
 import org.apache.commons.cli.*;
 import org.husonlab.diamer2.indexing.DBIndexer;
 import org.husonlab.diamer2.indexing.ReadIndexer;
-import org.husonlab.diamer2.seq.alphabet.DNAEncoder;
+import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.io.IndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.taxonomy.Tree;
@@ -18,6 +18,9 @@ import java.util.ArrayList;
 
 public class Main {
     public static void main(String[] args) {
+
+        long mask = 0b11111101111011101001L;
+
         Options options = new Options();
         OptionGroup computationOptions = new OptionGroup();
         computationOptions.setRequired(true);
@@ -225,7 +228,7 @@ public class Main {
                     System.exit(1);
                 }
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                DBIndexer dbIndexer = new DBIndexer(database, output, tree, maxThreads, 1000, 100, bucketsPerCycle, true);
+                DBIndexer dbIndexer = new DBIndexer(database, output, tree, mask, new Base11Alphabet(), maxThreads, 1000, 100, bucketsPerCycle, true);
                 dbIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
@@ -237,7 +240,7 @@ public class Main {
                 int bucketsPerCycle = cli.getParsedOptionValue("b");
                 File reads = cli.getParsedOptionValue("d");
                 Path output = cli.getParsedOptionValue("o");
-                ReadIndexer readIndexer = new ReadIndexer(reads, output, maxThreads, 1000, 100, bucketsPerCycle);
+                ReadIndexer readIndexer = new ReadIndexer(reads, output, mask, new Base11Alphabet(), maxThreads, 1000, 100, bucketsPerCycle);
                 readIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
@@ -289,7 +292,6 @@ public class Main {
             }
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");
-            DNAEncoder.generateToAAAndBase11AndNumberFR();
         }
     }
 }

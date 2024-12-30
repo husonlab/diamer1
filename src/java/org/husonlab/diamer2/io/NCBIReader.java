@@ -1,8 +1,8 @@
 package org.husonlab.diamer2.io;
 
-import org.husonlab.diamer2.seq.alphabet.AAEncoder;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.alphabet.Utilities;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
@@ -126,7 +126,7 @@ public class NCBIReader {
                 // Split the sequence by stop codons
                 ArrayList<Sequence> fastas = new ArrayList<>();
                 for (String sequence : fasta.getSequence().split("\\*")) {
-                    fastas.add(new Sequence(header, AAEncoder.enforceAlphabet(sequence)));
+                    fastas.add(new Sequence(header, Utilities.enforceAlphabet(sequence)));
                 }
 
                 // Write the sequences to the output file

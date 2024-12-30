@@ -3,6 +3,7 @@ package org.husonlab.diamer2.indexing;
 import org.husonlab.diamer2.io.*;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -15,6 +16,8 @@ public class ReadIndexer {
     private final File fastqFile;
     private final Path indexDir;
     private final ReadIndexIO readIndexIO;
+    private final long mask;
+    private final ReducedProteinAlphabet alphabet;
     private final int MAX_THREADS;
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
@@ -22,6 +25,8 @@ public class ReadIndexer {
 
     public ReadIndexer(File fastqFile,
                      Path indexDir,
+                     long mask,
+                     ReducedProteinAlphabet alphabet,
                      int MAX_THREADS,
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
@@ -30,6 +35,8 @@ public class ReadIndexer {
         this.fastqFile = fastqFile;
         this.indexDir = indexDir;
         this.readIndexIO = new ReadIndexIO(indexDir);
+        this.mask = mask;
+        this.alphabet = alphabet;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
@@ -93,9 +100,11 @@ public class ReadIndexer {
                     if (batchPosition == BATCH_SIZE - 1) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(
-                                new FastQBatchProcessor(
+                                new FastqDNAProcessor(
                                         indexPhaser,
                                         batch,
+                                        mask,
+                                        alphabet,
                                         bucketLists,
                                         rangeStart,
                                         rangeEnd,
@@ -110,9 +119,11 @@ public class ReadIndexer {
                 }
                 indexPhaser.register();
                 threadPoolExecutor.submit(
-                        new FastQBatchProcessor(
+                        new FastqDNAProcessor(
                                 indexPhaser,
                                 batch,
+                                mask,
+                                alphabet,
                                 bucketLists,
                                 rangeStart,
                                 rangeEnd,

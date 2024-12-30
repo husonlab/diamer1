@@ -6,6 +6,7 @@ import org.husonlab.diamer2.io.IndexIO;
 import org.husonlab.diamer2.io.SequenceSupplier;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.io.*;
@@ -19,6 +20,8 @@ public class DBIndexer {
     private final Path indexDir;
     private final IndexIO indexIO;
     private final Tree tree;
+    private final long mask;
+    private final ReducedProteinAlphabet alphabet;
     private final int MAX_THREADS;
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
@@ -28,6 +31,8 @@ public class DBIndexer {
     public DBIndexer(File fastaFile,
                      Path indexDir,
                      Tree tree,
+                     long mask,
+                     ReducedProteinAlphabet alphabet,
                      int MAX_THREADS,
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
@@ -35,6 +40,8 @@ public class DBIndexer {
                      boolean debug) {
         this.logger = new Logger("DBIndexer");
         this.fastaFile = fastaFile;
+        this.mask = mask;
+        this.alphabet = alphabet;
         this.indexDir = indexDir;
         this.indexIO = new IndexIO(indexDir);
         this.tree = tree;
@@ -103,12 +110,12 @@ public class DBIndexer {
 
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
-                        threadPoolExecutor.submit(new FastaBatchProcessor(indexPhaser, batch, bucketMaps, tree, rangeStart, rangeEnd));
+                        threadPoolExecutor.submit(new FastaProteinBatchProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
                         batch = new Sequence[BATCH_SIZE];
                     }
                 }
                 indexPhaser.register();
-                threadPoolExecutor.submit(new FastaBatchProcessor(indexPhaser, batch, bucketMaps, tree, rangeStart, rangeEnd));
+                threadPoolExecutor.submit(new FastaProteinBatchProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
                 progressBar.finish();
 
                 indexPhaser.arriveAndAwaitAdvance();

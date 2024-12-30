@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.seq.alphabet;
+package org.husonlab.diamer2.seq;
 
 import java.util.LinkedList;
 

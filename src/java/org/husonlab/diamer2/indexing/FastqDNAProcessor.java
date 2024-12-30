@@ -1,30 +1,35 @@
 package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.seq.KmerExtractor;
-import org.husonlab.diamer2.seq.alphabet.DNAKmerEncoder;
 import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.KmerExtractorDNA;
+import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Phaser;
 
-public class FastQBatchProcessor implements Runnable {
+public class FastqDNAProcessor implements Runnable {
 
     private final Phaser phaser;
     private final Sequence[] batch;
+    private final KmerExtractor KmerExtractor;
     private final ConcurrentLinkedQueue<Long>[] bucketLists;
     private final int rangeStart;
     private final int rangeEnd;
     private int index;
 
-    public FastQBatchProcessor(
+    public FastqDNAProcessor(
             Phaser phaser,
             Sequence[] batch,
+            long mask,
+            ReducedProteinAlphabet alphabet,
             ConcurrentLinkedQueue<Long>[] bucketLists,
             int rangeStart,
             int rangeEnd,
             int startIndex) {
         this.phaser = phaser;
         this.batch = batch;
+        this.KmerExtractor = new KmerExtractorDNA(mask, alphabet);
         this.bucketLists = bucketLists;
         this.rangeStart = rangeStart;
         this.rangeEnd = rangeEnd;
@@ -39,17 +44,13 @@ public class FastQBatchProcessor implements Runnable {
                     continue;
                 }
                 String sequence = fastq.getSequence();
-
-                KmerExtractor.extractKmersDNA(sequence, 15).forEach(kmer -> {
-                    int bucketName1 = IndexEncoding.getBucketName(kmer[0]);
-                    int bucketName2 = IndexEncoding.getBucketName(kmer[1]);
-                    if (bucketName1 >= rangeStart && bucketName1 < rangeEnd) {
-                        bucketLists[bucketName1 - rangeStart].add(IndexEncoding.getIndexEntry(kmer[0], index));
+                long[] kmers = KmerExtractor.extractKmers(sequence);
+                for (long kmer : kmers) {
+                    int bucketName = IndexEncoding.getBucketName(kmer);
+                    if (bucketName >= rangeStart && bucketName < rangeEnd) {
+                        bucketLists[bucketName - rangeStart].add(IndexEncoding.getIndexEntry(kmer, index));
                     }
-                    if (bucketName2 >= rangeStart && bucketName2 < rangeEnd) {
-                        bucketLists[bucketName2 - rangeStart].add(IndexEncoding.getIndexEntry(kmer[1], index));
-                    }
-                });
+                }
                 index++;
             }
         } finally {
