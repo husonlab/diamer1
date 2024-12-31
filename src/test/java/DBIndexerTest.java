@@ -1,6 +1,6 @@
 import org.husonlab.diamer2.indexing.DBIndexer;
-import org.husonlab.diamer2.seq.alphabet.AAEncoder;
 import org.husonlab.diamer2.io.BucketIO;
+import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.io.NCBIReader;
@@ -18,7 +18,7 @@ public class DBIndexerTest {
     @Test
     public void testDBIndexer() throws IOException {
         Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/database/nodes.dmp"), new File("src/test/resources/database/names.dmp"));
-        DBIndexer dbIndexer = new DBIndexer(new File("src/test/resources/database/db_preprocessed.fsa"), Path.of("src/test/resources/test_output/db_index"), tree, 4, 50, 1, 64, true);
+        DBIndexer dbIndexer = new DBIndexer(new File("src/test/resources/database/db_preprocessed.fsa"), Path.of("src/test/resources/test_output/db_index"), tree, 0b11111111111L, new Base11Alphabet(), 4, 50, 1, 64, true);
         dbIndexer.index();
         Bucket[] buckets = new Bucket[1024];
 
@@ -38,7 +38,7 @@ public class DBIndexerTest {
 
         for (TestKmer testKmer : testKmers) {
             System.out.println(testKmer.kmer);
-            long kmerEnc = AAEncoder.toBase11(testKmer.kmer);
+            long kmerEnc = Base11Alphabet.codonToAAAndBase11(testKmer.kmer);
             int bucketId = (int) (kmerEnc & 0b1111111111);
             long kmerIndex = (kmerEnc << 10) & 0xffffffffffc00000L | testKmer.taxId;
             assertEquals(kmerIndex, Objects.requireNonNull(buckets[bucketId].getContent())[testKmer.pos]);

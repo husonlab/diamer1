@@ -274,6 +274,7 @@ public class Main {
                 Path path = Path.of(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 ReadAssignment readAssignment = ReadAssignmentIO.read(tree, file);
+                ReadAssignmentIO.writeAssignments(readAssignment, path.resolve("assignments.tsv").toFile());
                 ReadAssignmentIO.writeReadStatistics(readAssignment, path);
             } catch (ParseException e) {
                 e.printStackTrace();

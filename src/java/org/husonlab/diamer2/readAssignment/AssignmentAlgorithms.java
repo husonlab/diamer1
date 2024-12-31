@@ -15,7 +15,8 @@ public class AssignmentAlgorithms {
 
     public void OVO(Read read, float ratio){
         Node node = OVO(read.getAssociations(), ratio);
-        read.setAssignedNode(node);
+        // node has to be copied to avoid keeping a reference to the subtree that was used for the assignment
+        read.setAssignedNode(node.copy());
     }
 
     public Node OVO(ArrayList<int[]> nodesAndWeights, float ratio){

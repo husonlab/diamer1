@@ -1,6 +1,7 @@
 import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.BucketIO;
+import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.junit.Test;
 
 import java.io.File;
@@ -13,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 public class ReadIndexerTest {
     @Test
     public void testReadIndexer() throws IOException {
-        ReadIndexer readIndexer = new ReadIndexer(new File("src/test/resources/reads/reads.fq"), Path.of("src/test/resources/test_output/reads_index"), 4, 2, 2, 64);
+        ReadIndexer readIndexer = new ReadIndexer(new File("src/test/resources/reads/reads.fq"), Path.of("src/test/resources/test_output/reads_index"), 0b11111111111L, new Base11Alphabet(), 4, 2, 2, 64);
         readIndexer.index();
         Bucket[] buckets = new Bucket[1024];
         int kmerCount = 0;
