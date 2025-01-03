@@ -2,7 +2,7 @@
 ## 1. Annotating nr database with taxon ids
 * Started 28.11.2024 12:20
 ````shell
- java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings="/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2;/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1"
+java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings="/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2;/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1"
 ````
 ### 1.1 Reading nodes and names
 ### 1.2 reading prot.accession2taxid map
@@ -79,6 +79,8 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
     * 3 bases -> 24 bit
     * 2 amino acids in base 11 for every reading frame -> 8 bit * 3 = 24 bit
 * Filter out low complexity regions?
+* use weight for OVO that consinders the total amino acids in the database per rank to account for database bias
+  * At least for composition estimates based on the total kmer assignments that should make sense.
 
 # Hashes
 

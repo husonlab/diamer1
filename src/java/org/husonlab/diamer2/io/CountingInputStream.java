@@ -46,7 +46,7 @@ public class CountingInputStream extends InputStream {
      * Returns the number of bytes read from this stream.
      * @return the number of bytes read from this stream
      */
-    public long getReadBytes() {
+    public long getBytesRead() {
         return readBytes;
     }
 }

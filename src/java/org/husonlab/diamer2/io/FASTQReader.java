@@ -10,8 +10,8 @@ import java.util.zip.GZIPInputStream;
 
 public class FASTQReader extends SequenceReader {
 
-    public FASTQReader(BufferedReader br) throws IOException {
-        super(br);
+    public FASTQReader(File file) {
+        super(file);
     }
 
     @Override

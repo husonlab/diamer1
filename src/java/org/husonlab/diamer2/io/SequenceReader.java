@@ -10,16 +10,32 @@ import java.util.zip.GZIPInputStream;
 
 public abstract class SequenceReader implements AutoCloseable {
 
+    protected long fileSize;
     protected String header;
     protected StringBuilder sequence;
+    private final CountingInputStream cis;
     protected BufferedReader br;
     protected String line;
 
-    public SequenceReader(BufferedReader br) throws IOException {
+    public SequenceReader(File file) {
         this.header = null;
         this.sequence = new StringBuilder();
-        this.br = br;
-        line = br.readLine();
+        try {
+            this.cis = new CountingInputStream(new FileInputStream(file));
+            if (file.getName().endsWith(".gz")) {
+                this.br = new BufferedReader(new InputStreamReader(new GZIPInputStream(cis)));
+            } else {
+                this.br = new BufferedReader(new InputStreamReader(cis));
+            }
+            this.fileSize = Files.size(Paths.get(file.getAbsolutePath()));
+        } catch (IOException e) {
+            throw new RuntimeException("Could not find sequence file: " + file.getAbsolutePath());
+        }
+        try {
+            this.line = br.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read from sequence file: " + file.getAbsolutePath());
+        }
     }
 
     public abstract Sequence next() throws IOException;
@@ -39,5 +55,13 @@ public abstract class SequenceReader implements AutoCloseable {
     @Override
     public void close() throws IOException {
         br.close();
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public long getBytesRead() {
+        return cis.getBytesRead();
     }
 }

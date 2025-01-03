@@ -6,6 +6,7 @@ import org.husonlab.diamer2.logging.OneLineLogger;
 import org.husonlab.diamer2.logging.ProgressBar;
 import org.husonlab.diamer2.taxonomy.Tree;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -110,14 +111,14 @@ public class IndexIO {
         for (String rank : rankKmers.keySet()) {
             logger.logInfo(rank + "\t" + rankKmers.get(rank));
         }
-        try (FileWriter writer = new FileWriter(output)) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(output))) {
             long totalKmers = 0;
             for (String rank : rankKmers.keySet()) {
                 String line = rank + "\t" + rankKmers.get(rank) + "\n";
-                writer.write(line);
+                bw.write(line);
                 totalKmers += rankKmers.get(rank);
             }
-            writer.write("Total kmers: " + totalKmers + "\n");
+            bw.write("Total kmers: " + totalKmers + "\n");
         } catch (IOException e) {
             logger.logError("Error writing to output file: " + e.getMessage());
         }

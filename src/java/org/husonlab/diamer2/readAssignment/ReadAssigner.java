@@ -16,9 +16,9 @@ public class ReadAssigner {
     private final IndexIO dbIndex;
     private final ReadIndexIO readsIndex;
     private final int MAX_THREADS;
-    private final HashMap<Integer, String> readHeaderMapping;
+    private final String[] readHeaderMapping;
 
-    public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath) throws Exception {
+    public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         this.tree = tree;
         this.dbIndex = new IndexIO(dbIndexPath);

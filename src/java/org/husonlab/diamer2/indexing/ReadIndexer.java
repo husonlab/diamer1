@@ -49,11 +49,6 @@ public class ReadIndexer {
      */
     public IndexIO index() throws IOException {
         logger.logInfo("Indexing " + fastqFile + " to " + indexDir);
-        ProgressBar progressBar = new ProgressBar(fastqFile.length(), 20);
-        Message progressMessage = new Message("");
-        new OneLineLogger("ReadIndexer", 1000)
-                .addElement(progressBar)
-                .addElement(progressMessage);
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
@@ -67,10 +62,13 @@ public class ReadIndexer {
         // HashMap to store readId to header mapping to be able to go back from id to header during read assignment
         HashMap<Integer, String> readHeaderMap = new HashMap<>();
 
-        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastqFile));
-             BufferedReader br = new BufferedReader(new InputStreamReader(cis));
-             FASTQReader fr = new FASTQReader(br);
-             SequenceSupplier sup = new SequenceSupplier(fr, true)) {
+        try (SequenceSupplier sup = SequenceSupplier.getFastqSupplier(fastqFile, true)) {
+
+            ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
+            Message progressMessage = new Message("");
+            new OneLineLogger("ReadIndexer", 1000)
+                    .addElement(progressBar)
+                    .addElement(progressMessage);
 
             // Initialize Concurrent LinkedQueue to store index entries of each bucket
             final ConcurrentLinkedQueue<Long>[] bucketLists = new ConcurrentLinkedQueue[bucketsPerCycle];
@@ -95,7 +93,7 @@ public class ReadIndexer {
                         readHeaderMap.put(readId, seq.getHeader());
                     }
                     batch[batchPosition] = seq;
-                    progressBar.setProgress(cis.getReadBytes());
+                    progressBar.setProgress(sup.getBytesRead());
 
                     if (batchPosition == BATCH_SIZE - 1) {
                         indexPhaser.register();

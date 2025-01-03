@@ -11,6 +11,7 @@ import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class DBIndexer {
@@ -58,11 +59,6 @@ public class DBIndexer {
      */
     public IndexIO index() throws IOException {
         logger.logInfo("Indexing " + fastaFile + " to " + indexDir);
-        ProgressBar progressBar = new ProgressBar(fastaFile.length(), 20);
-        Message progressMessage = new Message("");
-        new OneLineLogger("DBIndexer", 1000)
-                .addElement(progressBar)
-                .addElement(progressMessage);
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
@@ -75,10 +71,13 @@ public class DBIndexer {
         Phaser indexPhaser = new Phaser(1);
 
 
-        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(fastaFile));
-             BufferedReader br = new BufferedReader(new InputStreamReader(cis));
-             FASTAReader fr = new FASTAReader(br);
-             SequenceSupplier sup = new SequenceSupplier(fr, true)) {
+        try (SequenceSupplier sup = SequenceSupplier.getFastaSupplier(fastaFile, true)) {
+
+            ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
+            Message progressMessage = new Message("");
+            new OneLineLogger("DBIndexer", 1000)
+                    .addElement(progressBar)
+                    .addElement(progressMessage);
 
             // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
             final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
@@ -106,7 +105,7 @@ public class DBIndexer {
                 Sequence seq;
                 while ((seq = sup.next()) != null) {
                     batch[processedFastas % BATCH_SIZE] = seq;
-                    progressBar.setProgress(cis.getReadBytes());
+                    progressBar.setProgress(sup.getBytesRead());
 
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();

@@ -16,7 +16,7 @@ public class ProgressBar extends LoggerElement {
     }
 
     public void setProgress(long current) {
-        this.current = current;
+        this.current = Math.min(current, total);
         this.logger.notifyProgress();
     }
 

@@ -50,7 +50,7 @@ public class BucketProcessor implements Runnable {
                 if (dbKmer == readKmer) {
                     int taxId = IndexEncoding.getTaxId(dbEntry);
                     int readId = IndexEncoding.getReadId(readsEntry);
-                    this.readAssignment.addReadAssignment(readId, taxId);
+                    readAssignment.addReadAssignment(readId, taxId);
                 }
             }
         } catch (Exception e) {

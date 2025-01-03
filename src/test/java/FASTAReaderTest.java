@@ -1,8 +1,10 @@
 import org.husonlab.diamer2.io.FASTAReader;
+import org.husonlab.diamer2.io.SequenceSupplier;
 import org.husonlab.diamer2.seq.Sequence;
 import org.junit.Test;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,15 +15,13 @@ import static org.junit.Assert.assertEquals;
 public class FASTAReaderTest {
     @Test
     public void testFASTAReader() throws IOException {
-        try (BufferedReader br = Files.newBufferedReader(Path.of("src/test/resources/database/db.fsa"));
-             FASTAReader fastaReader = new FASTAReader(br)) {
-
+        try (SequenceSupplier sup = new SequenceSupplier(new FASTAReader(new File("src/test/resources/database/db.fsa")), false) ) {
             assertEquals(new Sequence(
                     ">A0A075B700.2 >A0A096XJN4.1 schould be merged to taxon1 (LCA of 4 and 5)",
                     "NQFLFAGIELILRKYEITVYQLSADDLRSHKVRKDHVFFIECPLREENLHSLRKLYQYGARVCYLMRSSIECDRKNASQF" +
                             "IDITTEMNVFIAKVLKTINNSACPPAVNIVRLTNQEFSVGRLVLCGHSDVDIASELLITIRSSQDHINRVLKKLGGKSVAD" +
                             "IYLQRNVIYGSGTTLQKQKSR"
-            ), fastaReader.next());
+            ), sup.next());
 
             assertEquals(new Sequence(
                     ">A0A023PXE5.1",
@@ -30,16 +30,16 @@ public class FASTAReaderTest {
                             NLNLECYVTDRVTGRTERRGYLQQLEREKNSMLTHIRDLERLCYEITVYQLSADDLRSSAQSPSEPGAGELPGSTGGGSK
                             LTDGWSRYGALWIKYASTSQPADATIRPRIPQREWQSRPDQICWGVVGDDAPFSSLKGTTLTLLGTTIETTSFDAPDIDE
                             PAAGVDSSMPLYNKSMLAFLRSSMGVNPVVQAEL*PSRENAFMYAEWY123/()FISVACFLPLLHKPTFFKLVSSSCCF"""
-            ), fastaReader.next());
+            ), sup.next());
 
             assertEquals(new Sequence(
                     ">A0A023PXH4.1",
                     """
                             MITNFFIPELNNHDVQELWFQQDGATCHTARAIIDLLKDTFGDRLISRFGPVKWPPRSCDLTPLDYFLWGYVKSLVSADK
                             PQMLDHLEDNIRRVIADIRPQMLENVI"""
-            ), fastaReader.next());
+            ), sup.next());
 
-            ArrayList<Sequence> sequences = fastaReader.next(Integer.MAX_VALUE);
+            ArrayList<Sequence> sequences = sup.next(Integer.MAX_VALUE);
             assertEquals(4, sequences.size());
         }
     }

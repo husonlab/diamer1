@@ -24,17 +24,17 @@ public class ReadIndexIO extends IndexIO {
         return readHeaderMappingFile.exists();
     }
 
-    public HashMap<Integer, String> getReadHeaderMapping() {
-        HashMap<Integer, String> readHeaderMapping;
+    public String[] getReadHeaderMapping() {
+        String[] readHeaderMapping;
         try (BufferedReader reader = new BufferedReader(new FileReader(indexFolder.resolve("header_index.txt").toFile()))) {
             int length = Integer.parseInt(reader.readLine());
-            readHeaderMapping = new HashMap<>(length);
+            readHeaderMapping = new String[length];
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split("\t");
                 int readId = Integer.parseInt(parts[0]);
                 String header = parts[1];
-                readHeaderMapping.put(readId, header);
+                readHeaderMapping[readId] = header;
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not read read header mapping file: " + readHeaderMappingFile, e);

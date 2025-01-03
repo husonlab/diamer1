@@ -10,8 +10,8 @@ import java.util.zip.GZIPInputStream;
 
 public class FASTAReader extends SequenceReader {
 
-    public FASTAReader(BufferedReader br) throws IOException {
-        super(br);
+    public FASTAReader(File file) {
+        super(file);
     }
 
     @Override
