@@ -1,10 +1,10 @@
 package org.husonlab.diamer2.readAssignment;
 
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
-import org.husonlab.diamer2.io.DBIndexIO;
-import org.husonlab.diamer2.io.ReadIndexIO;
-import org.husonlab.diamer2.logging.*;
+import org.husonlab.diamer2.io.indexing.DBIndexIO;
+import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.util.logging.*;
 
 import java.nio.file.Path;
 import java.util.concurrent.*;

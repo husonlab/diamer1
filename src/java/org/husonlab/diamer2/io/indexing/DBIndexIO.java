@@ -1,9 +1,9 @@
-package org.husonlab.diamer2.io;
+package org.husonlab.diamer2.io.indexing;
 
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
-import org.husonlab.diamer2.logging.Logger;
-import org.husonlab.diamer2.logging.OneLineLogger;
-import org.husonlab.diamer2.logging.ProgressBar;
+import org.husonlab.diamer2.util.logging.Logger;
+import org.husonlab.diamer2.util.logging.OneLineLogger;
+import org.husonlab.diamer2.util.logging.ProgressBar;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.io.BufferedWriter;

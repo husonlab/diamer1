@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.logging;
+package org.husonlab.diamer2.util.logging;
 
 public class Message extends LoggerElement {
     private String message;

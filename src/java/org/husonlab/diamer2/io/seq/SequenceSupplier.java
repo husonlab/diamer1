@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.io;
+package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.util.Pair;

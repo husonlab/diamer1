@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.readAssignment;
+package org.husonlab.diamer2.readAssignment.algorithms;
 
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;

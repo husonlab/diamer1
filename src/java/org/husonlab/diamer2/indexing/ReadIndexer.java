@@ -1,9 +1,14 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.io.*;
-import org.husonlab.diamer2.logging.*;
+import org.husonlab.diamer2.io.indexing.DBIndexIO;
+import org.husonlab.diamer2.io.indexing.ReadIndexIO;
+import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
+import org.husonlab.diamer2.util.logging.Logger;
+import org.husonlab.diamer2.util.logging.Message;
+import org.husonlab.diamer2.util.logging.OneLineLogger;
+import org.husonlab.diamer2.util.logging.ProgressBar;
 
 import java.io.*;
 import java.nio.file.Path;

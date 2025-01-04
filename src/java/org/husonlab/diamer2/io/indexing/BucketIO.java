@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.io;
+package org.husonlab.diamer2.io.indexing;
 
 import org.husonlab.diamer2.indexing.Bucket;
 

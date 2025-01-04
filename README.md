@@ -69,6 +69,10 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 
 # Questions:
 * What output format do I need to display the result in SplitsTree?
+* How to use the megan mapping file?
+  * Does not contain any of the accessions I tried
+* How to deal with "no rank" taxonomic nodes?
+  * some have "no rank" even though they are subspecies level.
 * How to handle weired amino acid letters?
 * How to handle stop codons?
 

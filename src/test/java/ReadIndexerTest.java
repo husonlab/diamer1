@@ -1,6 +1,6 @@
 import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.indexing.ReadIndexer;
-import org.husonlab.diamer2.io.BucketIO;
+import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.junit.Test;
 

@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.io;
+package org.husonlab.diamer2.io.indexing;
 
 import java.io.*;
 import java.nio.file.Path;

@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.logging;
+package org.husonlab.diamer2.util.logging;
 
 import java.util.LinkedList;
 

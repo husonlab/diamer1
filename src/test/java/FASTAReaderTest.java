@@ -1,13 +1,10 @@
-import org.husonlab.diamer2.io.FASTAReader;
-import org.husonlab.diamer2.io.SequenceSupplier;
+import org.husonlab.diamer2.io.seq.FASTAReader;
+import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.Sequence;
 import org.junit.Test;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 
 import static org.junit.Assert.assertEquals;

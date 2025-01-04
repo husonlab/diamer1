@@ -1,12 +1,8 @@
-package org.husonlab.diamer2.io;
+package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.seq.Sequence;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.zip.GZIPInputStream;
 
 public class FASTQReader extends SequenceReader {
 

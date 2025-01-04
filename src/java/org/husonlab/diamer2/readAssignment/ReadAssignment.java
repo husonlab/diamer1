@@ -1,9 +1,10 @@
 package org.husonlab.diamer2.readAssignment;
 
-import org.husonlab.diamer2.logging.Logger;
-import org.husonlab.diamer2.logging.OneLineLogger;
-import org.husonlab.diamer2.logging.ProgressBar;
-import org.husonlab.diamer2.logging.Time;
+import org.husonlab.diamer2.util.logging.Logger;
+import org.husonlab.diamer2.util.logging.OneLineLogger;
+import org.husonlab.diamer2.util.logging.ProgressBar;
+import org.husonlab.diamer2.util.logging.Time;
+import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.*;
