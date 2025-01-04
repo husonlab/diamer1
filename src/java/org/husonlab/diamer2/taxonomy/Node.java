@@ -17,7 +17,7 @@ public class Node {
     private String scientificName;
     private String rank;
     private int weight;
-    private int cumulativeWeight;
+    private int accumulatedWeight;
 
     /**
      * Node with no parent.
@@ -28,7 +28,7 @@ public class Node {
         this.children = new ArrayList<Node>();
         this.labels = new ArrayList<String>();
         this.weight = 0;
-        this.cumulativeWeight = 0;
+        this.accumulatedWeight = 0;
     }
 
     /**
@@ -98,8 +98,8 @@ public class Node {
         this.weight = weight;
     }
 
-    public void setCumulativeWeight(int cumulativeWeight) {
-        this.cumulativeWeight = cumulativeWeight;
+    public void setAccumulatedWeight(int accumulatedWeight) {
+        this.accumulatedWeight = accumulatedWeight;
     }
 
     /**
@@ -179,8 +179,8 @@ public class Node {
         return weight;
     }
 
-    public int getCumulativeWeight() {
-        return cumulativeWeight;
+    public int getAccumulatedWeight() {
+        return accumulatedWeight;
     }
 
     /**

@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Represents an index folder.
  */
-public class IndexIO {
+public class DBIndexIO {
     protected final Logger logger;
     protected final Path indexFolder;
     protected final BucketIO[] bucketIOs;
@@ -29,7 +29,7 @@ public class IndexIO {
      * @param indexFolder path to the index folder
      * is missing
      */
-    public IndexIO(Path indexFolder) {
+    public DBIndexIO(Path indexFolder) {
         this.logger = new Logger("DBIndexIO");
         if (!indexFolder.toFile().isDirectory()) {
             if (!indexFolder.toFile().isDirectory()) {

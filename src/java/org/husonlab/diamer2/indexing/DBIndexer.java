@@ -1,8 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.io.CountingInputStream;
-import org.husonlab.diamer2.io.FASTAReader;
-import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.io.DBIndexIO;
 import org.husonlab.diamer2.io.SequenceSupplier;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.seq.Sequence;
@@ -11,7 +9,6 @@ import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class DBIndexer {
@@ -19,7 +16,7 @@ public class DBIndexer {
     private final Logger logger;
     private final File fastaFile;
     private final Path indexDir;
-    private final IndexIO indexIO;
+    private final DBIndexIO DBIndexIO;
     private final Tree tree;
     private final long mask;
     private final ReducedProteinAlphabet alphabet;
@@ -44,7 +41,7 @@ public class DBIndexer {
         this.mask = mask;
         this.alphabet = alphabet;
         this.indexDir = indexDir;
-        this.indexIO = new IndexIO(indexDir);
+        this.DBIndexIO = new DBIndexIO(indexDir);
         this.tree = tree;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
@@ -57,7 +54,7 @@ public class DBIndexer {
      * DBIndexIO a Sequence database and write the indexed buckets to files.
      * @throws IOException If an error occurs during reading the database or writing the buckets.
      */
-    public IndexIO index() throws IOException {
+    public DBIndexIO index() throws IOException {
         logger.logInfo("Indexing " + fastaFile + " to " + indexDir);
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
@@ -125,7 +122,7 @@ public class DBIndexer {
                     indexPhaser.register();
                     threadPoolExecutor.submit(() -> {
                         try {
-                            indexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ]));
+                            DBIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ]));
                         } catch (RuntimeException | IOException e) {
                             throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
                         } finally {
@@ -153,6 +150,6 @@ public class DBIndexer {
             threadPoolExecutor.shutdownNow();
             throw new RuntimeException("Indexing interrupted.");
         }
-        return indexIO;
+        return DBIndexIO;
     }
 }

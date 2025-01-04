@@ -2,7 +2,7 @@ package org.husonlab.diamer2.readAssignment;
 
 import org.husonlab.diamer2.indexing.IndexEncoding;
 import org.husonlab.diamer2.io.BucketIO;
-import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.io.DBIndexIO;
 import org.husonlab.diamer2.io.ReadIndexIO;
 import org.husonlab.diamer2.logging.Logger;
 
@@ -10,13 +10,13 @@ public class BucketProcessor implements Runnable {
 
     Logger logger;
     private final ReadAssignment readAssignment;
-    private final IndexIO dbIndex;
+    private final DBIndexIO dbIndex;
     private final ReadIndexIO readIndex;
     private final int bucketId;
 
     public BucketProcessor(
             ReadAssignment readAssignment,
-            IndexIO dbIndex,
+            DBIndexIO dbIndex,
             ReadIndexIO readIndex,
             int bucketId) {
         this.logger = new Logger("BucketProcessor");

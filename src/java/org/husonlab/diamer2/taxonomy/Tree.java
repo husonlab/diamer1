@@ -3,6 +3,7 @@ package org.husonlab.diamer2.taxonomy;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tree {
     public final HashMap<Integer, Node> idMap;
@@ -135,13 +136,13 @@ public class Tree {
     }
 
     public void accumulateWeights(Node root) {
-        root.setCumulativeWeight(root.getWeight());
+        root.setAccumulatedWeight(root.getWeight());
         if (root.isLeaf()) {
             return;
         }
         for (Node child : root.getChildren()) {
             accumulateWeights(child);
-            root.setCumulativeWeight(root.getCumulativeWeight() + child.getCumulativeWeight());
+            root.setAccumulatedWeight(root.getAccumulatedWeight() + child.getAccumulatedWeight());
         }
     }
 
@@ -149,40 +150,44 @@ public class Tree {
      * Traverses the tree with BFS and collects the cummulative weight dependent on the rank and the threshold.
      * @return a hashmap with the rank as key and a hashmap with the taxId as key and the cummulative weight as value
      */
-    public KummulativeWeightsPerRank[] getCummulativeWeightPerRank(int threshold) {
+    public AccumulatedWeightsPerRank[] getAccumulatedeWeightPerRank(int threshold) {
         HashMap<String, HashMap<Integer, Integer>> cummulativeWeightPerRank = new HashMap<>();
         LinkedList<Node> stack = new LinkedList<>();
         stack.add(root);
         while (!stack.isEmpty()) {
             Node node = stack.pollLast();
-            if (node.getCumulativeWeight() >= threshold) {
+            if (node.getAccumulatedWeight() >= threshold) {
                 cummulativeWeightPerRank.computeIfPresent(node.getRank(), (k, v) -> {
-                    v.put(node.getTaxId(), node.getCumulativeWeight());
+                    v.put(node.getTaxId(), node.getAccumulatedWeight());
                     return v;
                 });
-                cummulativeWeightPerRank.computeIfAbsent(node.getRank(), k -> new HashMap<>()).put(node.getTaxId(), node.getCumulativeWeight());
+                cummulativeWeightPerRank.computeIfAbsent(node.getRank(), k -> new HashMap<>()).put(node.getTaxId(), node.getAccumulatedWeight());
             }
             stack.addAll(node.getChildren());
         }
 
-        ArrayList<KummulativeWeightsPerRank> result = new ArrayList<>();
+        ArrayList<AccumulatedWeightsPerRank> result = new ArrayList<>();
         for (Map.Entry<String, HashMap<Integer, Integer>> entry : cummulativeWeightPerRank.entrySet()) {
             String rank = entry.getKey();
+            AtomicInteger totalWeight = new AtomicInteger();
             int[][] kmerMatches = entry.getValue().entrySet().stream()
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                    .map(e -> new int[]{e.getKey(), e.getValue()})
+                    .map(e -> {
+                        totalWeight.addAndGet(e.getValue());
+                        return new int[]{e.getKey(), e.getValue()};
+                    })
                     .toArray(int[][]::new);
-            result.add(new KummulativeWeightsPerRank(rank, kmerMatches));
+            result.add(new AccumulatedWeightsPerRank(rank, totalWeight.get(), kmerMatches));
         }
 
-        result.sort(Comparator.comparingInt(k -> pathToRoot(idMap.get(k.taxonWeight()[0][0])).size()));
-        return result.toArray(new KummulativeWeightsPerRank[0]);
+        result.sort(Comparator.comparingInt(k -> pathToRoot(idMap.get(k.taxonWeights()[0][0])).size()));
+        return result.toArray(new AccumulatedWeightsPerRank[0]);
     }
 
     public void resetWeights() {
         for (Node node : idMap.values()) {
             node.setWeight(0);
-            node.setCumulativeWeight(0);
+            node.setAccumulatedWeight(0);
         }
     }
 
@@ -217,6 +222,6 @@ public class Tree {
         return root;
     }
 
-    public record KummulativeWeightsPerRank(String rank, int[][] taxonWeight) {
+    public record AccumulatedWeightsPerRank(String rank, int totalWeight, int[][] taxonWeights) {
     }
 }

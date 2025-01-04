@@ -39,12 +39,12 @@ public class OVO extends AssignmentAlgorithm {
         Node highestNode = node.getChildren().getFirst();
         int secondHighestWeight = 0;
         for (Node child : node.getChildren()) {
-            if (child.getCumulativeWeight() > highestWeight) {
+            if (child.getAccumulatedWeight() > highestWeight) {
                 secondHighestWeight = highestWeight;
-                highestWeight = child.getCumulativeWeight();
+                highestWeight = child.getAccumulatedWeight();
                 highestNode = child;
-            } else if (child.getCumulativeWeight() > secondHighestWeight) {
-                secondHighestWeight = child.getCumulativeWeight();
+            } else if (child.getAccumulatedWeight() > secondHighestWeight) {
+                secondHighestWeight = child.getAccumulatedWeight();
             }
         }
         if (highestWeight * ratio > secondHighestWeight) {

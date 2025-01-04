@@ -47,7 +47,7 @@ public class ReadIndexer {
      * Indexes a FASTQ file of sequencing reads.
      * @throws IOException If an error occurs during reading the file or writing the buckets.
      */
-    public IndexIO index() throws IOException {
+    public DBIndexIO index() throws IOException {
         logger.logInfo("Indexing " + fastqFile + " to " + indexDir);
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(

@@ -3,10 +3,12 @@ package org.husonlab.diamer2.main;
 import org.apache.commons.cli.*;
 import org.husonlab.diamer2.indexing.DBIndexer;
 import org.husonlab.diamer2.indexing.ReadIndexer;
+import org.husonlab.diamer2.io.Utilities;
+import org.husonlab.diamer2.readAssignment.AssignmentStatistics;
 import org.husonlab.diamer2.readAssignment.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.io.DBIndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
@@ -247,25 +249,25 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-//        } else if (cli.hasOption("assignreads")) {
-//            System.out.println("Assigning reads");
-//            try {
-//                File nodes = cli.getParsedOptionValue("no");
-//                File names = cli.getParsedOptionValue("na");
-//                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-//                String[] paths = cli.getOptionValues("d");
-//                Path dbIndex = Path.of(paths[0]);
-//                Path readsIndex = Path.of(paths[1]);
-//                Path output = Path.of(cli.getOptionValue("o"));
-//                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
-//                ReadAssignment assignment = readAssigner.assignReads();
-//                ReadAssignmentIO.writeAssignments(assignment, output.resolve("assignments.tsv").toFile());
-//                ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
-//                ReadAssignmentIO.writeReadStatistics(assignment, output);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//                System.exit(1);
-//            }
+        } else if (cli.hasOption("assignreads")) {
+            System.out.println("Assigning reads");
+            try {
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                String[] paths = cli.getOptionValues("d");
+                Path dbIndex = Path.of(paths[0]);
+                Path readsIndex = Path.of(paths[1]);
+                Path output = Path.of(cli.getOptionValue("o"));
+                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
+                ReadAssignment assignment = readAssigner.assignReads();
+                ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
+                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
+                ReadAssignmentIO.writeAssignmentStatistics(assignment.calculateStatistics(), output);
+            } catch (Exception e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         } else if (cli.hasOption("statistics")) {
             System.out.println("Statistics");
             try {
@@ -273,11 +275,12 @@ public class Main {
                 File names = cli.getParsedOptionValue("na");
                 File file = new File(cli.getOptionValue("d"));
                 Path path = Path.of(cli.getOptionValue("o"));
+                Utilities.checkFilesAndFolders(new File[]{}, new Path[]{path});
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 ReadAssignment readAssignment = ReadAssignmentIO.read(tree, file);
-                Tree.KummulativeWeightsPerRank[] kummulativeWeightsPerRankPerRank = readAssignment.getKmerStatistics();
                 readAssignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-                ReadAssignment.PerReadStatistics[] readStatistics = readAssignment.getReadStatistics();
+                AssignmentStatistics assignmentStatistics = readAssignment.calculateStatistics();
+                ReadAssignmentIO.writeAssignmentStatistics(assignmentStatistics, path);
                 System.out.println();
 //                ReadAssignmentIO.writeAssignments(readAssignment, path.resolve("assignments.tsv").toFile());
 //                ReadAssignmentIO.writeReadStatistics(readAssignment, path);
@@ -291,8 +294,8 @@ public class Main {
                 File dbIndex = new File(cli.getOptionValue("d"));
                 File output = new File(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                IndexIO indexIO = new IndexIO(dbIndex.toPath());
-                indexIO.writeIndexStatistics(tree, output, maxThreads);
+                DBIndexIO DBIndexIO = new DBIndexIO(dbIndex.toPath());
+                DBIndexIO.writeIndexStatistics(tree, output, maxThreads);
             } catch (ParseException e) {
                 e.printStackTrace();
             }

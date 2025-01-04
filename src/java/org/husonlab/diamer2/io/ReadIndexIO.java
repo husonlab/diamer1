@@ -4,7 +4,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.HashMap;
 
-public class ReadIndexIO extends IndexIO {
+public class ReadIndexIO extends DBIndexIO {
 
     private final File readHeaderMappingFile;
 

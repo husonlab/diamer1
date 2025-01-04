@@ -4,17 +4,16 @@ import org.husonlab.diamer2.logging.Logger;
 import org.husonlab.diamer2.logging.OneLineLogger;
 import org.husonlab.diamer2.logging.ProgressBar;
 import org.husonlab.diamer2.logging.Time;
-import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReadAssignment {
 
     private final Logger logger;
     private final Tree tree;
     private final int size;
+    private final String[] readHeaderMapping;
     private final ArrayList<int[]>[] kmerMatches;
     private final ArrayList<AssignmentAlgorithm> assignmentAlgorithms;
     private final ArrayList<Integer>[] taxonAssignments;
@@ -24,6 +23,7 @@ public class ReadAssignment {
         logger.addElement(new Time());
         this.size = readHeaderMapping.length;
         this.tree = tree;
+        this.readHeaderMapping = readHeaderMapping;
         this.kmerMatches = new ArrayList[size];
         this.assignmentAlgorithms = new ArrayList<>();
         this.taxonAssignments = new ArrayList[size];
@@ -68,7 +68,15 @@ public class ReadAssignment {
         progressBar.finish();
     }
 
-    public Tree.KummulativeWeightsPerRank[] getKmerStatistics() {
+    public AssignmentStatistics calculateStatistics() {
+        return new AssignmentStatistics(
+                tree,
+                calculateKmerStatistics(),
+                calculateReadStatistics()
+        );
+    }
+
+    private Tree.AccumulatedWeightsPerRank[] calculateKmerStatistics() {
         logger.logInfo("Adding kmer counts to the tree ...");
         tree.resetWeights();
         tree.addWeights(kmerMatches);
@@ -76,12 +84,12 @@ public class ReadAssignment {
         tree.setRoot();
         tree.accumulateWeights(tree.getRoot());
         logger.logInfo("Calculating kumulative kmer matches per rank ...");
-        return tree.getCummulativeWeightPerRank(10);
+        return tree.getAccumulatedeWeightPerRank(10);
     }
 
-    public PerReadStatistics[] getReadStatistics() {
+    private AssignmentStatistics.PerAlgorithmStatistics[] calculateReadStatistics() {
         logger.logInfo("Calculating read statistics ...");
-        PerReadStatistics[] perReadStatistics = new PerReadStatistics[assignmentAlgorithms.size()];
+        AssignmentStatistics.PerAlgorithmStatistics[] perAlgorithmStatistics = new AssignmentStatistics.PerAlgorithmStatistics[assignmentAlgorithms.size()];
 
         for (int i = 0; i < assignmentAlgorithms.size(); i++) {
             int assignedReads = 0;
@@ -100,26 +108,26 @@ public class ReadAssignment {
             }
             tree.setRoot();
             tree.accumulateWeights(tree.getRoot());
-            perReadStatistics[i] = new PerReadStatistics(
+            perAlgorithmStatistics[i] = new AssignmentStatistics.PerAlgorithmStatistics(
                     assignmentAlgorithm.getName(),
                     assignedReads,
                     unassignedReads,
-                    tree.getCummulativeWeightPerRank(1)
+                    tree.getAccumulatedeWeightPerRank(1)
             );
         }
-        return perReadStatistics;
+        return perAlgorithmStatistics;
     }
+
 
     public Tree getTree() {
         return tree;
     }
 
-    /**
-     * Represents the statistics of a read assignment with a specific algorithm.
-     */
-    public record PerReadStatistics(
-            String algorithmName,
-            int assignedReads,
-            int unassignedReads,
-            Tree.KummulativeWeightsPerRank[] kumulativeAssignmentsPerRank){}
+    public String getReadHeader(int readId) {
+        return readHeaderMapping[readId];
+    }
+
+    public ArrayList<int[]> getKmerMatches(int readId) {
+        return kmerMatches[readId];
+    }
 }

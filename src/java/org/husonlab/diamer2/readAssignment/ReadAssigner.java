@@ -1,19 +1,18 @@
 package org.husonlab.diamer2.readAssignment;
 
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
-import org.husonlab.diamer2.io.IndexIO;
+import org.husonlab.diamer2.io.DBIndexIO;
 import org.husonlab.diamer2.io.ReadIndexIO;
 import org.husonlab.diamer2.logging.*;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class ReadAssigner {
     private final Logger logger;
     private final Tree tree;
-    private final IndexIO dbIndex;
+    private final DBIndexIO dbIndex;
     private final ReadIndexIO readsIndex;
     private final int MAX_THREADS;
     private final String[] readHeaderMapping;
@@ -21,7 +20,7 @@ public class ReadAssigner {
     public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         this.tree = tree;
-        this.dbIndex = new IndexIO(dbIndexPath);
+        this.dbIndex = new DBIndexIO(dbIndexPath);
         this.readsIndex = new ReadIndexIO(readsIndexPath);
         this.MAX_THREADS = MAX_THREADS;
         if(readsIndex.existsReadHeaderMapping()) {
