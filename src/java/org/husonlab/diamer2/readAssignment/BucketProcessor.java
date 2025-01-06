@@ -38,13 +38,13 @@ public class BucketProcessor implements Runnable {
             }
             long dbEntry = db.next();
             int dbCount = 1;
-            long dbKmer = IndexEncoding.getKmer(dbEntry);
+            long dbKmer = IndexEncoding.getKmerPrefix(dbEntry);
             for (int readsCount = 0; readsCount < readsLength; readsCount++) {
                 long readsEntry = reads.next();
-                long readKmer = IndexEncoding.getKmer(readsEntry);
+                long readKmer = IndexEncoding.getKmerPrefix(readsEntry);
                 while (dbKmer < readKmer && dbCount < dbLength) {
                     dbEntry = db.next();
-                    dbKmer = IndexEncoding.getKmer(dbEntry);
+                    dbKmer = IndexEncoding.getKmerPrefix(dbEntry);
                     dbCount++;
                 }
                 if (dbKmer == readKmer) {

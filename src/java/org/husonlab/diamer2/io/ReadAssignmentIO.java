@@ -70,7 +70,7 @@ public class ReadAssignmentIO {
         Tree tree = assignmentStatistics.tree();
 
         logger.logInfo("Writing kmer assignment statistics to " + path.toAbsolutePath());
-        for (Tree.AccumulatedWeightsPerRank rankStatistics : assignmentStatistics.kmerStatistics()) {
+        for (Tree.WeightsPerRank rankStatistics : assignmentStatistics.kmerStatistics()) {
             try (BufferedWriter bw = new BufferedWriter(new FileWriter(createPath(path.resolve("kmerStatistics")).resolve(rankStatistics.rank().replace(" ", "_").replace(":", "") + ".tsv").toFile()))) {
                 int[][] taxonWeights = rankStatistics.taxonWeights();
                 Node node;
@@ -91,7 +91,7 @@ public class ReadAssignmentIO {
                 bw.write("Assigned reads: " + perAlgorithmStatistics.assignedReads() + "\n");
                 bw.write("Unassigned reads: " + perAlgorithmStatistics.unassignedReads() + "\n");
                 bw.write("Assignments per rank:\n");
-                Arrays.stream(perAlgorithmStatistics.kumulativeAssignmentsPerRank()).sorted(Comparator.comparingInt(Tree.AccumulatedWeightsPerRank::totalWeight).reversed()).forEach(rankStatistics -> {
+                Arrays.stream(perAlgorithmStatistics.kumulativeAssignmentsPerRank()).sorted(Comparator.comparingInt(Tree.WeightsPerRank::totalWeight).reversed()).forEach(rankStatistics -> {
                     try {
                         bw.write(rankStatistics.rank() + "\t" + rankStatistics.totalWeight() + "\n");
                     } catch (IOException e) {
@@ -105,7 +105,7 @@ public class ReadAssignmentIO {
         }
 
         for (AssignmentStatistics.PerAlgorithmStatistics algorithmStatistics : assignmentStatistics.perAlgorithmStatistics()) {
-            for (Tree.AccumulatedWeightsPerRank rankStatistics : algorithmStatistics.kumulativeAssignmentsPerRank()) {
+            for (Tree.WeightsPerRank rankStatistics : algorithmStatistics.kumulativeAssignmentsPerRank()) {
                 try (BufferedWriter bw = new BufferedWriter(new FileWriter(createPath(path.resolve("algorithmStatistics", algorithmStatistics.algorithmName().replace(":", ""))).resolve(rankStatistics.rank() + ".tsv").toFile()))) {
                     final int[][] taxonWeights = rankStatistics.taxonWeights();
                     Node node;

@@ -150,7 +150,7 @@ public class Tree {
      * Traverses the tree with BFS and collects the cummulative weight dependent on the rank and the threshold.
      * @return a hashmap with the rank as key and a hashmap with the taxId as key and the cummulative weight as value
      */
-    public AccumulatedWeightsPerRank[] getAccumulatedeWeightPerRank(int threshold) {
+    public WeightsPerRank[] getAccumulatedeWeightPerRank(int threshold) {
         HashMap<String, HashMap<Integer, Integer>> cummulativeWeightPerRank = new HashMap<>();
         LinkedList<Node> stack = new LinkedList<>();
         stack.add(root);
@@ -166,7 +166,7 @@ public class Tree {
             stack.addAll(node.getChildren());
         }
 
-        ArrayList<AccumulatedWeightsPerRank> result = new ArrayList<>();
+        ArrayList<WeightsPerRank> result = new ArrayList<>();
         for (Map.Entry<String, HashMap<Integer, Integer>> entry : cummulativeWeightPerRank.entrySet()) {
             String rank = entry.getKey();
             AtomicInteger totalWeight = new AtomicInteger();
@@ -177,11 +177,45 @@ public class Tree {
                         return new int[]{e.getKey(), e.getValue()};
                     })
                     .toArray(int[][]::new);
-            result.add(new AccumulatedWeightsPerRank(rank, totalWeight.get(), kmerMatches));
+            result.add(new WeightsPerRank(rank, totalWeight.get(), kmerMatches));
         }
 
         result.sort(Comparator.comparingInt(k -> pathToRoot(idMap.get(k.taxonWeights()[0][0])).size()));
-        return result.toArray(new AccumulatedWeightsPerRank[0]);
+        return result.toArray(new WeightsPerRank[0]);
+    }
+
+    public WeightsPerRank[] getWeightsPerRanks(int threshold){
+        HashMap<String, HashMap<Integer, Integer>> weightPerRank = new HashMap<>();
+        LinkedList<Node> stack = new LinkedList<>();
+        stack.add(root);
+        while (!stack.isEmpty()) {
+            Node node = stack.pollLast();
+            if (node.getWeight() >= threshold) {
+                weightPerRank.computeIfPresent(node.getRank(), (k, v) -> {
+                    v.put(node.getTaxId(), node.getWeight());
+                    return v;
+                });
+                weightPerRank.computeIfAbsent(node.getRank(), k -> new HashMap<>()).put(node.getTaxId(), node.getWeight());
+            }
+            stack.addAll(node.getChildren());
+        }
+
+        ArrayList<WeightsPerRank> result = new ArrayList<>();
+        for (Map.Entry<String, HashMap<Integer, Integer>> entry : weightPerRank.entrySet()) {
+            String rank = entry.getKey();
+            AtomicInteger totalWeight = new AtomicInteger();
+            int[][] kmerMatches = entry.getValue().entrySet().stream()
+                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                    .map(e -> {
+                        totalWeight.addAndGet(e.getValue());
+                        return new int[]{e.getKey(), e.getValue()};
+                    })
+                    .toArray(int[][]::new);
+            result.add(new WeightsPerRank(rank, totalWeight.get(), kmerMatches));
+        }
+
+        result.sort(Comparator.comparingInt(k -> pathToRoot(idMap.get(k.taxonWeights()[0][0])).size()));
+        return result.toArray(new WeightsPerRank[0]);
     }
 
     public void resetWeights() {
@@ -222,6 +256,6 @@ public class Tree {
         return root;
     }
 
-    public record AccumulatedWeightsPerRank(String rank, int totalWeight, int[][] taxonWeights) {
+    public record WeightsPerRank(String rank, int totalWeight, int[][] taxonWeights) {
     }
 }

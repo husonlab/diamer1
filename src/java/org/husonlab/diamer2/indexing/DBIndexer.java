@@ -109,12 +109,12 @@ public class DBIndexer {
 
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
-                        threadPoolExecutor.submit(new FastaProteinBatchProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
+                        threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
                         batch = new Sequence[BATCH_SIZE];
                     }
                 }
                 indexPhaser.register();
-                threadPoolExecutor.submit(new FastaProteinBatchProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
+                threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
                 progressBar.finish();
 
                 indexPhaser.arriveAndAwaitAdvance();

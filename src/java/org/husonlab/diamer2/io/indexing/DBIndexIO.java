@@ -71,59 +71,6 @@ public class DBIndexIO {
         return bucketIOs[bucketName];
     }
 
-    public void writeIndexStatistics(Tree tree, File output, int MAX_THREADS) {
-        logger.logInfo("calculating index statistics ...");
-        ProgressBar progressBar = new ProgressBar(1024, 20);
-        Logger progressBarLogger = new OneLineLogger("Index", 1000).addElement(progressBar);
-        final ConcurrentHashMap<String, Long> rankKmers = new ConcurrentHashMap<>();
-        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
-                MAX_THREADS,
-                MAX_THREADS,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(1024),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-
-        for (BucketIO bucketIO : bucketIOs) {
-            if (bucketIO.exists()) {
-                threadPoolExecutor.submit(() -> {
-                    BucketIO.BucketReader reader = bucketIO.getBucketReader();
-                    while (reader.hasNext()) {
-                        long kmer = reader.next();
-                        int taxId = (int) (kmer & 0x3FFFFF);
-                        if (tree.idMap.containsKey(taxId)) {
-                            String rank = tree.idMap.get(taxId).getRank();
-                            rankKmers.put(rank, rankKmers.getOrDefault(rank, 0L) + 1);
-                        }
-                    }
-                    progressBar.incrementProgress();
-                });
-            }
-        }
-        threadPoolExecutor.shutdown();
-        try {
-            threadPoolExecutor.awaitTermination(1, TimeUnit.DAYS);
-        } catch (InterruptedException e) {
-            throw new RuntimeException("Error waiting for thread pool to finish.", e);
-        }
-
-        progressBar.finish();
-        for (String rank : rankKmers.keySet()) {
-            logger.logInfo(rank + "\t" + rankKmers.get(rank));
-        }
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(output))) {
-            long totalKmers = 0;
-            for (String rank : rankKmers.keySet()) {
-                String line = rank + "\t" + rankKmers.get(rank) + "\n";
-                bw.write(line);
-                totalKmers += rankKmers.get(rank);
-            }
-            bw.write("Total kmers: " + totalKmers + "\n");
-        } catch (IOException e) {
-            logger.logError("Error writing to output file: " + e.getMessage());
-        }
-    }
-
     public Path getIndexFolder() {
         return indexFolder;
     }

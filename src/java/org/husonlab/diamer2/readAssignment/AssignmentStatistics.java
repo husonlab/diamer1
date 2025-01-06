@@ -4,7 +4,7 @@ import org.husonlab.diamer2.taxonomy.Tree;
 
 public record AssignmentStatistics (
         Tree tree,
-        Tree.AccumulatedWeightsPerRank[] kmerStatistics,
+        Tree.WeightsPerRank[] kmerStatistics,
         PerAlgorithmStatistics[] perAlgorithmStatistics) {
 
     /**
@@ -14,5 +14,5 @@ public record AssignmentStatistics (
             String algorithmName,
             int assignedReads,
             int unassignedReads,
-            Tree.AccumulatedWeightsPerRank[] kumulativeAssignmentsPerRank){}
+            Tree.WeightsPerRank[] kumulativeAssignmentsPerRank){}
 }

@@ -37,6 +37,10 @@ public class BucketIO {
         }
     }
 
+    public int getName() {
+        return name;
+    }
+
     public boolean exists() {
         return file.exists();
     }

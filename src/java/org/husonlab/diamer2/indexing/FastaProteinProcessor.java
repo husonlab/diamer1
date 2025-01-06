@@ -9,7 +9,7 @@ import org.husonlab.diamer2.seq.Sequence;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
 
-public class FastaProteinBatchProcessor implements Runnable {
+public class FastaProteinProcessor implements Runnable {
     private final Phaser phaser;
     private final Sequence[] sequences;
     private final KmerExtractor kmerExtractor;
@@ -24,7 +24,7 @@ public class FastaProteinBatchProcessor implements Runnable {
      * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
      * @param tree Tree to find the LCA of two taxIds.
      */
-    public FastaProteinBatchProcessor(Phaser phaser, Sequence[] sequences, long mask, ReducedProteinAlphabet alphabet, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
+    public FastaProteinProcessor(Phaser phaser, Sequence[] sequences, long mask, ReducedProteinAlphabet alphabet, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
         this.phaser = phaser;
         this.sequences = sequences;
         this.kmerExtractor = new KmerExtractorProtein(mask, alphabet);

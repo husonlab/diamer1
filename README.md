@@ -80,6 +80,7 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * How to handle stop codons?
 
 # TODO
+* Abstract bucket encoding so that it can be changed by supplying another class
 * Bloom filter for usefull kmers
 * Keep nr in memory during indexing
   * maybe in a compressed form (11 letter binary?)

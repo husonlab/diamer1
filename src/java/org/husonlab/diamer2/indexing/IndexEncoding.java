@@ -7,8 +7,18 @@ public class IndexEncoding {
      * @param entry the index entry
      * @return the first 42 bits (left to right) of the kmer encoding
      */
-    public static long getKmer(long entry) {
-        return (entry >> 22) & 0xFFFFFFFFFFFL;
+    public static long getKmerPrefix(long entry) {
+        return (entry >> 22) & 0x3FFFFFFFFFFL;
+    }
+
+    /**
+     * Encodes a kmer and a bucket name into a kmer encoding.
+     * @param entry the index entry
+     * @param bucketName the bucket name to encode
+     * @return the kmer encoding
+     */
+    public static long getKmer(long entry, int bucketName) {
+        return (getKmerPrefix(entry) << 10) | bucketName;
     }
 
     /**

@@ -295,7 +295,7 @@ public class Main {
                 File output = new File(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 DBIndexIO DBIndexIO = new DBIndexIO(dbIndex.toPath());
-                DBIndexIO.writeIndexStatistics(tree, output, maxThreads);
+                org.husonlab.diamer2.indexing.Utilities.analyzeDBIndex(DBIndexIO, tree, output.toPath(), 100, maxThreads);
             } catch (ParseException e) {
                 e.printStackTrace();
             }

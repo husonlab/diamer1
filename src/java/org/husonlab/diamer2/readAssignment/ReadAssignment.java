@@ -77,7 +77,7 @@ public class ReadAssignment {
         );
     }
 
-    private Tree.AccumulatedWeightsPerRank[] calculateKmerStatistics() {
+    private Tree.WeightsPerRank[] calculateKmerStatistics() {
         logger.logInfo("Adding kmer counts to the tree ...");
         tree.resetWeights();
         tree.addWeights(kmerMatches);
