@@ -1,3 +1,6 @@
+# Next time:
+* Analyze indexes
+
 # Process:
 ## 1. Annotating nr database with taxon ids
 * Started 28.11.2024 12:20
