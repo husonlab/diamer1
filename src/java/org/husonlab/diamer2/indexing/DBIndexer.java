@@ -118,6 +118,7 @@ public class DBIndexer {
                 progressBar.finish();
 
                 indexPhaser.arriveAndAwaitAdvance();
+                logger.logInfo("Processed " + processedFastas + " sequences");
                 logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
 
                 for (int j = 0; j < bucketsPerCycle; j++) {

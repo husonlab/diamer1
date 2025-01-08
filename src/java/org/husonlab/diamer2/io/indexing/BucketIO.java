@@ -28,8 +28,7 @@ public class BucketIO {
 
     public void write(Bucket bucket) throws IOException {
         long[] content = bucket.getContent();
-        try (FileOutputStream fos = new FileOutputStream(file);
-             DataOutputStream dos = new DataOutputStream(fos)) {
+        try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
             dos.writeInt(content.length);
             for (long l : content) {
                 dos.writeLong(l);

@@ -81,6 +81,7 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 
 # TODO
 * Abstract bucket encoding so that it can be changed by supplying another class
+* Use higher level than sequence to store sequences in memory for all but the first run to save computation
 * Bloom filter for usefull kmers
 * Keep nr in memory during indexing
   * maybe in a compressed form (11 letter binary?)
@@ -138,7 +139,7 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * prot.accession2taxid.FULL: 7,482,355,539 entries
 * dead_prot.accession2taxid: 158,629,501 entries
 
-# Test dataset:
+# TestClass dataset:
 
 * 4,642,104 lines: 1,160,526 readAssignment
 

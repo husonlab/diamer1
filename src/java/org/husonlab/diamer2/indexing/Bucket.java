@@ -81,6 +81,10 @@ public class Bucket {
         return content;
     }
 
+    public int getSize() {
+        return content.length;
+    }
+
     public int getName() {
         return name;
     }
