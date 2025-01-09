@@ -2,7 +2,9 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
+import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
 import org.husonlab.diamer2.util.logging.ProgressBar;
@@ -12,6 +14,8 @@ import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -27,7 +31,8 @@ public class Utilities {
         new OneLineLogger("Index", 1000).addElement(progressBar);
 
         final int[] globalKmerDistribution = new int[resolution];
-        final float factor = 4177248169415650f / resolution;
+        final long highestIndexEnc = (new Base11Alphabet()).highestEncoding();
+        final float factor = (float)resolution/highestIndexEnc;
         final ConcurrentHashMap<String, int[]> rankKmerDistribution = new ConcurrentHashMap<>();
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
@@ -35,7 +40,7 @@ public class Utilities {
                 MAX_THREADS,
                 500L,
                 TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(1024),
+                new ArrayBlockingQueue<>(MAX_THREADS),
                 new ThreadPoolExecutor.CallerRunsPolicy());
 
         for (int i = 0; i < 1024; i++) {
@@ -48,24 +53,22 @@ public class Utilities {
                         int taxId = IndexEncoding.getTaxId(kmer);
                         long kmerEnc = IndexEncoding.getKmer(kmer, bucketIO.getName());
                         String rank = tree.idMap.get(taxId).getRank();
-                        int index = (int) (kmerEnc / factor);
-                        if (index >= 100) {
-                            System.out.println("Index out of bounds: " + index);
-                            System.out.println(Long.toBinaryString(kmer) + " " + Long.toBinaryString(kmer).length());
-                            System.out.println(Long.toBinaryString(taxId) + " " + Long.toBinaryString(taxId).length());
-                            System.out.println(Long.toBinaryString(kmerEnc) + " " + Long.toBinaryString(kmerEnc).length());
-                            System.out.println(factor);
+                        int index = (int) (kmerEnc * factor);
+                        if (index >= resolution) {
+                            index = resolution - 1;
                         }
+
+                        final int finalIndex = index;
 
                         tree.idMap.get(taxId).addWeight(1);
 
                         rankKmerDistribution.computeIfPresent(rank, (r, counts) -> {
-                            counts[index] += 1;
+                            counts[finalIndex] += 1;
                             return counts;
                         });
                         rankKmerDistribution.computeIfAbsent(rank, r -> {
                             int[] counts = new int[resolution];
-                            counts[index] = 1;
+                            counts[finalIndex] = 1;
                             return counts;
                         });
 
@@ -85,6 +88,32 @@ public class Utilities {
         }
 
         progressBar.finish();
+
+        ArrayList<Pair<String, int[]>> rankKmerDistributionList = new ArrayList<>();
+
+        rankKmerDistribution.entrySet().stream()
+            .sorted((e1, e2) -> Integer.compare(
+                java.util.Arrays.stream(e2.getValue()).sum(),
+                java.util.Arrays.stream(e1.getValue()).sum()))
+            .forEach(entry -> rankKmerDistributionList.add(new Pair<>(entry.getKey(), entry.getValue())));
+
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(output.resolve("kmer_distribution.tsv").toFile()))) {
+            StringBuilder header = new StringBuilder("range start\trange end\ttotal");
+            for (Pair<String, int[]> rankDistribution : rankKmerDistributionList) {
+                header.append("\t").append(rankDistribution.getFirst());
+            }
+            header.append("\n");
+            bw.write(header.toString());
+            for (int i = 0; i < resolution; i++) {
+                bw.write("%d\t%d\t%d".formatted(i * highestIndexEnc, (i + 1) * highestIndexEnc - 1, globalKmerDistribution[i]));
+                for (Pair<String, int[]> rankDistribution: rankKmerDistributionList) {
+                    bw.write("\t%d".formatted(rankDistribution.getLast()[i]));
+                }
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error writing output file.", e);
+        }
     }
 
 }

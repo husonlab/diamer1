@@ -1,5 +1,6 @@
 # Next time:
 * Analyze indexes
+* Implement the use of the megan mapping file
 
 # Process:
 ## 1. Annotating nr database with taxon ids
@@ -162,6 +163,7 @@ zip -r output.zip input/
 * [taxon dumps](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/)
 * [accession mapping](https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/accession2taxid/)
 * [test dataset](https://lomanlab.github.io/mockcommunity/r10.html)
+* [Megan mapping file](https://software-ab.cs.uni-tuebingen.de/download/megan7/welcome.html)
 
 ## generate reduced NCBI database dataset
 * Extracting the accessions that are part of the nr.fsa file with the [ExtractNrAcessions](src/java/org/husonlab/diamer2/reduceDatasets/ExtractNrAcessions.java) to see if all accessions in the taxon map are required to process the nr.fsa.

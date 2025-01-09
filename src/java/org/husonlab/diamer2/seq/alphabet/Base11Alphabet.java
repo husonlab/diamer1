@@ -7,6 +7,11 @@ public class Base11Alphabet implements ReducedProteinAlphabet {
     private static final int base = 11;
 
     @Override
+    public long highestEncoding() {
+        return 4177248169415650L;
+    }
+
+    @Override
     public int getBase() {
         return base;
     }

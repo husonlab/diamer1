@@ -231,7 +231,7 @@ public class Main {
                     System.exit(1);
                 }
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                DBIndexer dbIndexer = new DBIndexer(database, output, tree, mask, new Base11Alphabet(), maxThreads, 1000, 100, bucketsPerCycle, true);
+                DBIndexer dbIndexer = new DBIndexer(database, output, tree, mask, new Base11Alphabet(), maxThreads, 1000, 10000, bucketsPerCycle, false);
                 dbIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
@@ -295,7 +295,7 @@ public class Main {
                 File output = new File(cli.getOptionValue("o"));
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 DBIndexIO DBIndexIO = new DBIndexIO(dbIndex.toPath());
-                org.husonlab.diamer2.indexing.Utilities.analyzeDBIndex(DBIndexIO, tree, output.toPath(), 100, maxThreads);
+                org.husonlab.diamer2.indexing.Utilities.analyzeDBIndex(DBIndexIO, tree, output.toPath(), 1024, maxThreads);
             } catch (ParseException e) {
                 e.printStackTrace();
             }

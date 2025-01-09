@@ -13,6 +13,7 @@ import org.husonlab.diamer2.util.logging.ProgressBar;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class DBIndexer {
 
