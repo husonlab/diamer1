@@ -9,16 +9,12 @@ public class Tree {
     public final HashMap<Integer, Node> idMap;
     @Nullable
     private Node root;
-    @Nullable
-    public final HashMap<String, Integer> accessionMap;
-    public Tree(HashMap<Integer, Node> idMap, @Nullable HashMap<String, Integer> accessionMap) {
+    public Tree(HashMap<Integer, Node> idMap) {
         this.idMap = idMap;
-        this.accessionMap = accessionMap;
     }
 
     public Tree() {
         this.idMap = new HashMap<>();
-        this.accessionMap = null;
     }
 
     public void setRoot(Node root) {
