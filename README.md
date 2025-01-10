@@ -1,4 +1,5 @@
 # Next time:
+* improve db preprocessor to only store needed accession mappings and reduce memory consumption.
 
 # Process:
 ## 1. Annotating nr database with taxon ids

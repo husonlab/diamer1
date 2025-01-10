@@ -10,9 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.taxonomy.Node;
@@ -111,9 +109,9 @@ public class NCBIReader {
                 String rank = tree.idMap.get(taxId).getRank();
                 rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
                 rankMapping.putIfAbsent(rank, 1);
-                if (rank.equals("superkingdom")) {
+                if (highRanks.contains(rank)) {
                     skippedRank++;
-                    bwSkipped.write(header + " (rank to low: %s)".formatted(rank));
+                    bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
                     bwSkipped.newLine();
                     bwSkipped.write(fasta.getSequence());
                     bwSkipped.newLine();

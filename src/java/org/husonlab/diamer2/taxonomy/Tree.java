@@ -15,11 +15,6 @@ public class Tree {
     public final HashMap<Integer, Node> idMap;
     @Nullable
     private Node root;
-    @Nullable
-    public final HashMap<String, Integer> accessionMap;
-    public Tree(HashMap<Integer, Node> idMap, @Nullable HashMap<String, Integer> accessionMap) {
-        this.idMap = idMap;
-    }
 
     public Tree() {
         this.idMap = new HashMap<>();
