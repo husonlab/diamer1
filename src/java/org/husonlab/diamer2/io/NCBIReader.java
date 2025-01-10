@@ -9,9 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.taxonomy.Node;
@@ -89,6 +87,10 @@ public class NCBIReader {
      * @param tree: NCBI taxonomy tree
      */
     public static void preprocessNR(File nr, File output, Tree tree) throws IOException {
+
+        HashSet<String> highRanks = new HashSet<>(
+                Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
+
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Preprocessing NR database...");
         int processedFastas = 0;
@@ -124,7 +126,7 @@ public class NCBIReader {
                 }
                 int taxId;
                 if (!taxIds.isEmpty()) {
-                    taxId = taxIds.get(0);
+                    taxId = taxIds.getFirst();
                     for (int i = 1; i < taxIds.size(); i++) {
                         taxId = tree.findLCA(taxId, taxIds.get(i));
                     }

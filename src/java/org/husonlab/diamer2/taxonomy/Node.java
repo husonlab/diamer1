@@ -104,6 +104,12 @@ public class Node {
         }
     }
 
+    public void addAccumulatedWeight(int weight) {
+        synchronized (this) {
+            this.accumulatedWeight += weight;
+        }
+    }
+
     public void setAccumulatedWeight(int accumulatedWeight) {
         this.accumulatedWeight = accumulatedWeight;
     }

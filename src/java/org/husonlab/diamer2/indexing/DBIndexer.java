@@ -5,10 +5,7 @@ import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
-import org.husonlab.diamer2.util.logging.Logger;
-import org.husonlab.diamer2.util.logging.Message;
-import org.husonlab.diamer2.util.logging.OneLineLogger;
-import org.husonlab.diamer2.util.logging.ProgressBar;
+import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -41,6 +38,7 @@ public class DBIndexer {
                      int bucketsPerCycle,
                      boolean debug) {
         this.logger = new Logger("DBIndexer");
+        logger.addElement(new Time());
         this.fastaFile = fastaFile;
         this.mask = mask;
         this.alphabet = alphabet;
@@ -71,14 +69,14 @@ public class DBIndexer {
 
         Phaser indexPhaser = new Phaser(1);
 
-
         try (SequenceSupplier sup = SequenceSupplier.getFastaSupplier(fastaFile, true)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
-            Message progressMessage = new Message("");
+            ProgressLogger progressLogger = new ProgressLogger("sequences");
             new OneLineLogger("DBIndexer", 1000)
+                    .addElement(new RunningTime())
                     .addElement(progressBar)
-                    .addElement(progressMessage);
+                    .addElement(progressLogger);
 
             // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
             final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
@@ -88,7 +86,7 @@ public class DBIndexer {
                 int rangeStart = i;
                 int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
 
-                progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
+                logger.logInfo("Indexing buckets " + rangeStart + " - " + rangeEnd);
 
                 if (!debug) {
                     for (int j = 0; j < bucketsPerCycle; j++) {
@@ -101,13 +99,14 @@ public class DBIndexer {
                 }
 
                 progressBar.setProgress(0);
+                progressLogger.setProgress(0);
                 Sequence[] batch = new Sequence[BATCH_SIZE];
                 int processedFastas = 0;
                 Sequence seq;
                 while ((seq = sup.next()) != null) {
                     batch[processedFastas % BATCH_SIZE] = seq;
                     progressBar.setProgress(sup.getBytesRead());
-
+                    progressLogger.setProgress(processedFastas);
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));

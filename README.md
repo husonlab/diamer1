@@ -1,6 +1,4 @@
 # Next time:
-* Analyze indexes
-* Implement the use of the megan mapping file
 
 # Process:
 ## 1. Annotating nr database with taxon ids

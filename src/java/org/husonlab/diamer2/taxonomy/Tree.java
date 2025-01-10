@@ -1,16 +1,23 @@
 package org.husonlab.diamer2.taxonomy;
 
+import org.husonlab.diamer2.util.logging.OneLineLogger;
+import org.husonlab.diamer2.util.logging.ProgressBar;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tree {
+
+    HashSet<String> standardRanks = new HashSet<>(
+            Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species"));
+
     public final HashMap<Integer, Node> idMap;
     @Nullable
     private Node root;
     @Nullable
     public final HashMap<String, Integer> accessionMap;
+
     public Tree(HashMap<Integer, Node> idMap, @Nullable HashMap<String, Integer> accessionMap) {
         this.idMap = idMap;
         this.accessionMap = accessionMap;
@@ -143,6 +150,44 @@ public class Tree {
         for (Node child : root.getChildren()) {
             accumulateWeights(child);
             root.setAccumulatedWeight(root.getAccumulatedWeight() + child.getAccumulatedWeight());
+        }
+    }
+
+    public void reduceToStandardRanks() {
+        Stack<Node> stack = new Stack<>();
+        stack.add(root);
+        while (!stack.isEmpty()) {
+            Node node = stack.pop();
+            if (!standardRanks.contains(node.getRank()) && node.hasParent()) {
+                Node parent = node.getParent();
+                while (parent.hasParent() && !standardRanks.contains(parent.getRank())) {
+                    parent = parent.getParent();
+                }
+//                parent.addLabel(node.getScientificName());
+//                for (String label: node.getLabels()) {
+//                    parent.addLabel(label);
+//                }
+                parent.addWeight(node.getWeight());
+                parent.addAccumulatedWeight(node.getAccumulatedWeight());
+
+                node.getParent().getChildren().remove(node);
+                for (Node child : node.getChildren()) {
+                    parent.addChild(child);
+                    child.setParent(parent);
+                }
+                idMap.put(node.getTaxId(), parent);
+            }
+            stack.addAll(node.getChildren());
+        }
+
+        for (Node node : idMap.values()) {
+            if (!standardRanks.contains(node.getRank())) {
+                Node parent = node.getParent();
+                while (parent != null && !standardRanks.contains(parent.getRank())) {
+                    parent = parent.getParent();
+                }
+
+            }
         }
     }
 

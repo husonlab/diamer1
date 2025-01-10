@@ -277,6 +277,7 @@ public class Main {
                 Path path = Path.of(cli.getOptionValue("o"));
                 Utilities.checkFilesAndFolders(new File[]{}, new Path[]{path});
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                tree.reduceToStandardRanks();
                 ReadAssignment readAssignment = ReadAssignmentIO.read(tree, file);
                 readAssignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
                 AssignmentStatistics assignmentStatistics = readAssignment.calculateStatistics();

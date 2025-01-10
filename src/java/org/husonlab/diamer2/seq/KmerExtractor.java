@@ -17,4 +17,8 @@ public abstract class KmerExtractor {
     }
 
     abstract public long[] extractKmers(String sequence);
+
+    public long getK() {
+        return k;
+    }
 }

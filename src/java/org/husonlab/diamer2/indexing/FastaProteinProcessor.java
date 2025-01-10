@@ -38,7 +38,7 @@ public class FastaProteinProcessor implements Runnable {
     public void run() {
         try {
             for (Sequence fasta : sequences) {
-                if (fasta == null || fasta.getSequence().isEmpty() || fasta.getSequence().length() < 15) {
+                if (fasta == null || fasta.getSequence().isEmpty() || fasta.getSequence().length() < kmerExtractor.getK()) {
                     continue;
                 }
                 String sequence = fasta.getSequence();
