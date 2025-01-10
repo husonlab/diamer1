@@ -4,6 +4,9 @@ import org.apache.commons.cli.*;
 import org.husonlab.diamer2.indexing.DBIndexer;
 import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.Utilities;
+import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
+import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
+import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.readAssignment.AssignmentStatistics;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
@@ -13,6 +16,7 @@ import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -198,17 +202,15 @@ public class Main {
                 File database = cli.getParsedOptionValue("d");
                 File output = new File(cli.getOptionValue("o"));
                 String mappings = cli.getOptionValue("mappings");
-                ArrayList<NCBIReader.AccessionMapping> accessionMappings = new ArrayList<>();
-                for (String mapping : mappings.split(";")) {
-                    String[] parts = mapping.split(",");
-                    String mappingFile = parts[0];
-                    int accessionColumn = Integer.parseInt(parts[1]);
-                    int taxidColumn = Integer.parseInt(parts[2]);
-                    NCBIReader.AccessionMapping accessionMapping = new NCBIReader.AccessionMapping(mappingFile, accessionColumn, taxidColumn);
-                    accessionMappings.add(accessionMapping);
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                AccessionMapping accessionMapping;
+                if (mappings.contains(",")) {
+                    ArrayList<NCBIMapping.NCBIMappingFile> accessionMappings = getNcbiMappingFiles(mappings);
+                    accessionMapping = new NCBIMapping(accessionMappings.toArray(new NCBIMapping.NCBIMappingFile[0]), tree);
+                } else {
+                    accessionMapping = new MeganMapping(new File(mappings));
                 }
-                Tree tree = NCBIReader.readTaxonomyWithAccessions(nodes, names, accessionMappings.toArray(new NCBIReader.AccessionMapping[0]), false);
-                NCBIReader.preprocessNR(database, output, tree);
+                NCBIReader.preprocessNR(database, output, tree, accessionMapping);
             } catch (IOException | ParseException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -303,5 +305,18 @@ public class Main {
         } else if (cli.hasOption("debug")) {
             System.out.println("Debugging");
         }
+    }
+
+    @NotNull
+    private static ArrayList<NCBIMapping.NCBIMappingFile> getNcbiMappingFiles(String mappings) {
+        ArrayList<NCBIMapping.NCBIMappingFile> accessionMappings = new ArrayList<>();
+        for (String mapping : mappings.split(";")) {
+            String[] parts = mapping.split(",");
+            String mappingFile = parts[0];
+            int accessionColumn = Integer.parseInt(parts[1]);
+            int taxidColumn = Integer.parseInt(parts[2]);
+            accessionMappings.add(new NCBIMapping.NCBIMappingFile(new File(mappingFile), accessionColumn, taxidColumn));
+        }
+        return accessionMappings;
     }
 }

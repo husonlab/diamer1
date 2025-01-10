@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.io;
 
+import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
@@ -9,56 +10,14 @@ import org.jetbrains.annotations.NotNull;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
 import java.util.zip.GZIPInputStream;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.taxonomy.Node;
 
 public class NCBIReader {
-
-    /**
-     * Parses the NCBI taxonomy, including the node names and the amino acid accessions.
-     * Does not set initial HashMap capacities to allow for dynamic resizing in smaller datasets.
-     * @param nodesDumpfile: nodes.dmp, containing the taxonomy nodes (format: tax_id | parent_tax_id | rank)
-     * @param namesDumpfile: names.dmp, containing the taxonomy names (format: tax_id | name)
-     * @param accessionMappings: array of AccessionMapping objects, containing the path to the mapping file and the column indices for the accession and tax_id.
-     */
-    @NotNull
-    public static Tree readTaxonomyWithAccessions(
-            @NotNull File nodesDumpfile,
-            @NotNull File namesDumpfile,
-            @NotNull AccessionMapping[] accessionMappings,
-            boolean debug) throws IOException {
-
-        if (debug) {
-            final Tree tree = new Tree(new HashMap<>(), new HashMap<>());
-            return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
-        } else {
-            final Tree tree = new Tree(new HashMap<>(2700000), new HashMap<>(1400000000));
-//            final Tree tree = new Tree(new HashMap<>(), new HashMap<>());
-            return readTaxonomyWithAccessions(nodesDumpfile, namesDumpfile, accessionMappings, tree);
-        }
-    }
-
-    @NotNull
-    private static Tree readTaxonomyWithAccessions(
-            @NotNull File nodesDumpfile,
-            @NotNull File namesDumpfile,
-            @NotNull AccessionMapping[] accessionMappings,
-            @NotNull Tree tree) throws IOException {
-        Logger logger = new Logger("NCBIReader").addElement(new Time());
-        logger.logInfo("Reading nodes dumpfile...");
-        readNodesDumpfile(nodesDumpfile, tree);
-        logger.logInfo("Reading names dumpfile...");
-        readNamesDumpfile(namesDumpfile, tree);
-        for (AccessionMapping mapping : accessionMappings) {
-            logger.logInfo("Reading accession mapping from " + mapping.mappingFile);
-            readAccessionMap(mapping.mappingFile, mapping.accessionCol, mapping.taxIdCol, tree);
-        }
-        logger.logInfo("Finished reading taxonomy. Tree with %d nodes and %d accessions."
-                .formatted(tree.idMap.size(), tree.accessionMap.size()));
-        return tree;
-    }
 
     /**
      * ReadAssignment the NCBI taxonomy from the nodes and names dumpfiles.
@@ -86,7 +45,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(File nr, File output, Tree tree) throws IOException {
+    public static void preprocessNR(File nr, File output, Tree tree, AccessionMapping accessionMapping) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -120,8 +79,11 @@ public class NCBIReader {
                 String[] values = header.split(" ");
                 ArrayList<Integer> taxIds = new ArrayList<>();
                 for (String value : values) {
-                    if (value.startsWith(">") && tree.accessionMap.containsKey(value.substring(1))) {
-                        taxIds.add(tree.accessionMap.get(value.substring(1)));
+                    if (value.startsWith(">")) {
+                        int taxId = accessionMapping.getTaxId(value.substring(1));
+                        if (taxId != -1 && tree.idMap.containsKey(taxId)) {
+                            taxIds.add(taxId);
+                        }
                     }
                 }
                 int taxId;
@@ -132,7 +94,15 @@ public class NCBIReader {
                     }
                 } else {
                     skippedNoTaxId++;
-                    bwSkipped.write(header + " (no accession found in taxonomy)");
+                    bwSkipped.write(header + " (Accession(s) not found in mapping)");
+                    bwSkipped.newLine();
+                    bwSkipped.write(fasta.getSequence());
+                    bwSkipped.newLine();
+                    continue;
+                }
+                if (!tree.idMap.containsKey(taxId)) {
+                    skippedNoTaxId++;
+                    bwSkipped.write(header + " (taxId not found in taxonomy %d)".formatted(taxId));
                     bwSkipped.newLine();
                     bwSkipped.write(fasta.getSequence());
                     bwSkipped.newLine();
@@ -141,7 +111,7 @@ public class NCBIReader {
                 String rank = tree.idMap.get(taxId).getRank();
                 rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
                 rankMapping.putIfAbsent(rank, 1);
-                if (rank.equals("no rank") || rank.equals("superkingdom")) {
+                if (rank.equals("superkingdom")) {
                     skippedRank++;
                     bwSkipped.write(header + " (rank to low: %s)".formatted(rank));
                     bwSkipped.newLine();
@@ -270,41 +240,4 @@ public class NCBIReader {
             throw new RuntimeException(e);
         }
     }
-    public static void readAccessionMap(String accessionMapFile, int accessionCol, int taxIdCol, Tree tree) throws IOException {
-
-        ProgressBar progressBar = new ProgressBar(new File(accessionMapFile).length(), 20);
-        ProgressLogger progressLogger = new ProgressLogger("Accessions");
-        new OneLineLogger("NCBIReader", 500)
-                .addElement(new RunningTime())
-                .addElement(progressBar)
-                .addElement(progressLogger);
-
-        try (FileInputStream fis = new FileInputStream(accessionMapFile);
-             GZIPInputStream gis = new GZIPInputStream(fis);
-             CountingInputStream cis = new CountingInputStream(gis);
-             BufferedReader br = new BufferedReader(new InputStreamReader(cis))) {
-            String line;
-            br.readLine(); // skip header
-            long i = 0;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split("\t");
-                String accession = values[accessionCol];
-                int taxId = Integer.parseInt(values[taxIdCol]);
-                // only add accessions, if the tax_id is in the tree and the accession is not already in the tree
-                if (tree.idMap.containsKey(taxId) && !tree.accessionMap.containsKey(accession)) {
-                    tree.accessionMap.put(accession, taxId);
-                // case where the tax_id is in the map, but the accession maps to a different taxId
-                // find LCA and update the accession map
-                } else if (tree.idMap.containsKey(taxId) && tree.accessionMap.get(accession) != taxId) {
-                    int oldTaxId = tree.accessionMap.get(accession);
-                    int newTaxId = tree.findLCA(oldTaxId, taxId);
-                    tree.accessionMap.put(accession, newTaxId);
-                }
-                progressBar.setProgress(cis.getBytesRead()/6);
-                progressLogger.setProgress(++i);
-            }
-            progressBar.finish();
-        }
-    }
-    public record AccessionMapping(String mappingFile, int accessionCol, int taxIdCol) {}
 }
