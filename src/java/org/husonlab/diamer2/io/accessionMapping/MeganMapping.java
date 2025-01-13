@@ -17,7 +17,7 @@ public class MeganMapping extends AccessionMapping {
 
     @Override
     public int getTaxId(String accession) {
-        try (PreparedStatement statement = c.prepareStatement("SELECT Taxonomy FROM mappings WHERE Accession = ?;");){
+        try (PreparedStatement statement = c.prepareStatement("SELECT Taxonomy FROM mappings WHERE Accession = ?;")){
             statement.setString(1, removeVersion(accession));
             ResultSet result = statement.executeQuery();
             int taxId = result.getInt(1);

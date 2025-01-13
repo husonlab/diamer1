@@ -7,6 +7,7 @@ import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
+import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.readAssignment.AssignmentStatistics;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
@@ -16,11 +17,13 @@ import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
+import org.husonlab.diamer2.util.Pair;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 
 public class Main {
@@ -204,13 +207,14 @@ public class Main {
                 String mappings = cli.getOptionValue("mappings");
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 AccessionMapping accessionMapping;
+                Pair<HashSet<String>, SequenceSupplier> result = NCBIReader.extractNeededAccessions(database);
                 if (mappings.contains(",")) {
                     ArrayList<NCBIMapping.NCBIMappingFile> accessionMappings = getNcbiMappingFiles(mappings);
-                    accessionMapping = new NCBIMapping(accessionMappings.toArray(new NCBIMapping.NCBIMappingFile[0]), tree);
+                    accessionMapping = new NCBIMapping(accessionMappings.toArray(new NCBIMapping.NCBIMappingFile[0]), tree, result.getFirst());
                 } else {
                     accessionMapping = new MeganMapping(new File(mappings));
                 }
-                NCBIReader.preprocessNR(database, output, tree, accessionMapping);
+                NCBIReader.preprocessNR(output, tree, accessionMapping, result.getLast());
             } catch (IOException | ParseException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -257,6 +261,7 @@ public class Main {
                 File nodes = cli.getParsedOptionValue("no");
                 File names = cli.getParsedOptionValue("na");
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
+//                tree.reduceToStandardRanks();
                 String[] paths = cli.getOptionValues("d");
                 Path dbIndex = Path.of(paths[0]);
                 Path readsIndex = Path.of(paths[1]);
@@ -264,7 +269,10 @@ public class Main {
                 ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
                 ReadAssignment assignment = readAssigner.assignReads();
                 ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
+                assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
                 assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
+                assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
+                assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
                 ReadAssignmentIO.writeAssignmentStatistics(assignment.calculateStatistics(), output);
             } catch (Exception e) {
                 e.printStackTrace();

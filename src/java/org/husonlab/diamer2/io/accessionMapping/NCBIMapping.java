@@ -6,6 +6,7 @@ import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.zip.GZIPInputStream;
 
 public class NCBIMapping extends AccessionMapping {
@@ -13,12 +14,14 @@ public class NCBIMapping extends AccessionMapping {
     private final Logger logger;
     private final HashMap<String, Integer> accessionMap;
     private final Tree tree;
+    private final HashSet<String> neededAccessions;
 
-    public NCBIMapping(NCBIMappingFile[] NCBIMappingFiles, Tree tree) {
+    public NCBIMapping(NCBIMappingFile[] NCBIMappingFiles, Tree tree, HashSet<String> neededAccessions) {
         logger = new Logger("NCBIMapping");
         logger.addElement(new Time());
         accessionMap = new HashMap<>();
         this.tree = tree;
+        this.neededAccessions = neededAccessions;
 
         for (NCBIMappingFile ncbiMappingFile : NCBIMappingFiles) {
             logger.logInfo("Reading accession taxID mapping from: " + ncbiMappingFile.mappingFile);
@@ -53,15 +56,16 @@ public class NCBIMapping extends AccessionMapping {
                 String[] values = line.split("\t");
                 String accession = removeVersion(values[accessionCol]);
                 int taxId = Integer.parseInt(values[taxIdCol]);
-                // only add accessions, if the tax_id is in the tree and the accession is not already in the tree
-                accessionMap.put(removeVersion(accession), taxId);
-                accessionMap.computeIfPresent(accession, (key, value) -> {
-                    if (taxId == value) {
-                        return value;
-                    }
+                // only add accessions, if the tax_id is in the tree and the accession is needed
+                if (neededAccessions.contains(accession) && tree.idMap.containsKey(taxId)) {
+                    accessionMap.computeIfPresent(accession, (key, value) -> {
+                        if (taxId == value) {
+                            return value;
+                        }
                         return tree.findLCA(taxId, value);
-                });
-                accessionMap.computeIfAbsent(accession, key -> taxId);
+                    });
+                    accessionMap.computeIfAbsent(accession, key -> taxId);
+                }
                 progressBar.setProgress(cis.getBytesRead()/6);
                 progressLogger.setProgress(++i);
             }
@@ -70,6 +74,5 @@ public class NCBIMapping extends AccessionMapping {
             throw new RuntimeException(e);
         }
     }
-
     public record NCBIMappingFile(File mappingFile, int accessionCol, int taxIdCol) {}
 }

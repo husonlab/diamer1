@@ -77,6 +77,11 @@ public class SequenceSupplier implements AutoCloseable {
         sequenceReader.close();
     }
 
+    public SequenceSupplier open() {
+        sequenceReader.open();
+        return this;
+    }
+
     public static SequenceSupplier getFastaSupplier(File file, boolean keepInMemory) {
         return new SequenceSupplier(new FASTAReader(file), keepInMemory);
     }
@@ -91,5 +96,9 @@ public class SequenceSupplier implements AutoCloseable {
 
     public long getBytesRead() {
         return bytesRead;
+    }
+
+    public File getFile() {
+        return sequenceReader.getFile();
     }
 }

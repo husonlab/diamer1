@@ -133,7 +133,6 @@ public class Utilities {
             if (numberOfSamples == 0) {
                 return 0;
             }
-            System.out.println(numberOfSamples);
             return (int) (fileSize / averageBytes);
         } catch (IOException e) {
             throw new RuntimeException(e);

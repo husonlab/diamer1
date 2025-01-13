@@ -1,9 +1,11 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
+import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
+import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,7 +13,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.taxonomy.Node;
 
@@ -35,20 +36,46 @@ public class NCBIReader {
         return tree;
     }
 
+    public static Pair<HashSet<String>, SequenceSupplier> extractNeededAccessions(File fasta) throws IOException {
+
+        Logger logger = new Logger("NCBIReader").addElement(new Time());
+
+        logger.logInfo("Estimating number of sequences in database...");
+        int numberOfSequencesEst = org.husonlab.diamer2.io.Utilities.approximateNumberOfSequences(fasta, "\n>");
+        HashSet<String> neededAccessions = new HashSet<>(numberOfSequencesEst);
+        logger.logInfo("Extracting accessions from database...");
+        SequenceSupplier sequenceSupplier;
+        try(SequenceSupplier sup = SequenceSupplier.getFastaSupplier(fasta, true)) {
+            sequenceSupplier = sup;
+            ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
+            new OneLineLogger("NCBIReader", 1000)
+                    .addElement(new RunningTime())
+                    .addElement(progressBar);
+
+            Sequence seq;
+            while ((seq = sup.next()) != null) {
+                progressBar.setProgress(sup.getBytesRead());
+                neededAccessions.addAll(extractIdsFromHeader(seq.getHeader()));
+            }
+            progressBar.finish();
+        }
+        return new Pair<>(neededAccessions, sequenceSupplier);
+    }
+
     /**
      * Preprocesses the NR database to have only the taxid of the LCA in the headers of the sequences.
      * Skips sequences that can not be found in the taxonomy.
      * Handles non-amino acid characters.
-     * @param nr: input nr database
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(File nr, File output, Tree tree, AccessionMapping accessionMapping) throws IOException {
+    public static void preprocessNR(File output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier sequenceSupplier) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
 
         Logger logger = new Logger("NCBIReader").addElement(new Time());
+
         logger.logInfo("Preprocessing NR database...");
         int processedFastas = 0;
         int skippedNoTaxId = 0;
@@ -56,7 +83,7 @@ public class NCBIReader {
         HashMap<String, Integer> rankMapping = new HashMap<>();
         Sequence fasta;
 
-        try (SequenceSupplier sup = SequenceSupplier.getFastaSupplier(nr, false);
+        try (SequenceSupplier sup = sequenceSupplier.open();
              BufferedWriter bw = Files.newBufferedWriter(output.toPath());
              BufferedWriter bwSkipped = Files.newBufferedWriter(Path.of(output.getParent(), "skipped_sequences.fsa"))) {
 
@@ -74,14 +101,11 @@ public class NCBIReader {
 
                 // Extract taxIds and compute LCA taxId
                 String header = fasta.getHeader();
-                String[] values = header.split(" ");
                 ArrayList<Integer> taxIds = new ArrayList<>();
-                for (String value : values) {
-                    if (value.startsWith(">")) {
-                        int taxId = accessionMapping.getTaxId(value.substring(1));
-                        if (taxId != -1 && tree.idMap.containsKey(taxId)) {
-                            taxIds.add(taxId);
-                        }
+                for (String id: extractIdsFromHeader(header)) {
+                    int taxId = accessionMapping.getTaxId(id);
+                    if (taxId != -1) {
+                        taxIds.add(taxId);
                     }
                 }
                 int taxId;
@@ -142,14 +166,15 @@ public class NCBIReader {
                 \tprocessed sequences \t %d
                 \tkept sequences \t %d
                 \tskipped sequences without accession \t %d
-                \tskipped sequences with rank 'no rank' or 'superkingdom' \t %d
+                \tskipped sequences with rank too high (%s) \t %d
                 """.formatted(
                 java.time.LocalDateTime.now(),
-                nr,
+                sequenceSupplier.getFile(),
                 output,
                 processedFastas,
                 processedFastas - skippedNoTaxId - skippedRank,
                 skippedNoTaxId,
+                String.join(", ", highRanks),
                 skippedRank);
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);
@@ -208,6 +233,17 @@ public class NCBIReader {
             }
         });
         tree.setRoot();
+    }
+
+    public static ArrayList<String> extractIdsFromHeader(String header) {
+        String[] values = header.split(" ");
+        ArrayList<String> ids = new ArrayList<>();
+        for (String value : values) {
+            if (value.startsWith(">")) {
+                ids.add(AccessionMapping.removeVersion(value.substring(1)));
+            }
+        }
+        return ids;
     }
 
     /**

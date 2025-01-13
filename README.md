@@ -1,3 +1,21 @@
+# Changes since last meeting:
+* Added spaced seeds
+* Added support for the megan mapping file
+  * pro: almost no memory required
+  * con: takes much more time (~24 h)
+  * con: Only find taxids for about 50% of the nr sequences in there
+* Added OVO algorithm from Julias master thesis
+
+* Changed the way how to extract kmers
+  1. reading over file multiple times
+  2. options to keep sequences in memory
+  3. keep kmers (feasible?) or 20 letter encoding in memory to safe time
+
+# Future:
+* 
+* bunch of refactoring and debugging
+* Set up benchmarking framework to test different assignment algorithms 
+
 # Next time:
 * improve db preprocessor to only store needed accession mappings and reduce memory consumption.
 
@@ -72,14 +90,11 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 
 # Questions:
 * What output format do I need to display the result in SplitsTree?
-* How to use the megan mapping file?
-  * Does not contain any of the accessions I tried
-* How to deal with "no rank" taxonomic nodes?
-  * some have "no rank" even though they are subspecies level.
 * How to handle weired amino acid letters?
 * How to handle stop codons?
 
 # TODO
+* batch requests for megan mapping file
 * Abstract bucket encoding so that it can be changed by supplying another class
 * Use higher level than sequence to store sequences in memory for all but the first run to save computation
 * Bloom filter for usefull kmers
@@ -172,7 +187,6 @@ zip -r output.zip input/
 * Extracted the sequences that belong to the reduced accessions from the nr.fsa flie -> nr100.fsa with the [ExtractByAccession](src/java/org/husonlab/diamer2/reduceDatasets/ExtractByAccession.java) script.
 * Extracted the taxon ids that belong to the reduced accessions from the prot.accession2taxid.gz file -> prot.accession2taxid100.gz with the [ReduceAccession2Taxid](src/java/org/husonlab/diamer2/reduceDatasets/ReduceAccession2Taxid.java) script.
 
-##
 
 ### k-mer counts
 * 2,980,952,285 15-mers in the nr100.fsa file.
