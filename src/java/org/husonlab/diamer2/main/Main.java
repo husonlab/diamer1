@@ -210,11 +210,11 @@ public class Main {
                 Pair<HashSet<String>, SequenceSupplier> result = NCBIReader.extractNeededAccessions(database);
                 if (mappings.contains(",")) {
                     ArrayList<NCBIMapping.NCBIMappingFile> accessionMappings = getNcbiMappingFiles(mappings);
-                    accessionMapping = new NCBIMapping(accessionMappings.toArray(new NCBIMapping.NCBIMappingFile[0]), tree, result.getFirst());
+                    accessionMapping = new NCBIMapping(accessionMappings.toArray(new NCBIMapping.NCBIMappingFile[0]), tree, result.first());
                 } else {
                     accessionMapping = new MeganMapping(new File(mappings));
                 }
-                NCBIReader.preprocessNR(output, tree, accessionMapping, result.getLast());
+                NCBIReader.preprocessNR(output, tree, accessionMapping, result.last());
             } catch (IOException | ParseException e) {
                 e.printStackTrace();
                 System.exit(1);

@@ -31,8 +31,8 @@ public class SequenceSupplier implements AutoCloseable {
             if (!Objects.isNull(sequenceIterator)) {
                 if (sequenceIterator.hasNext()) {
                     Pair<Long, Sequence> next = sequenceIterator.next();
-                    bytesRead = next.getFirst();
-                    return next.getLast();
+                    bytesRead = next.first();
+                    return next.last();
                 }
                 bytesRead = sequenceReader.getBytesRead();
                 return null;

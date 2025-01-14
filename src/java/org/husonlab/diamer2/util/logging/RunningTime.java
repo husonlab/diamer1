@@ -1,9 +1,17 @@
 package org.husonlab.diamer2.util.logging;
 
+/**
+ * {@link LoggerElement} that logs the running time of the program.
+ * The time is calculated from the creation of the object.
+ * The time is formatted as [HH:MM:SS].
+ */
 public class RunningTime extends LoggerElement {
 
     private final long startTime;
 
+    /**
+     * Constructs a new {@link RunningTime} object.
+     */
     public RunningTime() {
         this.startTime = System.currentTimeMillis();
     }

@@ -1,5 +1,10 @@
 package org.husonlab.diamer2.util.logging;
 
+import org.jetbrains.annotations.NotNull;
+
+/**
+ * {@link LoggerElement} to log the progress of a task in the form of processed items in total and per second.
+ */
 public class ProgressLogger extends LoggerElement {
     private final String itemName;
     private long processedItems;
@@ -7,23 +12,23 @@ public class ProgressLogger extends LoggerElement {
     private long lastPrintItems;
 
     /**
-     * Progress logger to print progress statistics for a task.
+     * Constructs a {@link ProgressLogger} with the initial number of processed items set to 0.
      * @param itemName Name of the item that is processed (e.g. reads, fastas).
      */
-    public ProgressLogger(String itemName) {
+    public ProgressLogger(@NotNull String itemName) {
         this(itemName, 0);
     }
 
     /**
-     * Progress logger to print progress statistics for a task.
+     * Constructs a {@link ProgressLogger} with the initial number of processed items set to the given value.
      * @param itemName Name of the item that is processed (e.g. reads, fastas).
      * @param processedItems Number of items that have already been processed.
      */
     public ProgressLogger(String itemName, long processedItems) {
-        this.lastPrintItems = processedItems;
+        lastPrintItems = processedItems;
         this.itemName = itemName;
         this.processedItems = processedItems;
-        this.lastPrintTime = System.currentTimeMillis();
+        lastPrintTime = System.currentTimeMillis();
     }
 
     /**
@@ -33,7 +38,7 @@ public class ProgressLogger extends LoggerElement {
      */
     public void setProgress(long processedItems) {
         this.processedItems = processedItems;
-        logger.notifyProgress();
+        logger.notifyUpdate();
     }
 
     @Override

@@ -15,7 +15,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -100,14 +99,14 @@ public class Utilities {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(output.resolve("kmer_distribution.tsv").toFile()))) {
             StringBuilder header = new StringBuilder("range start\trange end\ttotal");
             for (Pair<String, int[]> rankDistribution : rankKmerDistributionList) {
-                header.append("\t").append(rankDistribution.getFirst());
+                header.append("\t").append(rankDistribution.first());
             }
             header.append("\n");
             bw.write(header.toString());
             for (int i = 0; i < resolution; i++) {
                 bw.write("%d\t%d\t%d".formatted(i * highestIndexEnc, (i + 1) * highestIndexEnc - 1, globalKmerDistribution[i]));
                 for (Pair<String, int[]> rankDistribution: rankKmerDistributionList) {
-                    bw.write("\t%d".formatted(rankDistribution.getLast()[i]));
+                    bw.write("\t%d".formatted(rankDistribution.last()[i]));
                 }
                 bw.newLine();
             }

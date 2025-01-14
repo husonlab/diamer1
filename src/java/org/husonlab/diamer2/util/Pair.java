@@ -1,24 +1,15 @@
 package org.husonlab.diamer2.util;
 
-public class Pair<S,T> {
-    private final S first;
-    private final T last;
+import org.jetbrains.annotations.Nullable;
 
-    public Pair(S first, T last) {
-        this.first = first;
-        this.last = last;
-    }
-
-    public T getLast() {
-        return last;
-    }
-
-    public S getFirst() {
-        return first;
-    }
-
+/**
+ * A simple pair record.
+ * @param <S> The type of the first element.
+ * @param <T> The type of the second element.
+ */
+public record Pair<S, T>(@Nullable S first, @Nullable T last) {
     @Override
     public String toString() {
-        return this.first.toString() + ", " + this.last.toString();
+        return this.first + ", " + this.last;
     }
 }

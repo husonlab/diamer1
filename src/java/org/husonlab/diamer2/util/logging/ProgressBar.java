@@ -1,59 +1,84 @@
 package org.husonlab.diamer2.util.logging;
 
+/**
+ * {@link LoggerElement} that displays a progress bar of a given length.
+ */
 public class ProgressBar extends LoggerElement {
 
     private long total;
-    private long current;
+    private long progress;
     private final int length;
 
+    /**
+     * Create a new progress bar.
+     * @param total The total number of steps to be completed.
+     * @param length The length of the progress bar in characters.
+     */
     public ProgressBar(long total, int length) {
         this.total = total;
         this.length = length;
     }
 
-    public void setTotal(long total) {
-        this.total = total;
-    }
-
-    public void setProgress(long current) {
-        this.current = Math.min(current, total);
-        this.logger.notifyProgress();
-    }
-
     @Override
     public String getMessage() {
         if (total > 0) {
-            int percent = (int) (100.0 * current / total);
+            int percent = (int) (100.0 * progress / total);
             int bars = percent * length / 100;
-            StringBuilder sb = new StringBuilder();
-            sb.append("[");
-            sb.append("=".repeat(Math.max(0, bars)));
-            sb.append(" ".repeat(Math.max(0, length - bars)));
-            sb.append("] ");
-            sb.append(percent);
-            sb.append("%");
-            return sb.toString();
+            return "[" +
+                    "=".repeat(Math.max(0, bars)) + " ".repeat(Math.max(0, length - bars)) +
+                    "] " + percent + "%";
         }
         return "";
     }
 
+    /**
+     * Set the total number of steps to be completed.
+     * @param total The total number of steps to be completed.
+     */
+    public void setTotal(long total) {
+        this.total = total;
+    }
+
+    /**
+     * Increment the progress by one step.
+     */
+    public void incrementProgress() {
+        progress = Math.min(progress + 1, total);
+        logger.notifyUpdate();
+    }
+
+    /**
+     * Increment the progress by a given amount.
+     * @param amount The number of steps to increment the progress by.
+     */
+    public void incrementProgress(int amount) {
+        progress = Math.min(progress + amount, total);
+        logger.notifyUpdate();
+    }
+
+    /**
+     * Set the progress (total number of steps completed).
+     * @param progress The total number of steps that have been completed.
+     */
+    public void setProgress(long progress) {
+        this.progress = Math.min(progress, total);
+        logger.notifyUpdate();
+    }
+
+    /**
+     * Get the current progress.
+     * @return The number of steps that have been completed.
+     */
+    public long getProgress() {
+        return this.progress;
+    }
+
+    /**
+     * Logs the finished progress bar and a newline to allow for further logging.
+     */
     public void finish() {
-        this.current = this.total;
+        progress = total;
         logger.log();
         System.out.println();
-    }
-
-    public long getProgress() {
-        return this.current;
-    }
-
-    public void incrementProgress() {
-        this.current++;
-        this.logger.notifyProgress();
-    }
-
-    public void incrementProgress(int amount) {
-        this.current += amount;
-        this.logger.notifyProgress();
     }
 }
