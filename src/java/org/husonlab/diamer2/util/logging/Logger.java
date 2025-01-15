@@ -1,5 +1,7 @@
 package org.husonlab.diamer2.util.logging;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.LinkedList;
 
 /**

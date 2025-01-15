@@ -1,26 +1,31 @@
 package org.husonlab.diamer2.taxonomy;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Objects;
 
 /**
- * Represents a node in a taxonomic tree.
+ * Represents a taxonomic node in a {@link Tree}.
  */
 public class Node {
     private final int taxId;
     @Nullable
-    private Node parent;
-    private final ArrayList<Node> children;
-    private final ArrayList<String> labels;
     private String scientificName;
+    // alternative names
+    private final ArrayList<String> labels;
+    @Nullable
     private String rank;
     private int weight;
     private int accumulatedWeight;
 
+    @Nullable
+    private Node parent;
+    private final ArrayList<Node> children;
+
     /**
-     * Node with no parent.
+     * Construct a new {@link Node} with a taxonomic ID.
      * @param taxId the taxonomic ID of the node
      */
     public Node(int taxId) {
@@ -32,7 +37,7 @@ public class Node {
     }
 
     /**
-     * Node with a parent.
+     * Construct a new {@link Node} with a taxonomic ID and a parent.
      * @param taxId the taxonomic ID of the node
      * @param parent the parent of the node
      */
@@ -42,7 +47,7 @@ public class Node {
     }
 
     /**
-     * Node with no parent and a taxonomic rank.
+     * Construct a new {@link Node} with a taxonomic ID and a rank.
      * @param taxId the taxonomic ID of the node
      * @param rank the rank of the node
      */
@@ -52,7 +57,7 @@ public class Node {
     }
 
     /**
-     * Node with a parent and a taxonomic rank.
+     * Construct a new {@link Node} with a taxonomic ID, a parent and a rank.
      * @param taxId the taxonomic ID of the node
      * @param parent the parent of the node
      * @param rank the rank of the node
@@ -62,6 +67,12 @@ public class Node {
         this.rank = rank;
     }
 
+    /**
+     * Construct a new {@link Node} with a taxonomic ID, a rank, a scientific name and a list of alternative names.
+     * @param taxId the taxonomic ID of the node
+     * @param rank the rank of the node
+     * @param scientificName the scientific name of the node
+     */
     public Node(int taxId, String rank, String scientificName, ArrayList<String> labels) {
         this(taxId, rank);
         this.scientificName = scientificName;
@@ -69,8 +80,8 @@ public class Node {
     }
 
     /**
-     * Add a child to the node.
-     * @param child the child to add
+     * Add a child to the {@link Node}.
+     * @param child the child {@link Node} to add
      */
     public void addChild(Node child) {
         if (!children.contains(child)) {
@@ -79,11 +90,11 @@ public class Node {
     }
 
     /**
-     * Add a label to the node.
-     * @param label the label to add
+     * Add an alternative name to the List of alternative names.
+     * @param name the name to add
      */
-    public void addLabel(String label) {
-        labels.add(label);
+    public void addLabel(String name) {
+        labels.add(name);
     }
 
     /**
