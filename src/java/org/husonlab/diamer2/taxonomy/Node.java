@@ -1,6 +1,5 @@
 package org.husonlab.diamer2.taxonomy;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -41,9 +40,12 @@ public class Node {
      * @param taxId the taxonomic ID of the node
      * @param parent the parent of the node
      */
-    public Node(int taxId, Node parent) {
+    public Node(int taxId, @Nullable Node parent) {
         this(taxId);
         this.parent = parent;
+        if (parent != null) {
+            parent.addChild(this);
+        }
     }
 
     /**
@@ -51,20 +53,22 @@ public class Node {
      * @param taxId the taxonomic ID of the node
      * @param rank the rank of the node
      */
-    public Node(int taxId, String rank) {
+    public Node(int taxId, @Nullable String rank) {
         this(taxId);
         this.rank = rank;
     }
 
     /**
-     * Construct a new {@link Node} with a taxonomic ID, a parent and a rank.
+     * Construct a new {@link Node} with a taxonomic ID, a parent, a rank and a scientific name.
      * @param taxId the taxonomic ID of the node
      * @param parent the parent of the node
      * @param rank the rank of the node
+     * @param scientificName the scientific name of the node
      */
-    public Node(int taxId, Node parent, String rank) {
+    public Node(int taxId, Node parent, @Nullable String rank, @Nullable String scientificName) {
         this(taxId, parent);
         this.rank = rank;
+        this.scientificName = scientificName;
     }
 
     /**
@@ -73,88 +77,10 @@ public class Node {
      * @param rank the rank of the node
      * @param scientificName the scientific name of the node
      */
-    public Node(int taxId, String rank, String scientificName, ArrayList<String> labels) {
+    public Node(int taxId, String rank, @Nullable String scientificName, ArrayList<String> labels) {
         this(taxId, rank);
         this.scientificName = scientificName;
         this.labels.addAll(labels);
-    }
-
-    /**
-     * Add a child to the {@link Node}.
-     * @param child the child {@link Node} to add
-     */
-    public void addChild(Node child) {
-        if (!children.contains(child)) {
-            children.add(child);
-        }
-    }
-
-    /**
-     * Add an alternative name to the List of alternative names.
-     * @param name the name to add
-     */
-    public void addLabel(String name) {
-        labels.add(name);
-    }
-
-    /**
-     * Set the parent of the node.
-     * @param parent the parent to set
-     */
-    public void setParent(Node parent) {
-        this.parent = parent;
-    }
-
-    public void setWeight(int weight) {
-        this.weight = weight;
-    }
-
-    public void addWeight(int weight) {
-        synchronized (this) {
-            this.weight += weight;
-        }
-    }
-
-    public void addAccumulatedWeight(int weight) {
-        synchronized (this) {
-            this.accumulatedWeight += weight;
-        }
-    }
-
-    public void setAccumulatedWeight(int accumulatedWeight) {
-        this.accumulatedWeight = accumulatedWeight;
-    }
-
-    /**
-     * Set the rank of the node.
-     * @param rank the rank to set
-     */
-    public void setRank(String rank) {
-        this.rank = rank;
-    }
-
-    /**
-     * Set the scientific name of the node.
-     * @param scientificName the scientific name of the node
-     */
-    public void setScientificName(String scientificName) {
-        this.scientificName = scientificName;
-    }
-
-    /**
-     * Get the children of the node.
-     * @return the children of the node
-     */
-    public ArrayList<Node> getChildren() {
-        return children;
-    }
-
-    /**
-     * Get the parent of the node.
-     * @return the parent of the node
-     */
-    public Node getParent() {
-        return parent;
     }
 
     /**
@@ -166,7 +92,40 @@ public class Node {
     }
 
     /**
-     * Get the labels of the node.
+     * Set the scientific name of the node.
+     * <p>
+     *     This name is meant to reflect NCBIs scientific name and should be unique.
+     * </p>
+     * @param scientificName the scientific name of the node
+     */
+    public void setScientificName(@Nullable String scientificName) {
+        this.scientificName = scientificName;
+    }
+
+    /**
+     * Get the scientific name of the node.
+     * <p>This name is meant to reflect NCBIs scientific name and should be unique.</p>
+     * @return the scientific name of the node
+     */
+    @Nullable
+    public String getScientificName() {
+        return scientificName;
+    }
+
+    /**
+     * Add an alternative name to the List of alternative names.
+     * <p>Does not have to be unique.</p>
+     * @param name the name to add
+     */
+    public void addLabel(String name) {
+        if (!labels.contains(name)) {
+            labels.add(name);
+        }
+    }
+
+    /**
+     * Get the labels (alternative names) of the node.
+     * <p>The labels don't have to be unique.</p>
      * @return the labels of the node
      */
     public ArrayList<String> getLabels() {
@@ -174,36 +133,83 @@ public class Node {
     }
 
     /**
+     * Set the rank of the node.
+     * @param rank the rank to set
+     */
+    public void setRank(@Nullable String rank) {
+        this.rank = rank;
+    }
+
+    /**
      * Get the rank of the node.
      * @return the rank of the node
      */
+    @Nullable
     public String getRank() {
         return rank;
     }
 
     /**
-     * Get the scientific name of the node.
-     * @return the scientific name of the node
+     * Set the weight of the node.
+     * <p>Can be used to associate an integer number with the node for any computation.</p>
+     * @param weight the weight to set
      */
-    public String getScientificName() {
-        return scientificName;
+    public void setWeight(int weight) {
+        this.weight = weight;
     }
 
     /**
-     * Get the scientific name or the first label of the node.
-     * @return the label of the node
+     * Add a weight to the node.
+     * @param weight the weight to add
      */
-    public String getLabel() {
-        return scientificName != null ? scientificName :
-                !labels.isEmpty() ? labels.getFirst() : "no label";
+    public void addWeight(int weight) {
+        synchronized (this) {
+            this.weight += weight;
+        }
     }
 
+    /**
+     * Get the weight of the node.
+     * @return the weight of the node
+     */
     public int getWeight() {
         return weight;
     }
 
+    /**
+     * Set the accumulated weight of the node.
+     * <p>Is meant to contain the accumulated weight of all nodes of the subtree rooted at this node</p>
+     * @param accumulatedWeight the accumulated weight to set
+     */
+    public void setAccumulatedWeight(int accumulatedWeight) {
+        this.accumulatedWeight = accumulatedWeight;
+    }
+
+    /**
+     * Add a weight to the accumulated weight of the node.
+     * @param weight the weight to add
+     */
+    public void addAccumulatedWeight(int weight) {
+        synchronized (this) {
+            this.accumulatedWeight += weight;
+        }
+    }
+
+    /**
+     * Get the accumulated weight of the node.
+     * <p>Is meant to contain the accumulated weight of all nodes of the subtree rooted at this node</p>
+     * @return the accumulated weight of the node
+     */
     public int getAccumulatedWeight() {
         return accumulatedWeight;
+    }
+
+    /**
+     * Set the parent of the node.
+     * @param parent the parent to set
+     */
+    public void setParent(@Nullable Node parent) {
+        this.parent = parent;
     }
 
     /**
@@ -214,12 +220,55 @@ public class Node {
         return !(parent == null || parent.equals(this));
     }
 
+    /**
+     * Get the parent of the node.
+     * @return the parent of the node
+     */
+    @Nullable
+    public Node getParent() {
+        return parent;
+    }
+
+    /**
+     * Add a child to the node.
+     * @param child the child node to add
+     */
+    public void addChild(Node child) {
+        if (!children.contains(child)) {
+            children.add(child);
+        }
+    }
+
+    /**
+     * Checks if the node has children.
+     * @return true if the node has children
+     */
     public boolean isLeaf() {
         return children.isEmpty();
     }
 
     /**
-     * Creates a copy of the node without the parent and children.
+     * Get the children of the node.
+     * @return the children of the node
+     */
+    public ArrayList<Node> getChildren() {
+        return children;
+    }
+
+    /**
+     * Creates a copy of the node.
+     * <p>Properties included in the copy:
+     * <ul>
+     *     <li>taxonomic ID</li>
+     *     <li>rank</li>
+     *     <li>scientific name</li>
+     *     <li>labels</li>
+     * </ul></p>
+     * <p>Properties not included:
+     * <ul>
+     *     <li>parent</li>
+     *     <li>children</li>
+     * </ul></p>
      * @return a copy of the node
      */
     public Node copy() {
@@ -235,5 +284,21 @@ public class Node {
                                 !this.labels.isEmpty() ? this.labels.getFirst() : "no labels",
                         this.taxId
                 );
+    }
+
+    /**
+     * Check if two nodes are equal.
+     * <p>Does NOT consider parent and children!</p>
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Node node = (Node) o;
+        return taxId == node.taxId && weight == node.weight && accumulatedWeight == node.accumulatedWeight && Objects.equals(scientificName, node.scientificName) && Objects.equals(labels, node.labels) && Objects.equals(rank, node.rank);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(taxId, scientificName, labels, rank, weight, accumulatedWeight);
     }
 }

@@ -1,7 +1,6 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
-import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
@@ -232,7 +231,7 @@ public class NCBIReader {
                 parent.addChild(node);
             }
         });
-        tree.setRoot();
+        tree.autoFindRoot();
     }
 
     public static ArrayList<String> extractIdsFromHeader(String header) {

@@ -9,6 +9,8 @@ import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.*;
 
+import static org.husonlab.diamer2.io.taxonomy.TreeIO.getAccumulatedeWeightPerRank;
+
 public class ReadAssignment {
 
     private final Logger logger;
@@ -82,10 +84,10 @@ public class ReadAssignment {
         tree.resetWeights();
         tree.addWeights(kmerMatches);
         logger.logInfo("Accumulating kmer counts ...");
-        tree.setRoot();
-        tree.accumulateWeights(tree.getRoot());
+        tree.autoFindRoot();
+        tree.accumulateWeights();
         logger.logInfo("Calculating kumulative kmer matches per rank ...");
-        return tree.getAccumulatedeWeightPerRank(10);
+        return getAccumulatedeWeightPerRank(tree, 10);
     }
 
     private AssignmentStatistics.PerAlgorithmStatistics[] calculateReadStatistics() {
@@ -107,13 +109,13 @@ public class ReadAssignment {
                     tree.addWeight(assignment, 1);
                 }
             }
-            tree.setRoot();
-            tree.accumulateWeights(tree.getRoot());
+            tree.autoFindRoot();
+            tree.accumulateWeights();
             perAlgorithmStatistics[i] = new AssignmentStatistics.PerAlgorithmStatistics(
                     assignmentAlgorithm.getName(),
                     assignedReads,
                     unassignedReads,
-                    tree.getAccumulatedeWeightPerRank(1)
+                    getAccumulatedeWeightPerRank(tree, 1)
             );
         }
         return perAlgorithmStatistics;

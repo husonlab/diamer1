@@ -1,5 +1,7 @@
 package org.husonlab.diamer2.seq;
 
+import java.util.HashMap;
+
 /**
  * Represents a sequence with a header and a sequence string.
  */

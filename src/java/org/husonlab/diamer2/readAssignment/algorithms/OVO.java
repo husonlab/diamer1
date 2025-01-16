@@ -20,7 +20,7 @@ public class OVO extends AssignmentAlgorithm {
             return -1;
         }
         Tree subTree = tree.getWeightedSubTree(kmerMatches);
-        subTree.accumulateWeights(subTree.getRoot());
+        subTree.accumulateWeights();
         return OVORecursive(subTree.getRoot(), ratio);
     }
 
