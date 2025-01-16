@@ -1,6 +1,6 @@
-import org.husonlab.diamer2.seq.KmerExtractor;
-import org.husonlab.diamer2.seq.KmerExtractorDNA;
-import org.husonlab.diamer2.seq.KmerExtractorProtein;
+import org.husonlab.diamer2.seq.kmers.KmerExtractor;
+import org.husonlab.diamer2.seq.kmers.KmerExtractorDNA;
+import org.husonlab.diamer2.seq.kmers.KmerExtractorProtein;
 import org.husonlab.diamer2.seq.alphabet.*;
 import org.junit.Test;
 

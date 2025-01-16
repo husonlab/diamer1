@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.io.seq;
 
-import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.SequenceRecord;
 
 import java.io.*;
 
@@ -11,14 +11,14 @@ public class FASTQReader extends SequenceReader {
     }
 
     @Override
-    public Sequence next() throws IOException {
+    public SequenceRecord next() throws IOException {
         if (line != null && line.startsWith("@")) {
             header = line;
             sequence = new StringBuilder(br.readLine());
             br.readLine();
             br.readLine();
             line = br.readLine();
-            return new Sequence(header, sequence.toString());
+            return SequenceRecord.DNA(header, sequence.toString());
         } else {
             while ((line = br.readLine()) != null) {
                 if (line.startsWith("@")) {

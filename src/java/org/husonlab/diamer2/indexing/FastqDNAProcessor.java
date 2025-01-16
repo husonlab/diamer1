@@ -1,8 +1,8 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.seq.KmerExtractor;
-import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.seq.KmerExtractorDNA;
+import org.husonlab.diamer2.seq.kmers.KmerExtractor;
+import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.kmers.KmerExtractorDNA;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -11,7 +11,7 @@ import java.util.concurrent.Phaser;
 public class FastqDNAProcessor implements Runnable {
 
     private final Phaser phaser;
-    private final Sequence[] batch;
+    private final SequenceRecord[] batch;
     private final KmerExtractor KmerExtractor;
     private final ConcurrentLinkedQueue<Long>[] bucketLists;
     private final int rangeStart;
@@ -20,7 +20,7 @@ public class FastqDNAProcessor implements Runnable {
 
     public FastqDNAProcessor(
             Phaser phaser,
-            Sequence[] batch,
+            SequenceRecord[] batch,
             long mask,
             ReducedProteinAlphabet alphabet,
             ConcurrentLinkedQueue<Long>[] bucketLists,
@@ -39,11 +39,11 @@ public class FastqDNAProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (Sequence fastq : batch) {
+            for (SequenceRecord fastq : batch) {
                 if (fastq == null || fastq.getSequence().length() < (15*3)) {
                     continue;
                 }
-                String sequence = fastq.getSequence();
+                String sequence = fastq.getSequenceString();
                 long[] kmers = KmerExtractor.extractKmers(sequence);
                 for (long kmer : kmers) {
                     int bucketName = IndexEncoding.getBucketName(kmer);

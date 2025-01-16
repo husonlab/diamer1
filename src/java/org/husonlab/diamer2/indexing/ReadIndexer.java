@@ -3,7 +3,7 @@ package org.husonlab.diamer2.indexing;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.Message;
@@ -90,9 +90,9 @@ public class ReadIndexer {
                 }
 
                 progressBar.setProgress(0);
-                Sequence[] batch = new Sequence[BATCH_SIZE];
+                SequenceRecord[] batch = new SequenceRecord[BATCH_SIZE];
                 int batchPosition = 0;
-                Sequence seq;
+                SequenceRecord seq;
                 while ((seq = sup.next()) != null) {
                     if (i == 0) {
                         readHeaderMap.put(readId, seq.getHeader());
@@ -113,7 +113,7 @@ public class ReadIndexer {
                                         rangeEnd,
                                         readId - BATCH_SIZE)
                         );
-                        batch = new Sequence[BATCH_SIZE];
+                        batch = new SequenceRecord[BATCH_SIZE];
                         batchPosition = 0;
                     } else {
                         batchPosition++;

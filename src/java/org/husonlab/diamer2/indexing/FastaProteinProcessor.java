@@ -1,17 +1,17 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.seq.KmerExtractor;
-import org.husonlab.diamer2.seq.KmerExtractorProtein;
+import org.husonlab.diamer2.seq.kmers.KmerExtractor;
+import org.husonlab.diamer2.seq.kmers.KmerExtractorProtein;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
-import org.husonlab.diamer2.seq.Sequence;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Phaser;
 
 public class FastaProteinProcessor implements Runnable {
     private final Phaser phaser;
-    private final Sequence[] sequences;
+    private final SequenceRecord[] sequenceRecords;
     private final KmerExtractor kmerExtractor;
     private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
     private final Tree tree;
@@ -20,13 +20,13 @@ public class FastaProteinProcessor implements Runnable {
 
     /**
      * Processes a batch of Sequence sequences and adds the kmers to the corresponding bucket maps.
-     * @param sequences Array of Sequence sequences to process.
+     * @param sequenceRecords Array of Sequence sequences to process.
      * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
      * @param tree Tree to find the LCA of two taxIds.
      */
-    public FastaProteinProcessor(Phaser phaser, Sequence[] sequences, long mask, ReducedProteinAlphabet alphabet, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
+    public FastaProteinProcessor(Phaser phaser, SequenceRecord[] sequenceRecords, long mask, ReducedProteinAlphabet alphabet, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
         this.phaser = phaser;
-        this.sequences = sequences;
+        this.sequenceRecords = sequenceRecords;
         this.kmerExtractor = new KmerExtractorProtein(mask, alphabet);
         this.bucketMaps = bucketMaps;
         this.tree = tree;
@@ -37,11 +37,11 @@ public class FastaProteinProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (Sequence fasta : sequences) {
-                if (fasta == null || fasta.getSequence().isEmpty() || fasta.getSequence().length() < kmerExtractor.getK()) {
+            for (SequenceRecord fasta : sequenceRecords) {
+                if (fasta == null || fasta.getSequence().length() < kmerExtractor.getK()) {
                     continue;
                 }
-                String sequence = fasta.getSequence();
+                String sequence = fasta.getSequenceString();
                 int taxId = Integer.parseInt(fasta.getHeader().substring(1).split(" ")[0]);
                 long[] kmers = kmerExtractor.extractKmers(sequence);
                 for (long kmerEnc : kmers) {

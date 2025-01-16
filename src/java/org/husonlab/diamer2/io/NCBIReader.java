@@ -2,7 +2,7 @@ package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
@@ -39,7 +39,7 @@ public class NCBIReader {
 
         Logger logger = new Logger("NCBIReader").addElement(new Time());
 
-        logger.logInfo("Estimating number of sequences in database...");
+        logger.logInfo("Estimating number of sequenceRecords in database...");
         int numberOfSequencesEst = org.husonlab.diamer2.io.Utilities.approximateNumberOfSequences(fasta, "\n>");
         HashSet<String> neededAccessions = new HashSet<>(numberOfSequencesEst);
         logger.logInfo("Extracting accessions from database...");
@@ -51,7 +51,7 @@ public class NCBIReader {
                     .addElement(new RunningTime())
                     .addElement(progressBar);
 
-            Sequence seq;
+            SequenceRecord seq;
             while ((seq = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
                 neededAccessions.addAll(extractIdsFromHeader(seq.getHeader()));
@@ -62,8 +62,8 @@ public class NCBIReader {
     }
 
     /**
-     * Preprocesses the NR database to have only the taxid of the LCA in the headers of the sequences.
-     * Skips sequences that can not be found in the taxonomy.
+     * Preprocesses the NR database to have only the taxid of the LCA in the headers of the sequenceRecords.
+     * Skips sequenceRecords that can not be found in the taxonomy.
      * Handles non-amino acid characters.
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
@@ -80,7 +80,7 @@ public class NCBIReader {
         int skippedNoTaxId = 0;
         int skippedRank = 0;
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        Sequence fasta;
+        SequenceRecord fasta;
 
         try (SequenceSupplier sup = sequenceSupplier.open();
              BufferedWriter bw = Files.newBufferedWriter(output.toPath());
@@ -117,7 +117,7 @@ public class NCBIReader {
                     skippedNoTaxId++;
                     bwSkipped.write(header + " (Accession(s) not found in mapping)");
                     bwSkipped.newLine();
-                    bwSkipped.write(fasta.getSequence());
+                    bwSkipped.write(fasta.getSequenceString());
                     bwSkipped.newLine();
                     continue;
                 }
@@ -125,7 +125,7 @@ public class NCBIReader {
                     skippedNoTaxId++;
                     bwSkipped.write(header + " (taxId not found in taxonomy %d)".formatted(taxId));
                     bwSkipped.newLine();
-                    bwSkipped.write(fasta.getSequence());
+                    bwSkipped.write(fasta.getSequenceString());
                     bwSkipped.newLine();
                     continue;
                 }
@@ -136,23 +136,23 @@ public class NCBIReader {
                     skippedRank++;
                     bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
                     bwSkipped.newLine();
-                    bwSkipped.write(fasta.getSequence());
+                    bwSkipped.write(fasta.getSequenceString());
                     bwSkipped.newLine();
                     continue;
                 }
                 header = ">%d".formatted(taxId);
 
                 // Split the sequence by stop codons
-                ArrayList<Sequence> fastas = new ArrayList<>();
-                for (String sequence : fasta.getSequence().split("\\*")) {
-                    fastas.add(new Sequence(header, Utilities.enforceAlphabet(sequence)));
+                ArrayList<SequenceRecord> fastas = new ArrayList<>();
+                for (String sequence : fasta.getSequenceString().split("\\*")) {
+                    fastas.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
                 }
 
-                // Write the sequences to the output file
-                for (Sequence fasta2 : fastas) {
+                // Write the sequenceRecords to the output file
+                for (SequenceRecord fasta2 : fastas) {
                     bw.write(fasta2.getHeader());
                     bw.newLine();
-                    bw.write(fasta2.getSequence());
+                    bw.write(fasta2.getSequenceString());
                     bw.newLine();
                 }
             }
@@ -162,10 +162,10 @@ public class NCBIReader {
                 \tdate \t %s
                 \tinput file \t %s
                 \toutput file \t %s
-                \tprocessed sequences \t %d
-                \tkept sequences \t %d
-                \tskipped sequences without accession \t %d
-                \tskipped sequences with rank too high (%s) \t %d
+                \tprocessed sequenceRecords \t %d
+                \tkept sequenceRecords \t %d
+                \tskipped sequenceRecords without accession \t %d
+                \tskipped sequenceRecords with rank too high (%s) \t %d
                 """.formatted(
                 java.time.LocalDateTime.now(),
                 sequenceSupplier.getFile(),

@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.seq;
+package org.husonlab.diamer2.seq.kmers;
 
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 

@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.io.seq;
 
-import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.util.Pair;
 
 import java.io.File;
@@ -11,11 +11,11 @@ import java.util.LinkedList;
 import java.util.Objects;
 
 public class SequenceSupplier implements AutoCloseable {
-    private final LinkedList<Pair<Long, Sequence>> sequences;
+    private final LinkedList<Pair<Long, SequenceRecord>> sequences;
     private final SequenceReader sequenceReader;
     private final boolean keepInMemory;
     private boolean finishedReading;
-    private Iterator<Pair<Long, Sequence>> sequenceIterator;
+    private Iterator<Pair<Long, SequenceRecord>> sequenceIterator;
     private long bytesRead;
 
     public SequenceSupplier(SequenceReader sequenceReader, boolean keepInMemory) {
@@ -26,41 +26,41 @@ public class SequenceSupplier implements AutoCloseable {
         this.bytesRead = 0;
     }
 
-    public Sequence next() throws IOException {
+    public SequenceRecord next() throws IOException {
         if (keepInMemory) {
             if (!Objects.isNull(sequenceIterator)) {
                 if (sequenceIterator.hasNext()) {
-                    Pair<Long, Sequence> next = sequenceIterator.next();
+                    Pair<Long, SequenceRecord> next = sequenceIterator.next();
                     bytesRead = next.first();
                     return next.last();
                 }
                 bytesRead = sequenceReader.getBytesRead();
                 return null;
             }
-            Sequence sequence = sequenceReader.next();
-            if (!Objects.isNull(sequence)) {
-                sequences.add(new Pair<>(sequenceReader.getBytesRead(), sequence));
+            SequenceRecord sequenceRecord = sequenceReader.next();
+            if (!Objects.isNull(sequenceRecord)) {
+                sequences.add(new Pair<>(sequenceReader.getBytesRead(), sequenceRecord));
             } else {
                 finishedReading = true;
             }
             bytesRead = sequenceReader.getBytesRead();
-            return sequence;
+            return sequenceRecord;
         }
-        Sequence sequence = sequenceReader.next();
+        SequenceRecord sequenceRecord = sequenceReader.next();
         bytesRead = sequenceReader.getBytesRead();
-        return sequence;
+        return sequenceRecord;
     }
 
-    public ArrayList<Sequence> next(int n) throws IOException {
-        ArrayList<Sequence> sequences = new ArrayList<>();
+    public ArrayList<SequenceRecord> next(int n) throws IOException {
+        ArrayList<SequenceRecord> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            Sequence sequence = next();
-            if (Objects.isNull(sequence)) {
+            SequenceRecord sequenceRecord = next();
+            if (Objects.isNull(sequenceRecord)) {
                 break;
             }
-            sequences.add(sequence);
+            sequenceRecords.add(sequenceRecord);
         }
-        return sequences;
+        return sequenceRecords;
     }
 
     public void reset() throws IOException {

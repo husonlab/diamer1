@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.io.CountingInputStream;
-import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.SequenceRecord;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -26,18 +26,18 @@ public abstract class SequenceReader implements AutoCloseable {
         open();
     }
 
-    public abstract Sequence next() throws IOException;
+    public abstract SequenceRecord next() throws IOException;
 
-    public ArrayList<Sequence> next(int n) throws IOException {
-        ArrayList<Sequence> sequences = new ArrayList<>();
+    public ArrayList<SequenceRecord> next(int n) throws IOException {
+        ArrayList<SequenceRecord> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            Sequence seq = next();
+            SequenceRecord seq = next();
             if (seq == null) {
                 break;
             }
-            sequences.add(seq);
+            sequenceRecords.add(seq);
         }
-        return sequences;
+        return sequenceRecords;
     }
 
     @Override

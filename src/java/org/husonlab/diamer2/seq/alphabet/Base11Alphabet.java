@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Base11Alphabet implements ReducedProteinAlphabet {
+
     private static final int base = 11;
 
     @Override
@@ -157,5 +158,29 @@ public class Base11Alphabet implements ReducedProteinAlphabet {
             case "ATC", "ATT", "CTA", "CTC", "CTG", "CTT", "GTC", "GTT", "TTA", "TTG" -> { return new short[]{(short)2, (short)0}; }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);
         }
+    }
+
+    @Override
+    public boolean contains(Short symbol) {
+        return symbol >= 0 && symbol <= 10;
+    }
+
+    @Override
+    public Short[] getSymbols() {
+        return new Short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    }
+
+    @Override
+    public String getName() {
+        return "Base 11 Alphabet";
+    }
+
+    @Override
+    public String toString(Iterable<Short> seq) {
+        StringBuilder sb = new StringBuilder();
+        for (Short symbol : seq) {
+            sb.append(symbol).append(" ");
+        }
+        return sb.toString();
     }
 }

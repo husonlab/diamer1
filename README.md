@@ -3,12 +3,12 @@
 * Added support for the megan mapping file
   * pro: almost no memory required
   * con: takes much more time (~24 h)
-  * con: Only find taxids for about 50% of the nr sequences in there
+  * con: Only find taxids for about 50% of the nr sequenceRecords in there
 * Added OVO algorithm from Julias master thesis
 
 * Changed the way how to extract kmers
   1. reading over file multiple times
-  2. options to keep sequences in memory
+  2. options to keep sequenceRecords in memory
   3. keep kmers (feasible?) or 20 letter encoding in memory to safe time
 
 # Future:
@@ -96,7 +96,7 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 # TODO
 * batch requests for megan mapping file
 * Abstract bucket encoding so that it can be changed by supplying another class
-* Use higher level than sequence to store sequences in memory for all but the first run to save computation
+* Use higher level than sequenceRecord to store sequenceRecords in memory for all but the first run to save computation
 * Bloom filter for usefull kmers
 * Keep nr in memory during indexing
   * maybe in a compressed form (11 letter binary?)
@@ -141,13 +141,13 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * 100x reduced version of the GTDB dataset.
 * every 100th fasta file was skipped during extraction.
 * contains 1,131 fasta files.
-  * 3,235,289 sequences
+  * 3,235,289 sequenceRecords
   * 980,063,546 15-mers
   * ~ 7.5 GB when stored in longs
   * 22,855,959
 
 # NCBI dataset:
-* nr.fsa: 812,194,751 sequences
+* nr.fsa: 812,194,751 sequenceRecords
 * nodes.dmp: 2,613,902 taxon ids in taxonomy
 * prot.accession2taxid: 1,381,601,160 entries
   * almost all taxids also occur in the taxonomy
@@ -159,11 +159,11 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * 4,642,104 lines: 1,160,526 readAssignment
 
 # Bash commands
-## Extracting n sequences from a fasta file
+## Extracting n sequenceRecords from a fasta file
 ````shell
 awk '/^>/ {n++} n>1000 {exit} {print}' input.fasta > output.fasta
 ````
-## Extracting every nth sequence
+## Extracting every nth sequenceRecord
 ````shell
 awk 'BEGIN {n=0} /^>/ {n++; if (n % 100 == 0) {p=1} else {p=0}} p' input.fasta > output.fasta
 ````
@@ -184,7 +184,7 @@ zip -r output.zip input/
   * Extracted 812,194,751 accession ids.
 * Reducing the accessions by 100 with the [Reduce100](src/java/org/husonlab/diamer2/reduceDatasets/Reduce100.java) script.
   * 8,121,948 accessions remaining.
-* Extracted the sequences that belong to the reduced accessions from the nr.fsa flie -> nr100.fsa with the [ExtractByAccession](src/java/org/husonlab/diamer2/reduceDatasets/ExtractByAccession.java) script.
+* Extracted the sequenceRecords that belong to the reduced accessions from the nr.fsa flie -> nr100.fsa with the [ExtractByAccession](src/java/org/husonlab/diamer2/reduceDatasets/ExtractByAccession.java) script.
 * Extracted the taxon ids that belong to the reduced accessions from the prot.accession2taxid.gz file -> prot.accession2taxid100.gz with the [ReduceAccession2Taxid](src/java/org/husonlab/diamer2/reduceDatasets/ReduceAccession2Taxid.java) script.
 
 
@@ -227,7 +227,7 @@ zip -r output.zip input/
 
 # Benchmarking
 ## kmer - taxon rank mapping
-* Used the annotated nr_taxid.fsa file (~ 486 million sequences)
+* Used the annotated nr_taxid.fsa file (~ 486 million sequenceRecords)
 
 ````
 [Indexer] Size of bucket 0: 10964242
