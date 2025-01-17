@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.seq.converter;
+package org.husonlab.diamer2.seq.alphabet.converter;
 
 import org.husonlab.diamer2.seq.Sequence;
 

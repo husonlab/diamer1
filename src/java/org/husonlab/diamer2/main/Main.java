@@ -219,42 +219,42 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-        } else if (cli.hasOption("indexdb")) {
-            if (!cli.hasOption("no") || !cli.hasOption("na") || !cli.hasOption("d")) {
-                System.err.println("Missing NCBI nodes and names files for indexing database task.");
-                System.exit(1);
-            }
-            System.out.println("Indexing database");
-            try {
-                int bucketsPerCycle = cli.getParsedOptionValue("b");
-                File nodes = cli.getParsedOptionValue("no");
-                File names = cli.getParsedOptionValue("na");
-                File database = cli.getParsedOptionValue("d");
-                Path output = cli.getParsedOptionValue("o");
-
-                if (!nodes.exists() || !names.exists() || !database.exists()) {
-                    System.err.println("One or more required files do not exist.");
-                    System.exit(1);
-                }
-                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                DBIndexer dbIndexer = new DBIndexer(database, output, tree, mask, new Base11Alphabet(), maxThreads, 1000, 10000, bucketsPerCycle, false);
-                dbIndexer.index();
-            } catch (ParseException | NullPointerException | IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        } else if (cli.hasOption("indexreads")) {
-            System.out.println("Indexing reads");
-            try {
-                int bucketsPerCycle = cli.getParsedOptionValue("b");
-                File reads = cli.getParsedOptionValue("d");
-                Path output = cli.getParsedOptionValue("o");
-                ReadIndexer readIndexer = new ReadIndexer(reads, output, mask, new Base11Alphabet(), maxThreads, 1000, 100, bucketsPerCycle);
-                readIndexer.index();
-            } catch (ParseException | NullPointerException | IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+//        } else if (cli.hasOption("indexdb")) {
+//            if (!cli.hasOption("no") || !cli.hasOption("na") || !cli.hasOption("d")) {
+//                System.err.println("Missing NCBI nodes and names files for indexing database task.");
+//                System.exit(1);
+//            }
+//            System.out.println("Indexing database");
+//            try {
+//                int bucketsPerCycle = cli.getParsedOptionValue("b");
+//                File nodes = cli.getParsedOptionValue("no");
+//                File names = cli.getParsedOptionValue("na");
+//                File database = cli.getParsedOptionValue("d");
+//                Path output = cli.getParsedOptionValue("o");
+//
+//                if (!nodes.exists() || !names.exists() || !database.exists()) {
+//                    System.err.println("One or more required files do not exist.");
+//                    System.exit(1);
+//                }
+//                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+//                DBIndexer dbIndexer = new DBIndexer(database, output, tree, mask, new Base11Alphabet(), maxThreads, 1000, 10000, bucketsPerCycle, false);
+//                dbIndexer.index();
+//            } catch (ParseException | NullPointerException | IOException e) {
+//                e.printStackTrace();
+//                System.exit(1);
+//            }
+//        } else if (cli.hasOption("indexreads")) {
+//            System.out.println("Indexing reads");
+//            try {
+//                int bucketsPerCycle = cli.getParsedOptionValue("b");
+//                File reads = cli.getParsedOptionValue("d");
+//                Path output = cli.getParsedOptionValue("o");
+//                ReadIndexer readIndexer = new ReadIndexer(reads, output, mask, new Base11Alphabet(), maxThreads, 1000, 100, bucketsPerCycle);
+//                readIndexer.index();
+//            } catch (ParseException | NullPointerException | IOException e) {
+//                e.printStackTrace();
+//                System.exit(1);
+//            }
         } else if (cli.hasOption("assignreads")) {
             System.out.println("Assigning reads");
             try {
