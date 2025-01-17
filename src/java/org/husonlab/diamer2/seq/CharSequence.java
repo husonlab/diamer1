@@ -5,14 +5,28 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
+/**
+ * Class to represent a sequence of characters.
+ * <p>Can be used to represent {@link Sequence}s in the DNA or the amino acid {@link Alphabet}.</p>
+ */
 public class CharSequence extends Sequence<Character> {
     private final char[] sequence;
 
+    /**
+     * Creates a new {@link CharSequence} with the given {@link Alphabet} and a char array.
+     * @param alphabet The {@link Alphabet} of the sequence
+     * @param sequence The sequence as a char array
+     */
     public CharSequence(Alphabet<Character> alphabet, char[] sequence) {
         super(alphabet);
         this.sequence = sequence;
     }
 
+    /**
+     * Creates a new {@link CharSequence} with the given {@link Alphabet} and a {@link String}.
+     * @param alphabet The {@link Alphabet} of the sequence
+     * @param sequence The sequence as a {@link String}
+     */
     public CharSequence(Alphabet<Character> alphabet, String sequence) {
         super(alphabet);
         this.sequence = sequence.toCharArray();

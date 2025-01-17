@@ -8,12 +8,13 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Iterator;
 
 /**
- * Represents a sequence with a header and a sequence string.
+ * Represents a sequence of symbols of type T.
+ * <p>The symbol type of the {@link Alphabet} that is associated with the {@link Sequence} must match with {@link T}</p>
  */
 public class SequenceRecord<T> implements Iterable<T> {
 
-    private String header;
-    private Sequence<T> sequence;
+    private final String header;
+    private final Sequence<T> sequence;
 
     /**
      * Create a new Sequence object.
@@ -49,6 +50,10 @@ public class SequenceRecord<T> implements Iterable<T> {
         return sequence.getAlphabet();
     }
 
+    /**
+     * Get a string representation of the sequence.
+     * @return a string representation of the sequence
+     */
     public String getSequenceString() {
         return sequence.toString();
     }
@@ -71,10 +76,22 @@ public class SequenceRecord<T> implements Iterable<T> {
         return sequence.iterator();
     }
 
+    /**
+     * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetDNA}.
+     * @param header the header of the sequence
+     * @param sequence the sequence
+     * @return a new DNA SequenceRecord object
+     */
     public static SequenceRecord<Character> DNA(String header, String sequence) {
         return new SequenceRecord<>(header, new CharSequence(new AlphabetDNA(), sequence));
     }
 
+    /**
+     * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetAA}.
+     * @param header the header of the sequence
+     * @param sequence the sequence
+     * @return a new AA SequenceRecord object
+     */
     public static SequenceRecord<Character> AA(String header, String sequence) {
         return new SequenceRecord<>(header, new CharSequence(new AlphabetAA(), sequence));
     }

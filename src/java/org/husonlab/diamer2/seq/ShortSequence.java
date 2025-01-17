@@ -5,6 +5,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
+/**
+ * Represents a {@link Sequence} of shorts. Used for reduced alphabets.
+ */
 public class ShortSequence extends Sequence<Short> {
 
     private final short[] sequence;

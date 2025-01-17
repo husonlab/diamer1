@@ -17,7 +17,7 @@
 * Set up benchmarking framework to test different assignment algorithms 
 
 # Next time:
-* improve db preprocessor to only store needed accession mappings and reduce memory consumption.
+* Document Alphabet, Sequence, ... classes
 
 # Process:
 ## 1. Annotating nr database with taxon ids
