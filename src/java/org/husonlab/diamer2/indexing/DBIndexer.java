@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
-import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.seq.SequenceSupplierOld;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
@@ -68,7 +68,7 @@ public class DBIndexer {
 
         Phaser indexPhaser = new Phaser(1);
 
-        try (SequenceSupplier sup = SequenceSupplier.getFastaSupplier(fastaFile, true)) {
+        try (SequenceSupplierOld sup = SequenceSupplierOld.getFastaSupplier(fastaFile, true)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("sequences");

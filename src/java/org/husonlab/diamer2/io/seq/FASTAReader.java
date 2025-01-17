@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.io.seq;
 
+import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.seq.SequenceRecord;
 
 import java.io.*;
@@ -11,7 +12,7 @@ public class FASTAReader extends SequenceReader {
     }
 
     @Override
-    public SequenceRecord next() throws IOException {
+    public SequenceRecord<Character> next() throws IOException {
         if (line != null && line.startsWith(">")) {
             header = line;
             sequence = new StringBuilder();
@@ -32,5 +33,10 @@ public class FASTAReader extends SequenceReader {
             }
             return null;
         }
+    }
+
+    @Override
+    public int approximateNumberOfSequences() {
+        return Utilities.approximateNumberOfSequences(file, "\n>");
     }
 }

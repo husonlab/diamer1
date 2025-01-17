@@ -12,8 +12,7 @@
   3. keep kmers (feasible?) or 20 letter encoding in memory to safe time
 
 # Future:
-* 
-* bunch of refactoring and debugging
+* Refactor SequenceSupplier
 * Set up benchmarking framework to test different assignment algorithms 
 
 # Next time:

@@ -1,17 +1,14 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.indexing.DBIndexer;
-import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
-import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.seq.SequenceSupplierOld;
 import org.husonlab.diamer2.readAssignment.AssignmentStatistics;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.taxonomy.Tree;
@@ -207,7 +204,7 @@ public class Main {
                 String mappings = cli.getOptionValue("mappings");
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 AccessionMapping accessionMapping;
-                Pair<HashSet<String>, SequenceSupplier> result = NCBIReader.extractNeededAccessions(database);
+                Pair<HashSet<String>, SequenceSupplierOld> result = NCBIReader.extractNeededAccessions(database);
                 if (mappings.contains(",")) {
                     ArrayList<NCBIMapping.NCBIMappingFile> accessionMappings = getNcbiMappingFiles(mappings);
                     accessionMapping = new NCBIMapping(accessionMappings.toArray(new NCBIMapping.NCBIMappingFile[0]), tree, result.first());

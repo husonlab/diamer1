@@ -26,12 +26,12 @@ public abstract class SequenceReader implements AutoCloseable {
         open();
     }
 
-    public abstract SequenceRecord next() throws IOException;
+    public abstract SequenceRecord<Character> next() throws IOException;
 
-    public ArrayList<SequenceRecord> next(int n) throws IOException {
-        ArrayList<SequenceRecord> sequenceRecords = new ArrayList<>();
+    public ArrayList<SequenceRecord<Character>> next(int n) throws IOException {
+        ArrayList<SequenceRecord<Character>> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            SequenceRecord seq = next();
+            SequenceRecord<Character> seq = next();
             if (seq == null) {
                 break;
             }
@@ -40,12 +40,7 @@ public abstract class SequenceReader implements AutoCloseable {
         return sequenceRecords;
     }
 
-    @Override
-    public void close() throws IOException {
-        br.close();
-    }
-
-    public SequenceReader open() {
+    public void open() {
         try {
             this.cis = new CountingInputStream(new FileInputStream(file));
             if (file.getName().endsWith(".gz")) {
@@ -62,7 +57,6 @@ public abstract class SequenceReader implements AutoCloseable {
         } catch (IOException e) {
             throw new RuntimeException("Could not read from sequence file: " + file.getAbsolutePath());
         }
-        return this;
     }
 
     public long getFileSize() {
@@ -73,7 +67,14 @@ public abstract class SequenceReader implements AutoCloseable {
         return cis.getBytesRead();
     }
 
+    public abstract int approximateNumberOfSequences();
+
     public File getFile() {
         return file;
+    }
+
+    @Override
+    public void close() throws IOException {
+        br.close();
     }
 }
