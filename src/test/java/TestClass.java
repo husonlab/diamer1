@@ -1,4 +1,8 @@
 import org.husonlab.diamer2.io.Utilities;
+import org.husonlab.diamer2.io.seq.FASTAReader;
+import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.junit.Test;
 
 import java.io.File;
@@ -8,7 +12,17 @@ public class TestClass {
 
     @Test
     public void test() throws IOException {
-        int test = Utilities.approximateNumberOfSequences(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100.fsa"), "\n>");
-        System.out.println(test);
+        try (SequenceSupplier<Short> supplier = new SequenceSupplier<>(
+                new FASTAReader(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\small.fsa")),
+                new AAtoBase11(), true)) {
+            SequenceRecord<Short> record;
+            while ((record = supplier.next()) != null) {
+                System.out.println(record.getHeader());
+            }
+            supplier.next();
+            supplier.reset();
+            supplier.next();
+            System.out.println();
+        }
     }
 }

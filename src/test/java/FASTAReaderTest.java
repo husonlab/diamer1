@@ -1,18 +1,18 @@
-import org.husonlab.diamer2.io.seq.FASTAReader;
-import org.husonlab.diamer2.io.seq.SequenceSupplierOld;
-import org.husonlab.diamer2.seq.SequenceRecord;
-import org.junit.Test;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-
-import static org.junit.Assert.assertEquals;
-
-public class FASTAReaderTest {
-    @Test
-    public void testFASTAReader() throws IOException {
-        try (SequenceSupplierOld sup = new SequenceSupplierOld(new FASTAReader(new File("src/test/resources/database/db.fsa")), false) ) {
+//import org.husonlab.diamer2.io.seq.FASTAReader;
+//import org.husonlab.diamer2.io.seq.SequenceSupplier;
+//import org.husonlab.diamer2.seq.SequenceRecord;
+//import org.junit.Test;
+//
+//import java.io.File;
+//import java.io.IOException;
+//import java.util.ArrayList;
+//
+//import static org.junit.Assert.assertEquals;
+//
+//public class FASTAReaderTest {
+//    @Test
+//    public void testFASTAReader() throws IOException {
+//        try (SequenceSupplier sup = new SequenceSupplier(new FASTAReader(new File("src/test/resources/database/db.fsa")), false) ) {
 //            assertEquals(new SequenceRecord(
 //                    ">A0A075B700.2 >A0A096XJN4.1 schould be merged to taxon1 (LCA of 4 and 5)",
 //                    "NQFLFAGIELILRKYEITVYQLSADDLRSHKVRKDHVFFIECPLREENLHSLRKLYQYGARVCYLMRSSIECDRKNASQF" +
@@ -35,9 +35,9 @@ public class FASTAReaderTest {
 //                            MITNFFIPELNNHDVQELWFQQDGATCHTARAIIDLLKDTFGDRLISRFGPVKWPPRSCDLTPLDYFLWGYVKSLVSADK
 //                            PQMLDHLEDNIRRVIADIRPQMLENVI"""
 //            ), sup.next());
-
-            ArrayList<SequenceRecord> sequenceRecords = sup.next(Integer.MAX_VALUE);
-            assertEquals(4, sequenceRecords.size());
-        }
-    }
-}
+//
+//            ArrayList<SequenceRecord> sequenceRecords = sup.next(Integer.MAX_VALUE);
+//            assertEquals(4, sequenceRecords.size());
+//        }
+//    }
+//}

@@ -1,9 +1,11 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
-import org.husonlab.diamer2.io.seq.SequenceSupplierOld;
+import org.husonlab.diamer2.io.seq.FASTAReader;
+import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
+import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 import org.jetbrains.annotations.NotNull;
@@ -35,7 +37,7 @@ public class NCBIReader {
         return tree;
     }
 
-    public static Pair<HashSet<String>, SequenceSupplierOld> extractNeededAccessions(File fasta) throws IOException {
+    public static Pair<HashSet<String>, SequenceSupplier> extractNeededAccessions(File fasta) throws IOException {
 
         Logger logger = new Logger("NCBIReader").addElement(new Time());
 
@@ -43,22 +45,22 @@ public class NCBIReader {
         int numberOfSequencesEst = org.husonlab.diamer2.io.Utilities.approximateNumberOfSequences(fasta, "\n>");
         HashSet<String> neededAccessions = new HashSet<>(numberOfSequencesEst);
         logger.logInfo("Extracting accessions from database...");
-        SequenceSupplierOld sequenceSupplierOld;
-        try(SequenceSupplierOld sup = SequenceSupplierOld.getFastaSupplier(fasta, true)) {
-            sequenceSupplierOld = sup;
+        SequenceSupplier<Short> sequenceSupplier;
+        try(SequenceSupplier<Short> sup = new SequenceSupplier<Short>(new FASTAReader(fasta), new AAtoBase11(), false)) {
+            sequenceSupplier = sup;
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             new OneLineLogger("NCBIReader", 1000)
                     .addElement(new RunningTime())
                     .addElement(progressBar);
 
-            SequenceRecord seq;
+            SequenceRecord<Short> seq;
             while ((seq = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
                 neededAccessions.addAll(extractIdsFromHeader(seq.getHeader()));
             }
             progressBar.finish();
         }
-        return new Pair<>(neededAccessions, sequenceSupplierOld);
+        return new Pair<>(neededAccessions, sequenceSupplier);
     }
 
     /**
@@ -68,7 +70,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(File output, Tree tree, AccessionMapping accessionMapping, SequenceSupplierOld sequenceSupplierOld) throws IOException {
+    public static void preprocessNR(File output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier sequenceSupplier) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -82,7 +84,7 @@ public class NCBIReader {
         HashMap<String, Integer> rankMapping = new HashMap<>();
         SequenceRecord fasta;
 
-        try (SequenceSupplierOld sup = sequenceSupplierOld.open();
+        try (SequenceSupplier sup = sequenceSupplier.open();
              BufferedWriter bw = Files.newBufferedWriter(output.toPath());
              BufferedWriter bwSkipped = Files.newBufferedWriter(Path.of(output.getParent(), "skipped_sequences.fsa"))) {
 
@@ -168,7 +170,7 @@ public class NCBIReader {
                 \tskipped sequenceRecords with rank too high (%s) \t %d
                 """.formatted(
                 java.time.LocalDateTime.now(),
-                sequenceSupplierOld.getFile(),
+                sequenceSupplier.getFile(),
                 output,
                 processedFastas,
                 processedFastas - skippedNoTaxId - skippedRank,

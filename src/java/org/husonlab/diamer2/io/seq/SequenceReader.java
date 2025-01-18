@@ -77,4 +77,8 @@ public abstract class SequenceReader implements AutoCloseable {
     public void close() throws IOException {
         br.close();
     }
+
+    public void reset() throws IOException {
+        open();
+    }
 }

@@ -2,9 +2,11 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
-import org.husonlab.diamer2.io.seq.SequenceSupplierOld;
+import org.husonlab.diamer2.io.seq.FASTQReader;
+import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
+import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.Message;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
@@ -67,7 +69,7 @@ public class ReadIndexer {
         // HashMap to store readId to header mapping to be able to go back from id to header during read assignment
         HashMap<Integer, String> readHeaderMap = new HashMap<>();
 
-        try (SequenceSupplierOld sup = SequenceSupplierOld.getFastqSupplier(fastqFile, true)) {
+        try (SequenceSupplier<Short> sup = new SequenceSupplier<>(new FASTQReader(fastqFile), new AAtoBase11(), false)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");

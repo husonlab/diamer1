@@ -93,6 +93,7 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * How to handle stop codons?
 
 # TODO
+* Make FASTAReader support input of "*" character
 * batch requests for megan mapping file
 * Abstract bucket encoding so that it can be changed by supplying another class
 * Use higher level than sequenceRecord to store sequenceRecords in memory for all but the first run to save computation
