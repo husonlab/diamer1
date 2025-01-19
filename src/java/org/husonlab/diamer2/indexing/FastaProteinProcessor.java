@@ -1,5 +1,7 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.seq.kmers.KmerExtractor;
 import org.husonlab.diamer2.seq.kmers.KmerExtractorProtein;
 import org.husonlab.diamer2.seq.SequenceRecord;
@@ -11,8 +13,8 @@ import java.util.concurrent.Phaser;
 
 public class FastaProteinProcessor implements Runnable {
     private final Phaser phaser;
-    private final SequenceRecord[] sequenceRecords;
-    private final KmerExtractor kmerExtractor;
+    private final SequenceRecord<Short>[] sequenceRecords;
+    private final KmerExtractor<Short> kmerExtractor;
     private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
     private final Tree tree;
     private final int rangeStart;
@@ -24,10 +26,10 @@ public class FastaProteinProcessor implements Runnable {
      * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
      * @param tree Tree to find the LCA of two taxIds.
      */
-    public FastaProteinProcessor(Phaser phaser, SequenceRecord[] sequenceRecords, long mask, ReducedProteinAlphabet alphabet, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
+    public FastaProteinProcessor(Phaser phaser, SequenceRecord<Short>[] sequenceRecords, Encoder encoder, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
         this.phaser = phaser;
         this.sequenceRecords = sequenceRecords;
-        this.kmerExtractor = new KmerExtractorProtein(mask, alphabet);
+        this.kmerExtractor = new KmerExtractorProtein(encoder);
         this.bucketMaps = bucketMaps;
         this.tree = tree;
         this.rangeStart = rangeStart;
@@ -37,11 +39,11 @@ public class FastaProteinProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (SequenceRecord fasta : sequenceRecords) {
+            for (SequenceRecord<Short> fasta : sequenceRecords) {
                 if (fasta == null || fasta.getSequence().length() < kmerExtractor.getK()) {
                     continue;
                 }
-                String sequence = fasta.getSequenceString();
+                Sequence<Short> sequence = fasta.getSequence();
                 int taxId = Integer.parseInt(fasta.getHeader().substring(1).split(" ")[0]);
                 long[] kmers = kmerExtractor.extractKmers(sequence);
                 for (long kmerEnc : kmers) {

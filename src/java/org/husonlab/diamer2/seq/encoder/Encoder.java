@@ -32,11 +32,25 @@ public abstract class Encoder {
     /**
      * @return converter to convert amino acid sequences to base 11 sequences
      */
-    public abstract Converter<Character, Short> getAAEncoder();
+    public abstract Converter<Character, Short> getAAConverter();
     /**
      * @return converter to convert DNA sequences to base 11 sequences
      */
-    public abstract Converter<Character, Short> getDNAEncoder();
+    public abstract Converter<Character, Short> getDNAConverter();
+
+    /**
+     * @return the alphabet used to encode the kmers
+     */
+    public Alphabet<Short> getTargetAlphabet() {
+        return targetAlphabet;
+    }
+
+    /**
+     * @return the mask used to extract kmers
+     */
+    public long getMask() {
+        return mask;
+    }
 
     /**
      * Combines an id and a kmer to an index entry. The bucket name is not included in the result.
@@ -76,13 +90,18 @@ public abstract class Encoder {
     public abstract long getKmer(int bucketName, long kmerIndex);
 
     /**
-     * Calculates the number of bits required to represent a kmer of length k with an alphabet with a given base.
+     * @return the number of bits that remain and make up the names of the buckets.
+     */
+    public abstract int getBitsBucketNames();
+
+    /**
+     * Calculates the number of bits required to represent a kmer of length k_s with an alphabet with a given base.
      * <p>Is used to calculate the bits that are required to encode a kmer.</p>
      * @param base the base of the alphabet
-     * @param k the length of the kmer
+     * @param k_s the number of non-zero bits in the mask
      * @return the number of bits required to encode the kmer.
      */
-    protected int bitsRequired(int base, long k) {
-        return (int) Math.ceil(Math.log(Math.pow(base, k)) / Math.log(2));
+    protected int bitsRequired(int base, long k_s) {
+        return (int) Math.ceil(Math.log(Math.pow(base, k_s)) / Math.log(2));
     }
 }

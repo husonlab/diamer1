@@ -6,11 +6,14 @@ import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
+import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.concurrent.*;
 
 public class DBIndexer {
@@ -20,19 +23,19 @@ public class DBIndexer {
     private final Path indexDir;
     private final DBIndexIO DBIndexIO;
     private final Tree tree;
-    private final long mask;
-    private final ReducedProteinAlphabet alphabet;
+    private final Encoder encoder;
     private final int MAX_THREADS;
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
     private final int bucketsPerCycle;
     private final boolean debug;
+    private final ArrayList<Pair<Integer, Integer>> bucketSizes;
+    private final StringBuilder report;
 
     public DBIndexer(File fastaFile,
                      Path indexDir,
                      Tree tree,
-                     long mask,
-                     ReducedProteinAlphabet alphabet,
+                     Encoder encoder,
                      int MAX_THREADS,
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
@@ -41,8 +44,7 @@ public class DBIndexer {
         this.logger = new Logger("DBIndexer");
         logger.addElement(new Time());
         this.fastaFile = fastaFile;
-        this.mask = mask;
-        this.alphabet = alphabet;
+        this.encoder = encoder;
         this.indexDir = indexDir;
         this.DBIndexIO = new DBIndexIO(indexDir);
         this.tree = tree;
@@ -51,6 +53,8 @@ public class DBIndexer {
         this.BATCH_SIZE = BATCH_SIZE;
         this.bucketsPerCycle = bucketsPerCycle;
         this.debug = debug;
+        this.bucketSizes = new ArrayList<>();
+        report = new StringBuilder();
     }
 
     /**
@@ -70,7 +74,9 @@ public class DBIndexer {
 
         Phaser indexPhaser = new Phaser(1);
 
-        try (SequenceSupplier<Short> sup = new SequenceSupplier<>(new FASTAReader(fastaFile), new AAtoBase11(), true)) {
+        int processedFastas = 0;
+
+        try (SequenceSupplier<Short> sup = new SequenceSupplier<>(new FASTAReader(fastaFile), encoder.getAAConverter(), true)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("sequences");
@@ -82,10 +88,11 @@ public class DBIndexer {
             // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
             final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
 
-            for (int i = 0; i < 1024; i += bucketsPerCycle) {
+            final int maxBuckets = (int) Math.pow(2, encoder.getBitsBucketNames());
+            for (int i = 0; i < maxBuckets; i += bucketsPerCycle) {
 
                 int rangeStart = i;
-                int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
+                int rangeEnd = Math.min(i + bucketsPerCycle, maxBuckets);
 
                 logger.logInfo("Indexing buckets " + rangeStart + " - " + rangeEnd);
 
@@ -101,21 +108,21 @@ public class DBIndexer {
 
                 progressBar.setProgress(0);
                 progressLogger.setProgress(0);
-                SequenceRecord[] batch = new SequenceRecord[BATCH_SIZE];
-                int processedFastas = 0;
-                SequenceRecord seq;
+                SequenceRecord<Short>[] batch = new SequenceRecord[BATCH_SIZE];
+                processedFastas = 0;
+                SequenceRecord<Short> seq;
                 while ((seq = sup.next()) != null) {
                     batch[processedFastas % BATCH_SIZE] = seq;
                     progressBar.setProgress(sup.getBytesRead());
                     progressLogger.setProgress(processedFastas);
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
-                        threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
+                        threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
                         batch = new SequenceRecord[BATCH_SIZE];
                     }
                 }
                 indexPhaser.register();
-                threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, mask, alphabet, bucketMaps, tree, rangeStart, rangeEnd));
+                threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
                 progressBar.finish();
 
                 indexPhaser.arriveAndAwaitAdvance();
@@ -123,6 +130,7 @@ public class DBIndexer {
                 logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
 
                 for (int j = 0; j < bucketsPerCycle; j++) {
+                    bucketSizes.add(new Pair<>(rangeStart + j, bucketMaps[j].size()));
                     int finalJ = j;
                     indexPhaser.register();
                     threadPoolExecutor.submit(() -> {
@@ -155,6 +163,22 @@ public class DBIndexer {
             threadPoolExecutor.shutdownNow();
             throw new RuntimeException("Indexing interrupted.");
         }
+
+        report
+                .append(java.time.LocalDateTime.now()).append("\n")
+                .append("input file: ").append(fastaFile).append("\n")
+                .append("output directory: ").append(indexDir).append("\n")
+                .append("processed sequenceRecords: ").append(processedFastas).append("\n")
+                .append("bucket sizes: ").append("\n");
+
+        for (Pair<Integer, Integer> bucketSize : bucketSizes) {
+            report.append(bucketSize.first()).append("\t").append(bucketSize.last()).append("\n");
+        }
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexDir.resolve("report.txt").toFile()))) {
+            writer.write(report.toString());
+        }
+
         return DBIndexIO;
     }
 }

@@ -1,9 +1,11 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.seq.kmers.KmerExtractor;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.kmers.KmerExtractorDNA;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
+import org.husonlab.diamer2.seq.kmers.KmerExtractorProtein;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Phaser;
@@ -11,47 +13,45 @@ import java.util.concurrent.Phaser;
 public class FastqDNAProcessor implements Runnable {
 
     private final Phaser phaser;
-    private final SequenceRecord[] batch;
-    private final KmerExtractor KmerExtractor;
+    private final SequenceRecord<Short>[] batch;
+    private final Encoder encoder;
+    private final KmerExtractor<Short> KmerExtractor;
     private final ConcurrentLinkedQueue<Long>[] bucketLists;
     private final int rangeStart;
     private final int rangeEnd;
-    private int index;
 
     public FastqDNAProcessor(
             Phaser phaser,
-            SequenceRecord[] batch,
-            long mask,
-            ReducedProteinAlphabet alphabet,
+            SequenceRecord<Short>[] batch,
+            Encoder encoder,
             ConcurrentLinkedQueue<Long>[] bucketLists,
             int rangeStart,
-            int rangeEnd,
-            int startIndex) {
+            int rangeEnd) {
         this.phaser = phaser;
         this.batch = batch;
-        this.KmerExtractor = new KmerExtractorDNA(mask, alphabet);
+        this.encoder = encoder;
+        this.KmerExtractor = new KmerExtractorProtein(encoder);
         this.bucketLists = bucketLists;
         this.rangeStart = rangeStart;
         this.rangeEnd = rangeEnd;
-        this.index = startIndex;
     }
 
     @Override
     public void run() {
         try {
-            for (SequenceRecord fastq : batch) {
+            for (SequenceRecord<Short> fastq : batch) {
                 if (fastq == null || fastq.getSequence().length() < (15*3)) {
                     continue;
                 }
-                String sequence = fastq.getSequenceString();
+                int id = fastq.getId();
+                Sequence<Short> sequence = fastq.getSequence();
                 long[] kmers = KmerExtractor.extractKmers(sequence);
                 for (long kmer : kmers) {
-                    int bucketName = IndexEncoding.getBucketName(kmer);
+                    int bucketName = encoder.getBucketName(kmer);
                     if (bucketName >= rangeStart && bucketName < rangeEnd) {
-                        bucketLists[bucketName - rangeStart].add(IndexEncoding.getIndexEntry(kmer, index));
+                        bucketLists[bucketName - rangeStart].add(encoder.getIndex(id, kmer));
                     }
                 }
-                index++;
             }
         } finally {
             phaser.arriveAndDeregister();

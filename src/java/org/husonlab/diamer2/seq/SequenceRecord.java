@@ -13,6 +13,7 @@ import java.util.Iterator;
  */
 public class SequenceRecord<T> implements Iterable<T> {
 
+    private int id;
     private final String header;
     private final Sequence<T> sequence;
 
@@ -22,6 +23,7 @@ public class SequenceRecord<T> implements Iterable<T> {
      * @param sequence the sequence of the sequence
      */
     public SequenceRecord(String header, Sequence<T> sequence) {
+        this.id = -1;
         this.header = header;
         this.sequence = sequence;
     }
@@ -67,13 +69,21 @@ public class SequenceRecord<T> implements Iterable<T> {
 
     @Override
     public String toString() {
-        return ">%s\n%s".formatted(header, sequence);
+        return "%s\n%s".formatted(header, sequence);
     }
 
     @NotNull
     @Override
     public Iterator<T> iterator() {
         return sequence.iterator();
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getId() {
+        return id;
     }
 
     /**

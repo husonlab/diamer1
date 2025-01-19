@@ -93,6 +93,11 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * How to handle stop codons?
 
 # TODO
+* make sequence readers deal with ids
+* Use ArrayList to store Kmers rather than HashMaps and collapse kmers with same taxid later
+* Change Sequence record header to an ID as soon as possible to drop the strings
+  * Use the same classes from there on to treat encoded protein and dna
+  * Reduce KmerExtractor to one class for both DNA and protein since there will not be a difference anymore
 * Make FASTAReader support input of "*" character
 * batch requests for megan mapping file
 * Abstract bucket encoding so that it can be changed by supplying another class

@@ -1,22 +1,20 @@
 package org.husonlab.diamer2.seq.kmers;
 
-import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
+import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.encoder.Encoder;
 
-public abstract class KmerExtractor {
-    protected final long mask;
-    protected final ReducedProteinAlphabet proteinAlphabet;
+public abstract class KmerExtractor<T> {
+    KmerEncoder kmerEncoder;
     protected final int k;
     protected final int s;
 
-    public KmerExtractor(long mask, ReducedProteinAlphabet proteinAlphabet) {
-        this.mask = mask;
-        this.proteinAlphabet = proteinAlphabet;
-        KmerEncoder encoder = new KmerEncoder(proteinAlphabet.getBase(), mask);
-        this.k = encoder.getK();
-        this.s = encoder.getS();
+    public KmerExtractor(Encoder encoder) {
+        kmerEncoder = new KmerEncoder(encoder.getTargetAlphabet().getBase(), encoder.getMask());
+        this.k = kmerEncoder.getK();
+        this.s = kmerEncoder.getS();
     }
 
-    abstract public long[] extractKmers(String sequence);
+    abstract public long[] extractKmers(Sequence<T> sequence);
 
     public long getK() {
         return k;

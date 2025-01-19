@@ -1,6 +1,8 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
+import org.husonlab.diamer2.indexing.DBIndexer;
+import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
@@ -11,6 +13,8 @@ import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
+import org.husonlab.diamer2.seq.encoder.Encoder;
+import org.husonlab.diamer2.seq.encoder.K15Base11Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -216,49 +220,51 @@ public class Main {
                 e.printStackTrace();
                 System.exit(1);
             }
-//        } else if (cli.hasOption("indexdb")) {
-//            if (!cli.hasOption("no") || !cli.hasOption("na") || !cli.hasOption("d")) {
-//                System.err.println("Missing NCBI nodes and names files for indexing database task.");
-//                System.exit(1);
-//            }
-//            System.out.println("Indexing database");
-//            try {
-//                int bucketsPerCycle = cli.getParsedOptionValue("b");
-//                File nodes = cli.getParsedOptionValue("no");
-//                File names = cli.getParsedOptionValue("na");
-//                File database = cli.getParsedOptionValue("d");
-//                Path output = cli.getParsedOptionValue("o");
-//
-//                if (!nodes.exists() || !names.exists() || !database.exists()) {
-//                    System.err.println("One or more required files do not exist.");
-//                    System.exit(1);
-//                }
-//                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-//                DBIndexer dbIndexer = new DBIndexer(database, output, tree, mask, new Base11Alphabet(), maxThreads, 1000, 10000, bucketsPerCycle, false);
-//                dbIndexer.index();
-//            } catch (ParseException | NullPointerException | IOException e) {
-//                e.printStackTrace();
-//                System.exit(1);
-//            }
-//        } else if (cli.hasOption("indexreads")) {
-//            System.out.println("Indexing reads");
-//            try {
-//                int bucketsPerCycle = cli.getParsedOptionValue("b");
-//                File reads = cli.getParsedOptionValue("d");
-//                Path output = cli.getParsedOptionValue("o");
-//                ReadIndexer readIndexer = new ReadIndexer(reads, output, mask, new Base11Alphabet(), maxThreads, 1000, 100, bucketsPerCycle);
-//                readIndexer.index();
-//            } catch (ParseException | NullPointerException | IOException e) {
-//                e.printStackTrace();
-//                System.exit(1);
-//            }
+        } else if (cli.hasOption("indexdb")) {
+            if (!cli.hasOption("no") || !cli.hasOption("na") || !cli.hasOption("d")) {
+                System.err.println("Missing NCBI nodes and names files for indexing database task.");
+                System.exit(1);
+            }
+            System.out.println("Indexing database");
+            try {
+                int bucketsPerCycle = cli.getParsedOptionValue("b");
+                File nodes = cli.getParsedOptionValue("no");
+                File names = cli.getParsedOptionValue("na");
+                File database = cli.getParsedOptionValue("d");
+                Path output = cli.getParsedOptionValue("o");
+
+                if (!nodes.exists() || !names.exists() || !database.exists()) {
+                    System.err.println("One or more required files do not exist.");
+                    System.exit(1);
+                }
+                Tree tree = NCBIReader.readTaxonomy(nodes, names);
+                Encoder encoder = new K15Base11Encoder(mask, 22);
+                DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, maxThreads, 2*maxThreads, 10000, bucketsPerCycle, false);
+                dbIndexer.index();
+            } catch (ParseException | NullPointerException | IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+        } else if (cli.hasOption("indexreads")) {
+            System.out.println("Indexing reads");
+            try {
+                int bucketsPerCycle = cli.getParsedOptionValue("b");
+                File reads = cli.getParsedOptionValue("d");
+                Path output = cli.getParsedOptionValue("o");
+                Encoder encoder = new K15Base11Encoder(mask, 22);
+                ReadIndexer readIndexer = new ReadIndexer(reads, output, encoder, maxThreads, 1000, 100, bucketsPerCycle);
+                readIndexer.index();
+            } catch (ParseException | NullPointerException | IOException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         } else if (cli.hasOption("assignreads")) {
             System.out.println("Assigning reads");
             try {
                 File nodes = cli.getParsedOptionValue("no");
                 File names = cli.getParsedOptionValue("na");
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-//                tree.reduceToStandardRanks();
+//              tree.reduceToStandardRanks();
                 String[] paths = cli.getOptionValues("d");
                 Path dbIndex = Path.of(paths[0]);
                 Path readsIndex = Path.of(paths[1]);

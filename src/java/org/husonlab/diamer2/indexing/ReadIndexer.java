@@ -7,6 +7,7 @@ import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
+import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.Message;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
@@ -23,8 +24,7 @@ public class ReadIndexer {
     private final File fastqFile;
     private final Path indexDir;
     private final ReadIndexIO readIndexIO;
-    private final long mask;
-    private final ReducedProteinAlphabet alphabet;
+    private final Encoder encoder;
     private final int MAX_THREADS;
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
@@ -32,8 +32,7 @@ public class ReadIndexer {
 
     public ReadIndexer(File fastqFile,
                      Path indexDir,
-                     long mask,
-                     ReducedProteinAlphabet alphabet,
+                     Encoder encoder,
                      int MAX_THREADS,
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
@@ -42,8 +41,7 @@ public class ReadIndexer {
         this.fastqFile = fastqFile;
         this.indexDir = indexDir;
         this.readIndexIO = new ReadIndexIO(indexDir);
-        this.mask = mask;
-        this.alphabet = alphabet;
+        this.encoder = encoder;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
@@ -69,7 +67,9 @@ public class ReadIndexer {
         // HashMap to store readId to header mapping to be able to go back from id to header during read assignment
         HashMap<Integer, String> readHeaderMap = new HashMap<>();
 
-        try (SequenceSupplier<Short> sup = new SequenceSupplier<>(new FASTQReader(fastqFile), new AAtoBase11(), false)) {
+        int processedSequences = 0;
+
+        try (SequenceSupplier<Short> sup = new SequenceSupplier<>(new FASTQReader(fastqFile), encoder.getDNAConverter(), true)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");
@@ -80,9 +80,10 @@ public class ReadIndexer {
             // Initialize Concurrent LinkedQueue to store index entries of each bucket
             final ConcurrentLinkedQueue<Long>[] bucketLists = new ConcurrentLinkedQueue[bucketsPerCycle];
 
-            for (int i = 0; i < 1024; i += bucketsPerCycle) {
+            final int maxBuckets = (int) Math.pow(2, encoder.getBitsBucketNames());
+            for (int i = 0; i < maxBuckets; i += bucketsPerCycle) {
                 int rangeStart = i;
-                int rangeEnd = Math.min(i + bucketsPerCycle, 1024);
+                int rangeEnd = Math.min(i + bucketsPerCycle, maxBuckets);
                 int readId = 0;
 
                 progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
@@ -92,9 +93,9 @@ public class ReadIndexer {
                 }
 
                 progressBar.setProgress(0);
-                SequenceRecord[] batch = new SequenceRecord[BATCH_SIZE];
+                SequenceRecord<Short>[] batch = new SequenceRecord[BATCH_SIZE];
                 int batchPosition = 0;
-                SequenceRecord seq;
+                SequenceRecord<Short> seq;
                 while ((seq = sup.next()) != null) {
                     if (i == 0) {
                         readHeaderMap.put(readId, seq.getHeader());
@@ -108,12 +109,10 @@ public class ReadIndexer {
                                 new FastqDNAProcessor(
                                         indexPhaser,
                                         batch,
-                                        mask,
-                                        alphabet,
+                                        encoder,
                                         bucketLists,
                                         rangeStart,
-                                        rangeEnd,
-                                        readId - BATCH_SIZE)
+                                        rangeEnd)
                         );
                         batch = new SequenceRecord[BATCH_SIZE];
                         batchPosition = 0;
@@ -127,12 +126,10 @@ public class ReadIndexer {
                         new FastqDNAProcessor(
                                 indexPhaser,
                                 batch,
-                                mask,
-                                alphabet,
+                                encoder,
                                 bucketLists,
                                 rangeStart,
-                                rangeEnd,
-                                (readId - 1) - (readId - 1) % BATCH_SIZE));
+                                rangeEnd));
                 progressBar.finish();
 
                 indexPhaser.arriveAndAwaitAdvance();

@@ -16,17 +16,17 @@ public class K15Base11Encoder extends Encoder {
 
     public K15Base11Encoder(long mask, int bitsIds) {
         super(new Base11Alphabet(), mask, bitsIds);
-        bitsKmerBucket = bitsRequired(targetAlphabet.getBase(), k);
+        bitsKmerBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsBucketNames = bitsKmerBucket - (64 - bitsIds);
     }
 
     @Override
-    public Converter<Character, Short> getAAEncoder() {
+    public Converter<Character, Short> getAAConverter() {
         return aaEncoder;
     }
 
     @Override
-    public Converter<Character, Short> getDNAEncoder() {
+    public Converter<Character, Short> getDNAConverter() {
         return dnaEncoder;
     }
 
@@ -53,5 +53,10 @@ public class K15Base11Encoder extends Encoder {
     @Override
     public long getKmer(int bucketName, long kmerIndex) {
         return (kmerIndex >>> bitsBucketNames) << bitsBucketNames | bucketName;
+    }
+
+    @Override
+    public int getBitsBucketNames() {
+        return bitsBucketNames;
     }
 }
