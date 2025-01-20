@@ -5,8 +5,10 @@ import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.zip.GZIPInputStream;
 
 public class NCBIMapping extends AccessionMapping {
@@ -33,6 +35,15 @@ public class NCBIMapping extends AccessionMapping {
     @Override
     public int getTaxId(String accession) {
         return accessionMap.getOrDefault(removeVersion(accession), -1);
+    }
+
+    @Override
+    public ArrayList<Integer> getTaxIds(List<String> accessions) {
+        ArrayList<Integer> taxIds = new ArrayList<>(accessions.size());
+        for (String accession : accessions) {
+            taxIds.add(accessionMap.getOrDefault(removeVersion(accession), -1));
+        }
+        return taxIds;
     }
 
     public void readAccessionMap(NCBIMappingFile ncbiMappingFile) {
