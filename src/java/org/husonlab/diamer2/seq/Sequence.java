@@ -7,7 +7,7 @@ import java.util.Iterator;
 
 /**
  * Represents a sequence of symbols of type T.
- * <p>Is meant to be used to instantiate the {@link SequenceRecord} class</p>
+ * <p>Is meant to be used to instantiate the {@link HeaderSequenceRecord} class</p>
  * @param <T> the type of symbols in the sequence
  */
 public abstract class Sequence<T> implements Iterable<T> {

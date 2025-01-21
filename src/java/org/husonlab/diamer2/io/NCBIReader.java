@@ -3,7 +3,7 @@ package org.husonlab.diamer2.io;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.seq.FASTAReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.util.Pair;
@@ -53,7 +53,7 @@ public class NCBIReader {
                     .addElement(new RunningTime())
                     .addElement(progressBar);
 
-            SequenceRecord<Short> seq;
+            HeaderSequenceRecord<Short> seq;
             while ((seq = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
                 neededAccessions.addAll(extractIdsFromHeader(seq.getHeader()));
@@ -82,7 +82,7 @@ public class NCBIReader {
         int skippedNoTaxId = 0;
         int skippedRank = 0;
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        SequenceRecord fasta;
+        HeaderSequenceRecord fasta;
 
         try (SequenceSupplier sup = sequenceSupplier.open();
              BufferedWriter bw = Files.newBufferedWriter(output.toPath());
@@ -145,13 +145,13 @@ public class NCBIReader {
                 header = ">%d".formatted(taxId);
 
                 // Split the sequence by stop codons
-                ArrayList<SequenceRecord> fastas = new ArrayList<>();
+                ArrayList<HeaderSequenceRecord> fastas = new ArrayList<>();
                 for (String sequence : fasta.getSequenceString().split("\\*")) {
-                    fastas.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
+                    fastas.add(HeaderSequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
                 }
 
                 // Write the sequenceRecords to the output file
-                for (SequenceRecord fasta2 : fastas) {
+                for (HeaderSequenceRecord fasta2 : fastas) {
                     bw.write(fasta2.getHeader());
                     bw.newLine();
                     bw.write(fasta2.getSequenceString());

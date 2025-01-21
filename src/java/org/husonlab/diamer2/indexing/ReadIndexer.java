@@ -4,9 +4,8 @@ import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.FASTQReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
-import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.Message;
@@ -93,9 +92,9 @@ public class ReadIndexer {
                 }
 
                 progressBar.setProgress(0);
-                SequenceRecord<Short>[] batch = new SequenceRecord[BATCH_SIZE];
+                SequenceRecord<Integer, Short>[] batch = new SequenceRecord[BATCH_SIZE];
                 int batchPosition = 0;
-                SequenceRecord<Short> seq;
+                SequenceRecord<Integer, Short> seq;
                 while ((seq = sup.next()) != null) {
                     if (i == 0) {
                         readHeaderMap.put(readId, seq.getHeader());
@@ -114,7 +113,7 @@ public class ReadIndexer {
                                         rangeStart,
                                         rangeEnd)
                         );
-                        batch = new SequenceRecord[BATCH_SIZE];
+                        batch = new HeaderSequenceRecord[BATCH_SIZE];
                         batchPosition = 0;
                     } else {
                         batchPosition++;

@@ -1,18 +1,19 @@
 package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.io.Utilities;
+import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.SequenceRecord;
 
 import java.io.*;
 
-public class FASTQReader extends SequenceReader {
+public class FASTQReader extends SequenceReader<String> {
 
     public FASTQReader(File file) {
         super(file);
     }
 
     @Override
-    public SequenceRecord<Character> next() throws IOException {
+    public SequenceRecord<String, Character> next() throws IOException {
         if (line != null && line.startsWith("@")) {
             header = line;
             sequence = new StringBuilder(br.readLine());

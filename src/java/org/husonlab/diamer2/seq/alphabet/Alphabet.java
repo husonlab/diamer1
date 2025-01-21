@@ -1,8 +1,10 @@
 package org.husonlab.diamer2.seq.alphabet;
 
+import org.husonlab.diamer2.seq.HeaderSequenceRecord;
+
 /**
  * Interface for an alphabet of symbols of type {@link T}.
- * <p>Implementations can be used to set the Alphabet of a {@link org.husonlab.diamer2.seq.SequenceRecord}.</p>
+ * <p>Implementations can be used to set the Alphabet of a {@link HeaderSequenceRecord}.</p>
  * @param <T> the type of symbols in the alphabet
  */
 public interface Alphabet<T> {

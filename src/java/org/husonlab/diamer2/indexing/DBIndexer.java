@@ -3,9 +3,7 @@ package org.husonlab.diamer2.indexing;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.seq.FASTAReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.ReducedProteinAlphabet;
-import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
+import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
@@ -108,9 +106,9 @@ public class DBIndexer {
 
                 progressBar.setProgress(0);
                 progressLogger.setProgress(0);
-                SequenceRecord<Short>[] batch = new SequenceRecord[BATCH_SIZE];
+                HeaderSequenceRecord<Short>[] batch = new HeaderSequenceRecord[BATCH_SIZE];
                 processedFastas = 0;
-                SequenceRecord<Short> seq;
+                HeaderSequenceRecord<Short> seq;
                 while ((seq = sup.next()) != null) {
                     batch[processedFastas % BATCH_SIZE] = seq;
                     progressBar.setProgress(sup.getBytesRead());
@@ -118,7 +116,7 @@ public class DBIndexer {
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
-                        batch = new SequenceRecord[BATCH_SIZE];
+                        batch = new HeaderSequenceRecord[BATCH_SIZE];
                     }
                 }
                 indexPhaser.register();

@@ -9,47 +9,36 @@ import java.util.Iterator;
 
 /**
  * Represents a sequence of symbols of type T.
- * <p>The symbol type of the {@link Alphabet} that is associated with the {@link Sequence} must match with {@link T}</p>
+ * <p>The symbol type of the {@link Alphabet} that is associated with the {@link Sequence} must match with {@link S}</p>
  */
-public class SequenceRecord<T> implements Iterable<T> {
+public class SequenceRecord<H, S> implements Iterable<S> {
 
-    private int id;
-    private final String header;
-    private final Sequence<T> sequence;
+    private final H id;
+    private final Sequence<S> sequence;
 
     /**
      * Create a new Sequence object.
-     * @param header the header of the sequence
      * @param sequence the sequence of the sequence
      */
-    public SequenceRecord(String header, Sequence<T> sequence) {
-        this.id = -1;
-        this.header = header;
+    public SequenceRecord(H id, Sequence<S> sequence) {
+        this.id = id;
         this.sequence = sequence;
     }
 
     /**
-     * Get the header of the sequence.
-     * @return the header of the sequence
+     * Get the id of the sequence.
+     * @return the id of the sequence
      */
-    public String getHeader() {
-        return header;
+    public H getId() {
+        return id;
     }
 
     /**
      * Get the sequence.
      * @return the sequence
      */
-    public Sequence<T> getSequence() {
+    public Sequence<S> getSequence() {
         return sequence;
-    }
-
-    /**
-     * Get the alphabet of the sequence.
-     * @return the alphabet of the sequence
-     */
-    public Alphabet<T> getAlphabet() {
-        return sequence.getAlphabet();
     }
 
     /**
@@ -63,27 +52,19 @@ public class SequenceRecord<T> implements Iterable<T> {
     @Override
     public boolean equals(Object obj) {
         if (obj == null || getClass() != obj.getClass()) return false;
-        SequenceRecord<?> seq = (SequenceRecord<?>) obj;
-        return header.equals(seq.header) && sequence.equals(seq.sequence);
+        SequenceRecord<?, ?> seq = (SequenceRecord<?, ?>) obj;
+        return seq.getId() == id && sequence.equals(seq.sequence);
     }
 
     @Override
     public String toString() {
-        return "%s\n%s".formatted(header, sequence);
+        return "%s\n%s".formatted(id.toString(), sequence);
     }
 
     @NotNull
     @Override
-    public Iterator<T> iterator() {
+    public Iterator<S> iterator() {
         return sequence.iterator();
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getId() {
-        return id;
     }
 
     /**
@@ -92,7 +73,7 @@ public class SequenceRecord<T> implements Iterable<T> {
      * @param sequence the sequence
      * @return a new DNA SequenceRecord object
      */
-    public static SequenceRecord<Character> DNA(String header, String sequence) {
+    public static SequenceRecord<String, Character> DNA(String header, String sequence) {
         return new SequenceRecord<>(header, new CharSequence(new AlphabetDNA(), sequence));
     }
 
@@ -102,7 +83,7 @@ public class SequenceRecord<T> implements Iterable<T> {
      * @param sequence the sequence
      * @return a new AA SequenceRecord object
      */
-    public static SequenceRecord<Character> AA(String header, String sequence) {
+    public static SequenceRecord<String, Character> AA(String header, String sequence) {
         return new SequenceRecord<>(header, new CharSequence(new AlphabetAA(), sequence));
     }
 }

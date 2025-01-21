@@ -9,7 +9,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
-public abstract class SequenceReader implements AutoCloseable {
+public abstract class SequenceReader<H> implements AutoCloseable {
 
     protected final File file;
     protected long fileSize;
@@ -26,12 +26,12 @@ public abstract class SequenceReader implements AutoCloseable {
         open();
     }
 
-    public abstract SequenceRecord<Character> next() throws IOException;
+    public abstract SequenceRecord<H, Character> next() throws IOException;
 
-    public ArrayList<SequenceRecord<Character>> next(int n) throws IOException {
-        ArrayList<SequenceRecord<Character>> sequenceRecords = new ArrayList<>();
+    public ArrayList<SequenceRecord<H, Character>> next(int n) throws IOException {
+        ArrayList<SequenceRecord<H, Character>> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            SequenceRecord<Character> seq = next();
+            SequenceRecord<H, Character> seq = next();
             if (seq == null) {
                 break;
             }

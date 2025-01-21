@@ -1,8 +1,7 @@
-import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.io.seq.FASTAReader;
 import org.husonlab.diamer2.io.seq.FASTQReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
@@ -26,7 +25,7 @@ public class TestClass {
             ProgressBar progressBar = new ProgressBar(supplier.getFileSize(), 20);
             new OneLineLogger("Counter", 1000).addElement(progressBar);
 
-            SequenceRecord<Short> record;
+            HeaderSequenceRecord<Short> record;
             while ((record = supplier.next()) != null) {
                 progressBar.setProgress(supplier.getBytesRead());
                 for (Short base : record.getSequence()) {
@@ -56,7 +55,7 @@ public class TestClass {
             ProgressBar progressBar = new ProgressBar(supplier.getFileSize(), 20);
             new OneLineLogger("Counter", 1000).addElement(progressBar);
 
-            SequenceRecord<Short> record;
+            HeaderSequenceRecord<Short> record;
             while ((record = supplier.next()) != null) {
                 progressBar.setProgress(supplier.getBytesRead());
                 for (Short base : record.getSequence()) {
