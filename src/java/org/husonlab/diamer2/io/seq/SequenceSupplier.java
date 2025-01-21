@@ -12,6 +12,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Objects;
 
+import static java.util.Collections.emptyIterator;
+
 public class SequenceSupplier<T> implements AutoCloseable {
     private final LinkedList<MemoryEntry<T>> sequences;
     private final SequenceReader sequenceReader;
@@ -37,6 +39,7 @@ public class SequenceSupplier<T> implements AutoCloseable {
     }
 
     private void fillBuffer() throws IOException {
+        bufferIndex = 0;
         if (keepInMemory) {
             if (iterator != null && iterator.hasNext()) {
                 MemoryEntry<T> entry = iterator.next();
@@ -44,7 +47,6 @@ public class SequenceSupplier<T> implements AutoCloseable {
                 sequencesRead = entry.sequencesRead();
                 header = entry.header();
                 sequenceBuffer = entry.sequences();
-                bufferIndex = 0;
                 return;
             }
             SequenceRecord<Character> sequenceRecord = sequenceReader.next();
@@ -56,7 +58,6 @@ public class SequenceSupplier<T> implements AutoCloseable {
             }
             sequenceBuffer = converter.convert(sequenceRecord.getSequence());
             header = sequenceRecord.getHeader();
-            bufferIndex = 0;
             bytesRead = sequenceReader.getBytesRead();
             sequencesRead++;
             sequences.add(new MemoryEntry<>(sequencesRead, bytesRead, header, sequenceBuffer));
@@ -72,7 +73,6 @@ public class SequenceSupplier<T> implements AutoCloseable {
         header = sequenceRecord.getHeader();
         bytesRead = sequenceReader.getBytesRead();
         sequencesRead++;
-        bufferIndex = 0;
     }
 
     public SequenceRecord<T> next() throws IOException {
@@ -81,6 +81,9 @@ public class SequenceSupplier<T> implements AutoCloseable {
         }
         if (sequenceBuffer == null) {
             return null;
+        }
+        if (sequenceBuffer.length == 0) {
+            return getEmptySequenceRecord(header);
         }
         SequenceRecord<T> sequenceRecord = new SequenceRecord<>(header, sequenceBuffer[bufferIndex++]);
         sequenceRecord.setId(sequencesRead - 1);
@@ -120,6 +123,26 @@ public class SequenceSupplier<T> implements AutoCloseable {
     public SequenceSupplier<T> open() {
         sequenceReader.open();
         return this;
+    }
+
+    private SequenceRecord<T> getEmptySequenceRecord(String header) {
+        return new SequenceRecord<T>(header, new Sequence<T>(converter.getTargetAlphabet()) {
+            @NotNull
+            @Override
+            public Iterator<T> iterator() {
+                return emptyIterator();
+            }
+
+            @Override
+            public T get(int index) {
+                return null;
+            }
+
+            @Override
+            public int length() {
+                return 0;
+            }
+        });
     }
 
     public long getFileSize() {

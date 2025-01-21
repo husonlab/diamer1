@@ -2,16 +2,32 @@ package org.husonlab.diamer2.seq.alphabet.converter;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.ShortSequence;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
+import org.husonlab.diamer2.seq.alphabet.AlphabetAA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 
 public class AAtoBase11 implements Converter<Character, Short> {
+
+    private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetAA();
+    private static final Alphabet<Short> TARGET_ALPHABET = new Base11Alphabet();
+
     @Override
     public Sequence<Short>[] convert(Sequence<Character> sequence) {
         short[] result = new short[sequence.length()];
         for (int i = 0; i < sequence.length(); i++) {
             result[i] = encodeAA(sequence.get(i));
         }
-        return new Sequence[]{new ShortSequence(new Base11Alphabet(), result)};
+        return new Sequence[]{new ShortSequence(TARGET_ALPHABET, result)};
+    }
+
+    @Override
+    public Alphabet<Character> getSourceAlphabet() {
+        return SOURCE_ALPHABET;
+    }
+
+    @Override
+    public Alphabet<Short> getTargetAlphabet() {
+        return TARGET_ALPHABET;
     }
 
     /**

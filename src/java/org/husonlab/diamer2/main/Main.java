@@ -252,7 +252,7 @@ public class Main {
                 File reads = cli.getParsedOptionValue("d");
                 Path output = cli.getParsedOptionValue("o");
                 Encoder encoder = new K15Base11Encoder(mask, 22);
-                ReadIndexer readIndexer = new ReadIndexer(reads, output, encoder, maxThreads, 1000, 100, bucketsPerCycle);
+                ReadIndexer readIndexer = new ReadIndexer(reads, output, encoder, maxThreads, 2*maxThreads, 1000, bucketsPerCycle);
                 readIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();

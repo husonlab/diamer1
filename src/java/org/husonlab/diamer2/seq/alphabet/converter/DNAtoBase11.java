@@ -2,6 +2,8 @@ package org.husonlab.diamer2.seq.alphabet.converter;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.ShortSequence;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
+import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
 
@@ -9,6 +11,9 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 public class DNAtoBase11 implements Converter<Character, Short> {
+
+    private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetDNA();
+    private static final Alphabet<Short> TARGET_ALPHABET = new Base11Alphabet();
 
     @Override
     public Sequence<Short>[] convert(Sequence<Character> sequence) {
@@ -51,6 +56,16 @@ public class DNAtoBase11 implements Converter<Character, Short> {
                 new ShortSequence(new Base11Alphabet(), translations[3]),
                 new ShortSequence(new Base11Alphabet(), translations[4]),
                 new ShortSequence(new Base11Alphabet(), translations[5])};
+    }
+
+    @Override
+    public Alphabet<Character> getSourceAlphabet() {
+        return SOURCE_ALPHABET;
+    }
+
+    @Override
+    public Alphabet<Short> getTargetAlphabet() {
+        return TARGET_ALPHABET;
     }
 
     /**
