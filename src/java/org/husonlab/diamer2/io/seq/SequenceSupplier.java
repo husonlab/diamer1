@@ -1,10 +1,10 @@
 package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.converter.Converter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     private Sequence<S>[] sequenceBuffer;
     private int bufferIndex;
 
-    public SequenceSupplier(@NotNull SequenceReader<H> sequenceReader, @NotNull Converter<Character, S> converter, boolean keepInMemory) {
+    public SequenceSupplier(@NotNull SequenceReader<H> sequenceReader, @Nullable Converter<Character, S> converter, boolean keepInMemory) {
         this.sequenceReader = sequenceReader;
         this.converter = converter;
         this.keepInMemory = keepInMemory;
@@ -57,7 +57,11 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                 id = null;
                 return;
             }
-            sequenceBuffer = converter.convert(sequenceRecord.getSequence());
+            if (converter != null) {
+                sequenceBuffer = converter.convert(sequenceRecord.getSequence());
+            } else {
+                sequenceBuffer = new Sequence[]{sequenceRecord.getSequence()};
+            }
             id = sequenceRecord.getId();
             bytesRead = sequenceReader.getBytesRead();
             sequencesRead++;
@@ -70,7 +74,11 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
             id = null;
             return;
         }
-        sequenceBuffer = converter.convert(sequenceRecord.getSequence());
+        if (converter != null) {
+            sequenceBuffer = converter.convert(sequenceRecord.getSequence());
+        } else {
+            sequenceBuffer = new Sequence[]{sequenceRecord.getSequence()};
+        }
         id = sequenceRecord.getId();
         bytesRead = sequenceReader.getBytesRead();
         sequencesRead++;

@@ -13,7 +13,7 @@ public abstract class SequenceReader<H> implements AutoCloseable {
 
     protected final File file;
     protected long fileSize;
-    protected String header;
+    protected H id;
     protected StringBuilder sequence;
     private CountingInputStream cis;
     protected BufferedReader br;
@@ -21,7 +21,7 @@ public abstract class SequenceReader<H> implements AutoCloseable {
 
     public SequenceReader(File file) {
         this.file = file;
-        this.header = null;
+        this.id = null;
         this.sequence = new StringBuilder();
         open();
     }

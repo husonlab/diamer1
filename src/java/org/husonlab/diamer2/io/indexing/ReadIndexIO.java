@@ -3,6 +3,7 @@ package org.husonlab.diamer2.io.indexing;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 
 public class ReadIndexIO extends DBIndexIO {
 
@@ -42,12 +43,12 @@ public class ReadIndexIO extends DBIndexIO {
         return readHeaderMapping;
     }
 
-    public void writeReadHeaderMapping(HashMap<Integer, String> readHeaderMapping) {
+    public void writeReadHeaderMapping(List<String> readHeaderMapping) {
         try {
             try (PrintWriter writer = new PrintWriter(readHeaderMappingFile)) {
                 writer.println(readHeaderMapping.size());
-                for (int readId : readHeaderMapping.keySet()) {
-                    writer.println(readId + "\t" + readHeaderMapping.get(readId));
+                for (int i = 0; i < readHeaderMapping.size(); i++) {
+                    writer.println(i + "\t" + readHeaderMapping.get(i));
                 }
             }
         } catch (FileNotFoundException e) {

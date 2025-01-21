@@ -208,7 +208,7 @@ public class Main {
                 String mappings = cli.getOptionValue("mappings");
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
                 AccessionMapping accessionMapping;
-                Pair<HashSet<String>, SequenceSupplier> result = NCBIReader.extractNeededAccessions(database);
+                Pair<HashSet<String>, SequenceSupplier<String, Character>> result = NCBIReader.extractNeededAccessions(database);
                 if (mappings.contains(",")) {
                     ArrayList<NCBIMapping.NCBIMappingFile> accessionMappings = getNcbiMappingFiles(mappings);
                     accessionMapping = new NCBIMapping(accessionMappings.toArray(new NCBIMapping.NCBIMappingFile[0]), tree, result.first());

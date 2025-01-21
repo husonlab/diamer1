@@ -78,6 +78,16 @@ public class SequenceRecord<H, S> implements Iterable<S> {
     }
 
     /**
+     * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetDNA}.
+     * @param id the id of the sequence
+     * @param sequence the sequence
+     * @return a new DNA SequenceRecord object
+     */
+    public static SequenceRecord<Integer, Character> DNA(int id, String sequence) {
+        return new SequenceRecord<>(id, new CharSequence(new AlphabetDNA(), sequence));
+    }
+
+    /**
      * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetAA}.
      * @param header the header of the sequence
      * @param sequence the sequence
@@ -85,5 +95,15 @@ public class SequenceRecord<H, S> implements Iterable<S> {
      */
     public static SequenceRecord<String, Character> AA(String header, String sequence) {
         return new SequenceRecord<>(header, new CharSequence(new AlphabetAA(), sequence));
+    }
+
+    /**
+     * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetAA}.
+     * @param id the id of the sequence
+     * @param sequence the sequence
+     * @return a new AA SequenceRecord object
+     */
+    public static SequenceRecord<Integer, Character> AA(int id, String sequence) {
+        return new SequenceRecord<>(id, new CharSequence(new AlphabetAA(), sequence));
     }
 }

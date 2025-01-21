@@ -1,9 +1,9 @@
 package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
-import org.husonlab.diamer2.io.seq.FASTAReader;
+import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.HeaderSequenceRecord;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
@@ -74,7 +74,7 @@ public class DBIndexer {
 
         int processedFastas = 0;
 
-        try (SequenceSupplier<Short> sup = new SequenceSupplier<>(new FASTAReader(fastaFile), encoder.getAAConverter(), true)) {
+        try (SequenceSupplier<Integer, Short> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getAAConverter(), true)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("sequences");
@@ -106,9 +106,9 @@ public class DBIndexer {
 
                 progressBar.setProgress(0);
                 progressLogger.setProgress(0);
-                HeaderSequenceRecord<Short>[] batch = new HeaderSequenceRecord[BATCH_SIZE];
+                SequenceRecord<Integer, Short>[] batch = new SequenceRecord[BATCH_SIZE];
                 processedFastas = 0;
-                HeaderSequenceRecord<Short> seq;
+                SequenceRecord<Integer, Short> seq;
                 while ((seq = sup.next()) != null) {
                     batch[processedFastas % BATCH_SIZE] = seq;
                     progressBar.setProgress(sup.getBytesRead());
@@ -116,7 +116,7 @@ public class DBIndexer {
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
-                        batch = new HeaderSequenceRecord[BATCH_SIZE];
+                        batch = new SequenceRecord[BATCH_SIZE];
                     }
                 }
                 indexPhaser.register();

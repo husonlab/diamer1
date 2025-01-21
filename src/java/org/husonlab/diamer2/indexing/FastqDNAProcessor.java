@@ -4,7 +4,6 @@ import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.seq.kmers.KmerExtractor;
-import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.kmers.KmerExtractorProtein;
 
 import java.util.concurrent.ConcurrentLinkedQueue;

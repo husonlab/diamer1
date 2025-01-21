@@ -2,9 +2,8 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
-import org.husonlab.diamer2.io.seq.FASTQReader;
+import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.HeaderSequenceRecord;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.encoder.Encoder;
 import org.husonlab.diamer2.util.logging.Logger;
@@ -14,7 +13,6 @@ import org.husonlab.diamer2.util.logging.ProgressBar;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.concurrent.*;
 
 public class ReadIndexer {
@@ -63,12 +61,8 @@ public class ReadIndexer {
                 new ThreadPoolExecutor.CallerRunsPolicy());
         Phaser indexPhaser = new Phaser(1);
 
-        // HashMap to store readId to header mapping to be able to go back from id to header during read assignment
-        HashMap<Integer, String> readHeaderMap = new HashMap<>();
-
-        int processedSequences = 0;
-
-        try (SequenceSupplier<Short> sup = new SequenceSupplier<>(new FASTQReader(fastqFile), encoder.getDNAConverter(), true)) {
+        try (FastqIdReader fastqIdReader = new FastqIdReader(fastqFile);
+             SequenceSupplier<Integer, Short> sup = new SequenceSupplier<>(fastqIdReader, encoder.getDNAConverter(), true)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");
@@ -96,9 +90,6 @@ public class ReadIndexer {
                 int batchPosition = 0;
                 SequenceRecord<Integer, Short> seq;
                 while ((seq = sup.next()) != null) {
-                    if (i == 0) {
-                        readHeaderMap.put(readId, seq.getHeader());
-                    }
                     batch[batchPosition] = seq;
                     progressBar.setProgress(sup.getBytesRead());
 
@@ -113,7 +104,7 @@ public class ReadIndexer {
                                         rangeStart,
                                         rangeEnd)
                         );
-                        batch = new HeaderSequenceRecord[BATCH_SIZE];
+                        batch = new SequenceRecord[BATCH_SIZE];
                         batchPosition = 0;
                     } else {
                         batchPosition++;
@@ -138,7 +129,7 @@ public class ReadIndexer {
                     indexPhaser.register();
                     threadPoolExecutor.submit(() -> {
                         try {
-                            readIndexIO.writeReadHeaderMapping(readHeaderMap);
+                            readIndexIO.writeReadHeaderMapping(fastqIdReader.getHeaders());
                         } catch (RuntimeException e) {
                             throw new RuntimeException("Error writing read header map.", e);
                         } finally {

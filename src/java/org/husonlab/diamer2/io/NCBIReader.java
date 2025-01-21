@@ -1,11 +1,10 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
-import org.husonlab.diamer2.io.seq.FASTAReader;
+import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.HeaderSequenceRecord;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
-import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 import org.jetbrains.annotations.NotNull;
@@ -37,7 +36,7 @@ public class NCBIReader {
         return tree;
     }
 
-    public static Pair<HashSet<String>, SequenceSupplier> extractNeededAccessions(File fasta) throws IOException {
+    public static Pair<HashSet<String>, SequenceSupplier<String, Character>> extractNeededAccessions(File fasta) throws IOException {
 
         Logger logger = new Logger("NCBIReader").addElement(new Time());
 
@@ -45,18 +44,18 @@ public class NCBIReader {
         int numberOfSequencesEst = org.husonlab.diamer2.io.Utilities.approximateNumberOfSequences(fasta, "\n>");
         HashSet<String> neededAccessions = new HashSet<>(numberOfSequencesEst);
         logger.logInfo("Extracting accessions from database...");
-        SequenceSupplier<Short> sequenceSupplier;
-        try(SequenceSupplier<Short> sup = new SequenceSupplier<Short>(new FASTAReader(fasta), new AAtoBase11(), false)) {
+        SequenceSupplier<String, Character> sequenceSupplier;
+        try(SequenceSupplier<String, Character> sup = new SequenceSupplier<>(new FastaReader(fasta), null, false)) {
             sequenceSupplier = sup;
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             new OneLineLogger("NCBIReader", 1000)
                     .addElement(new RunningTime())
                     .addElement(progressBar);
 
-            HeaderSequenceRecord<Short> seq;
+            SequenceRecord<String, Character> seq;
             while ((seq = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
-                neededAccessions.addAll(extractIdsFromHeader(seq.getHeader()));
+                neededAccessions.addAll(extractIdsFromHeader(seq.getId()));
             }
             progressBar.finish();
         }
@@ -70,7 +69,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(File output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier sequenceSupplier) throws IOException {
+    public static void preprocessNR(File output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -82,9 +81,9 @@ public class NCBIReader {
         int skippedNoTaxId = 0;
         int skippedRank = 0;
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        HeaderSequenceRecord fasta;
+        SequenceRecord<String, Character> fasta;
 
-        try (SequenceSupplier sup = sequenceSupplier.open();
+        try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
              BufferedWriter bw = Files.newBufferedWriter(output.toPath());
              BufferedWriter bwSkipped = Files.newBufferedWriter(Path.of(output.getParent(), "skipped_sequences.fsa"))) {
 
@@ -101,7 +100,7 @@ public class NCBIReader {
                 progressLogger.setProgress(processedFastas);
 
                 // Extract taxIds and compute LCA taxId
-                String header = fasta.getHeader();
+                String header = fasta.getId();
                 ArrayList<Integer> taxIds = new ArrayList<>();
                 for (String id: extractIdsFromHeader(header)) {
                     int taxId = accessionMapping.getTaxId(id);
@@ -145,14 +144,14 @@ public class NCBIReader {
                 header = ">%d".formatted(taxId);
 
                 // Split the sequence by stop codons
-                ArrayList<HeaderSequenceRecord> fastas = new ArrayList<>();
+                ArrayList<SequenceRecord<String, Character>> fastas = new ArrayList<>();
                 for (String sequence : fasta.getSequenceString().split("\\*")) {
-                    fastas.add(HeaderSequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
+                    fastas.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
                 }
 
                 // Write the sequenceRecords to the output file
-                for (HeaderSequenceRecord fasta2 : fastas) {
-                    bw.write(fasta2.getHeader());
+                for (SequenceRecord<String, Character> fasta2 : fastas) {
+                    bw.write(fasta2.getId());
                     bw.newLine();
                     bw.write(fasta2.getSequenceString());
                     bw.newLine();

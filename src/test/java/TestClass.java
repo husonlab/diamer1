@@ -1,7 +1,7 @@
-import org.husonlab.diamer2.io.seq.FASTAReader;
-import org.husonlab.diamer2.io.seq.FASTQReader;
+import org.husonlab.diamer2.io.seq.FastaReader;
+import org.husonlab.diamer2.io.seq.FastqReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.HeaderSequenceRecord;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
@@ -18,14 +18,14 @@ public class TestClass {
     @Test
     public void test() throws IOException {
         long[] counts = new long[11];
-        try (SequenceSupplier<Short> supplier = new SequenceSupplier<>(
-                new FASTQReader(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\Zymo-GridION-EVEN-3Peaks-R103-merged.fq")),
+        try (SequenceSupplier<String, Short> supplier = new SequenceSupplier<>(
+                new FastqReader(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\Zymo-GridION-EVEN-3Peaks-R103-merged.fq")),
                 new DNAtoBase11(), false)) {
 
             ProgressBar progressBar = new ProgressBar(supplier.getFileSize(), 20);
             new OneLineLogger("Counter", 1000).addElement(progressBar);
 
-            HeaderSequenceRecord<Short> record;
+            SequenceRecord<String, Short> record;
             while ((record = supplier.next()) != null) {
                 progressBar.setProgress(supplier.getBytesRead());
                 for (Short base : record.getSequence()) {
@@ -48,14 +48,14 @@ public class TestClass {
     @Test
     public void test2() throws IOException {
         long[] counts = new long[11];
-        try (SequenceSupplier<Short> supplier = new SequenceSupplier<>(
-                new FASTAReader(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100.fsa")),
+        try (SequenceSupplier<String, Short> supplier = new SequenceSupplier<>(
+                new FastaReader(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100.fsa")),
                 new AAtoBase11(), false)) {
 
             ProgressBar progressBar = new ProgressBar(supplier.getFileSize(), 20);
             new OneLineLogger("Counter", 1000).addElement(progressBar);
 
-            HeaderSequenceRecord<Short> record;
+            SequenceRecord<String, Short> record;
             while ((record = supplier.next()) != null) {
                 progressBar.setProgress(supplier.getBytesRead());
                 for (Short base : record.getSequence()) {
