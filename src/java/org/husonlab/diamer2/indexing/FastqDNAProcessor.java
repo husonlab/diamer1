@@ -2,9 +2,9 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.encoder.Encoder;
-import org.husonlab.diamer2.seq.kmers.KmerExtractor;
-import org.husonlab.diamer2.seq.kmers.KmerExtractorProtein;
+import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
+import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
+import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Phaser;
@@ -12,24 +12,24 @@ import java.util.concurrent.Phaser;
 public class FastqDNAProcessor implements Runnable {
 
     private final Phaser phaser;
-    private final SequenceRecord<Integer, Short>[] batch;
-    private final Encoder encoder;
-    private final KmerExtractor<Short> KmerExtractor;
+    private final SequenceRecord<Integer, Byte>[] batch;
+    private final EncodingSettings encodingSettings;
+    private final KmerExtractor kmerExtractor;
     private final ConcurrentLinkedQueue<Long>[] bucketLists;
     private final int rangeStart;
     private final int rangeEnd;
 
     public FastqDNAProcessor(
             Phaser phaser,
-            SequenceRecord<Integer, Short>[] batch,
-            Encoder encoder,
+            SequenceRecord<Integer, Byte>[] batch,
+            EncodingSettings encodingSettings,
             ConcurrentLinkedQueue<Long>[] bucketLists,
             int rangeStart,
             int rangeEnd) {
         this.phaser = phaser;
         this.batch = batch;
-        this.encoder = encoder;
-        this.KmerExtractor = new KmerExtractorProtein(encoder);
+        this.encodingSettings = encodingSettings;
+        this.kmerExtractor = new KmerExtractor(new KmerEncoder(encodingSettings.getTargetAlphabet().getBase(), encodingSettings.getMask()));
         this.bucketLists = bucketLists;
         this.rangeStart = rangeStart;
         this.rangeEnd = rangeEnd;
@@ -38,17 +38,17 @@ public class FastqDNAProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (SequenceRecord<Integer, Short> fastq : batch) {
-                if (fastq == null || fastq.getSequence().length() < (15*3)) {
+            for (SequenceRecord<Integer, Byte> fastq : batch) {
+                if (fastq == null || fastq.sequence().length() < (15*3)) {
                     continue;
                 }
-                int id = fastq.getId();
-                Sequence<Short> sequence = fastq.getSequence();
-                long[] kmers = KmerExtractor.extractKmers(sequence);
+                int id = fastq.id();
+                Sequence<Byte> sequence = fastq.sequence();
+                long[] kmers = kmerExtractor.extractKmers(sequence);
                 for (long kmer : kmers) {
-                    int bucketName = encoder.getBucketName(kmer);
+                    int bucketName = encodingSettings.getBucketNameFromKmer(kmer);
                     if (bucketName >= rangeStart && bucketName < rangeEnd) {
-                        bucketLists[bucketName - rangeStart].add(encoder.getIndex(id, kmer));
+                        bucketLists[bucketName - rangeStart].add(encodingSettings.getIndex(id, kmer));
                     }
                 }
             }

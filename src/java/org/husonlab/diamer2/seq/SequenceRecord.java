@@ -8,41 +8,42 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Iterator;
 
 /**
- * Represents a sequence of symbols of type T.
+ * Represents a sequence of symbols of type {@link S} together with a header/id of another type {@link H} e.g. the
+ * header string or id of a sequence.
  * <p>The symbol type of the {@link Alphabet} that is associated with the {@link Sequence} must match with {@link S}</p>
  */
-public class SequenceRecord<H, S> implements Iterable<S> {
-
-    private final H id;
-    private final Sequence<S> sequence;
+public record SequenceRecord<H, S>(H id, Sequence<S> sequence) implements Iterable<S> {
 
     /**
      * Create a new Sequence object.
      * @param sequence the sequence of the sequence
      */
-    public SequenceRecord(H id, Sequence<S> sequence) {
-        this.id = id;
-        this.sequence = sequence;
+    public SequenceRecord {
     }
 
     /**
      * Get the id of the sequence.
+     *
      * @return the id of the sequence
      */
-    public H getId() {
+    @Override
+    public H id() {
         return id;
     }
 
     /**
      * Get the sequence.
+     *
      * @return the sequence
      */
-    public Sequence<S> getSequence() {
+    @Override
+    public Sequence<S> sequence() {
         return sequence;
     }
 
     /**
      * Get a string representation of the sequence.
+     *
      * @return a string representation of the sequence
      */
     public String getSequenceString() {
@@ -53,7 +54,7 @@ public class SequenceRecord<H, S> implements Iterable<S> {
     public boolean equals(Object obj) {
         if (obj == null || getClass() != obj.getClass()) return false;
         SequenceRecord<?, ?> seq = (SequenceRecord<?, ?>) obj;
-        return seq.getId() == id && sequence.equals(seq.sequence);
+        return seq.id() == id && sequence.equals(seq.sequence);
     }
 
     @Override
@@ -69,7 +70,8 @@ public class SequenceRecord<H, S> implements Iterable<S> {
 
     /**
      * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetDNA}.
-     * @param header the header of the sequence
+     *
+     * @param header   the header of the sequence
      * @param sequence the sequence
      * @return a new DNA SequenceRecord object
      */
@@ -79,7 +81,8 @@ public class SequenceRecord<H, S> implements Iterable<S> {
 
     /**
      * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetDNA}.
-     * @param id the id of the sequence
+     *
+     * @param id       the id of the sequence
      * @param sequence the sequence
      * @return a new DNA SequenceRecord object
      */
@@ -89,7 +92,8 @@ public class SequenceRecord<H, S> implements Iterable<S> {
 
     /**
      * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetAA}.
-     * @param header the header of the sequence
+     *
+     * @param header   the header of the sequence
      * @param sequence the sequence
      * @return a new AA SequenceRecord object
      */
@@ -99,7 +103,8 @@ public class SequenceRecord<H, S> implements Iterable<S> {
 
     /**
      * Convenience method to create a {@link SequenceRecord} of a {@link CharSequence} with the {@link AlphabetAA}.
-     * @param id the id of the sequence
+     *
+     * @param id       the id of the sequence
      * @param sequence the sequence
      * @return a new AA SequenceRecord object
      */

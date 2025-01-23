@@ -30,7 +30,7 @@ public class Utilities {
         new OneLineLogger("Index", 1000).addElement(progressBar);
 
         final int[] globalKmerDistribution = new int[resolution];
-        final long highestIndexEnc = (new Base11Alphabet()).highestEncoding();
+        final long highestIndexEnc = (new Base11Alphabet()).highestEncoding(15);
         final float factor = (float)resolution/highestIndexEnc;
         final ConcurrentHashMap<String, int[]> rankKmerDistribution = new ConcurrentHashMap<>();
 

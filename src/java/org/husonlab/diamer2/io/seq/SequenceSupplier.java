@@ -58,11 +58,11 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                 return;
             }
             if (converter != null) {
-                sequenceBuffer = converter.convert(sequenceRecord.getSequence());
+                sequenceBuffer = converter.convert(sequenceRecord.sequence());
             } else {
-                sequenceBuffer = new Sequence[]{sequenceRecord.getSequence()};
+                sequenceBuffer = new Sequence[]{sequenceRecord.sequence()};
             }
-            id = sequenceRecord.getId();
+            id = sequenceRecord.id();
             bytesRead = sequenceReader.getBytesRead();
             sequencesRead++;
             sequences.add(new MemoryEntry<H, S>(sequencesRead, bytesRead, id, sequenceBuffer));
@@ -75,11 +75,11 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
             return;
         }
         if (converter != null) {
-            sequenceBuffer = converter.convert(sequenceRecord.getSequence());
+            sequenceBuffer = converter.convert(sequenceRecord.sequence());
         } else {
-            sequenceBuffer = new Sequence[]{sequenceRecord.getSequence()};
+            sequenceBuffer = new Sequence[]{sequenceRecord.sequence()};
         }
-        id = sequenceRecord.getId();
+        id = sequenceRecord.id();
         bytesRead = sequenceReader.getBytesRead();
         sequencesRead++;
     }

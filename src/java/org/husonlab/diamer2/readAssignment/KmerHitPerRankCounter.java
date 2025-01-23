@@ -11,7 +11,7 @@ public class KmerHitPerRankCounter {
     private final float factor;
 
     public KmerHitPerRankCounter(int resolution) {
-        this.highestIndexEnc = (new Base11Alphabet()).highestEncoding();
+        this.highestIndexEnc = (new Base11Alphabet()).highestEncoding(15);
         this.resolution = resolution;
         this.factor = (float)highestIndexEnc / resolution;
         this.kmerHitsPerRank = new ConcurrentHashMap<>();

@@ -45,13 +45,14 @@ public class ReadIndexIO extends DBIndexIO {
 
     public void writeReadHeaderMapping(List<String> readHeaderMapping) {
         try {
-            try (PrintWriter writer = new PrintWriter(readHeaderMappingFile)) {
-                writer.println(readHeaderMapping.size());
-                for (int i = 0; i < readHeaderMapping.size(); i++) {
-                    writer.println(i + "\t" + readHeaderMapping.get(i));
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(readHeaderMappingFile))) {
+                writer.write(readHeaderMapping.size() + "\n");
+                int id = 0;
+                for (String header : readHeaderMapping) {
+                    writer.write(id++ + "\t" + header + "\n");
                 }
             }
-        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Could not write read header mapping file: " + readHeaderMappingFile, e);
         }
     }

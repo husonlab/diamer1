@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
+@Deprecated
 public class IndexEncoding {
     /**
      * Extracts the encoded kmer from an index entry (first 42 bits (left to right)).

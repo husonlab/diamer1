@@ -3,20 +3,36 @@ package org.husonlab.diamer2.seq.alphabet;
 import java.util.Arrays;
 import java.util.HashSet;
 
+/**
+ * Utility methods for working with different alphabets.
+ */
 public class Utilities {
+
+    /**
+     * Array with all 26 letters of the alphabet that occur in amino acid sequences.
+     * <p>extended amino acid alphabet:
+     *     <li><a href="https://www.ddbj.nig.ac.jp/ddbj/code-e.html">DDBJ</a></li>
+     *     <li><a href="https://www.ncbi.nlm.nih.gov/CBBResearch/Yu/logoddslogo/apidocs/weblogo/seq.html">NCBI</a></li>
+     * </p>
+     */
+    @Deprecated
     public static Character[] alphabetAAArray = new Character[]{
-            'B', 'D', 'E', 'K', 'N', 'O', 'Q', 'R', 'X', 'Z',
-            'A', 'S', 'T', 'I', 'J', 'L', 'V', 'G', 'P', 'F', 'Y', 'C', 'U', 'H', 'M', 'W'
+        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J',
+        'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
     };
 
+    /**
+     * HashSet to efficiently check if a character is in the extended amino acid alphabet.
+     */
+    @Deprecated
     public static HashSet<Character> alphabetAA = new HashSet<Character>(Arrays.asList(alphabetAAArray));
 
     /**
-     * Reduces the alphabet of the sequence to the amino acids that can be encoded in the base 11 alphabet by
-     * the @link{toBase11} method.
+     * Reduces the alphabet of the sequence to the extended amino acid alphabet.
      * @param seq amino acid sequence
-     * @return sequence with only amino acids that can be encoded in the base 11 alphabet
+     * @return sequence containing only characters from the extended amino acid alphabet
      */
+    @Deprecated
     public static String enforceAlphabet(String seq) {
         StringBuilder sb = new StringBuilder();
         for (char aa : seq.toCharArray()) {
@@ -32,6 +48,7 @@ public class Utilities {
      * @param nucleotide DNA nucleotide
      * @return complement of the nucleotide
      */
+    @Deprecated
     public static char reverseComplement(char nucleotide) {
         switch (nucleotide) {
             case 'A' -> { return 'T'; }
@@ -47,6 +64,7 @@ public class Utilities {
      * @param sequence DNA sequence
      * @return reverse complement of the sequence
      */
+    @Deprecated
     public static String reverseComplement(String sequence) {
         StringBuilder sb = new StringBuilder();
         for (int i = sequence.length() - 1; i >= 0; i--) {

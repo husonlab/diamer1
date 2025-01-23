@@ -3,15 +3,57 @@ package org.husonlab.diamer2.io.taxonomy;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
 
+import java.io.BufferedWriter;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class TreeIO {
 
     /**
+     * Saves all custom values that are associated with the nodes of the tree to a tsv file.
+     * @param tree the tree to save the values from
+     * @param threshold the minimum value a custom value must have to be saved
+     * @param file the file to save the values to
+     * @param nodeLabels if true the node labels are saved instead of only taxIds
+     */
+    public static void saveCustomValues(Tree tree, int threshold, Path file, boolean nodeLabels) {
+        try (BufferedWriter writer = java.nio.file.Files.newBufferedWriter(file)) {
+            writer.write(tree.idMap.size() + "\n");
+            if (nodeLabels) {
+                writer.write("name\t");
+            } else {
+                writer.write("taxId\t");
+            }
+            for (String description: tree.getNodeCustomValueDescriptors()) {
+                writer.write(description + "\t");
+            }
+            writer.write("\n");
+            for (Node node : tree.idMap.values()) {
+                // Skip nodes that do not have a custom value above the threshold
+                if (node.customValues.stream().max(Integer::compareTo).orElse(0) < threshold) {
+                    continue;
+                }
+                if (nodeLabels) {
+                    writer.write(node + "\t");
+                } else {
+                    writer.write(node.getTaxId() + "\t");
+                }
+                for (int value: node.customValues) {
+                    writer.write(value + "\t");
+                }
+                writer.write("\n");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not save custom values of the tree.", e);
+        }
+    }
+
+    /**
      * Traverses the tree with BFS and collects the accumulated weight dependent on the rank and the threshold.
      * @return a hashmap with the rank as key and a hashmap with the taxId as key and the cummulative weight as value
      */
+    @Deprecated
     public static Tree.WeightsPerRank[] getAccumulatedeWeightPerRank(Tree tree, int threshold) {
         HashMap<String, HashMap<Integer, Integer>> cummulativeWeightPerRank = new HashMap<>();
         LinkedList<Node> stack = new LinkedList<>();

@@ -8,13 +8,14 @@ import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.readAssignment.AssignmentStatistics;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
-import org.husonlab.diamer2.seq.encoder.Encoder;
-import org.husonlab.diamer2.seq.encoder.K15Base11Encoder;
+import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
+import org.husonlab.diamer2.main.encodingSettings.K15Base11;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -30,7 +31,8 @@ import java.util.HashSet;
 public class Main {
     public static void main(String[] args) {
 
-        long mask = 0b11111101101100111000100001L;
+        long mask = 0b11111101101100111000100001L; // longspaced
+//        long mask = 0b111111111111111L;
 
         Options options = new Options();
         OptionGroup computationOptions = new OptionGroup();
@@ -238,8 +240,8 @@ public class Main {
                     System.exit(1);
                 }
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                Encoder encoder = new K15Base11Encoder(mask, 22);
-                DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, maxThreads, 2*maxThreads, 10000, bucketsPerCycle, false);
+                EncodingSettings encodingSettings = new K15Base11(mask, 22);
+                DBIndexer dbIndexer = new DBIndexer(database, output, tree, encodingSettings, maxThreads, 2*maxThreads, 10000, bucketsPerCycle, false);
                 dbIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
@@ -251,8 +253,8 @@ public class Main {
                 int bucketsPerCycle = cli.getParsedOptionValue("b");
                 File reads = cli.getParsedOptionValue("d");
                 Path output = cli.getParsedOptionValue("o");
-                Encoder encoder = new K15Base11Encoder(mask, 22);
-                ReadIndexer readIndexer = new ReadIndexer(reads, output, encoder, maxThreads, 2*maxThreads, 1000, bucketsPerCycle);
+                EncodingSettings encodingSettings = new K15Base11(mask, 22);
+                ReadIndexer readIndexer = new ReadIndexer(reads, output, encodingSettings, maxThreads, 2*maxThreads, 1000, bucketsPerCycle);
                 readIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
@@ -269,14 +271,15 @@ public class Main {
                 Path dbIndex = Path.of(paths[0]);
                 Path readsIndex = Path.of(paths[1]);
                 Path output = Path.of(cli.getOptionValue("o"));
-                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex);
+                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex, new K15Base11(mask, 22));
                 ReadAssignment assignment = readAssigner.assignReads();
                 ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
+                assignment.addKmerCounts();
                 assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
-                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-                assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
+//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
+//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
                 assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
-                ReadAssignmentIO.writeAssignmentStatistics(assignment.calculateStatistics(), output);
+                TreeIO.saveCustomValues(tree, 1, output.resolve("custom_values.tsv"), true);
             } catch (Exception e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -293,8 +296,8 @@ public class Main {
                 tree.reduceToStandardRanks();
                 ReadAssignment readAssignment = ReadAssignmentIO.read(tree, file);
                 readAssignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-                AssignmentStatistics assignmentStatistics = readAssignment.calculateStatistics();
-                ReadAssignmentIO.writeAssignmentStatistics(assignmentStatistics, path);
+//                AssignmentStatistics assignmentStatistics = readAssignment.calculateStatistics();
+//                ReadAssignmentIO.writeAssignmentStatistics(assignmentStatistics, path);
                 System.out.println();
 //                ReadAssignmentIO.writeAssignments(readAssignment, path.resolve("assignments.tsv").toFile());
 //                ReadAssignmentIO.writeReadStatistics(readAssignment, path);

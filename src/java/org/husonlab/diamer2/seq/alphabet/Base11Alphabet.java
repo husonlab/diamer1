@@ -1,26 +1,32 @@
 package org.husonlab.diamer2.seq.alphabet;
 
-public class Base11Alphabet implements Alphabet<Short> {
+/**
+ * Alphabet for the reduced amino acid alphabet as used in DIAMOND.
+ */
+public class Base11Alphabet implements Alphabet<Byte> {
 
-    private static final int base = 11;
-
-    public long highestEncoding() {
-        return 4177248169415650L;
+    /**
+     * @param bits length of a kmer
+     * @return highest number that can occur when a kmer with the given length is converted to a number.
+     */
+    @Deprecated
+    public long highestEncoding(int bits) {
+        return (long)Math.pow(getBase(), bits) - 1L;
     }
 
     @Override
     public int getBase() {
-        return base;
+        return 11;
     }
 
     @Override
-    public boolean contains(Short symbol) {
+    public boolean contains(Byte symbol) {
         return symbol >= 0 && symbol <= 10;
     }
 
     @Override
-    public Short[] getSymbols() {
-        return new Short[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    public Byte[] getSymbols() {
+        return new Byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
     }
 
     @Override
@@ -29,9 +35,9 @@ public class Base11Alphabet implements Alphabet<Short> {
     }
 
     @Override
-    public String toString(Iterable<Short> seq) {
+    public String toString(Iterable<Byte> seq) {
         StringBuilder sb = new StringBuilder();
-        for (Short symbol : seq) {
+        for (Byte symbol : seq) {
             sb.append(symbol).append(" ");
         }
         return sb.toString();

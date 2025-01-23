@@ -88,8 +88,8 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 ````
 
 # Questions:
+* How to add analysis stuff to code without breaking it?
 * What output format do I need to display the result in SplitsTree?
-* How to handle weired amino acid letters?
 * How to handle stop codons?
 
 # TODO

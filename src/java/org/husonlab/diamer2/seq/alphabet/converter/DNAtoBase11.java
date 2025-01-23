@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.seq.alphabet.converter;
 
 import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.seq.ShortSequence;
+import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
@@ -10,28 +10,28 @@ import org.husonlab.diamer2.seq.alphabet.Utilities;
 import java.util.HashMap;
 import java.util.LinkedList;
 
-public class DNAtoBase11 implements Converter<Character, Short> {
+public class DNAtoBase11 implements Converter<Character, Byte> {
 
     private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetDNA();
-    private static final Alphabet<Short> TARGET_ALPHABET = new Base11Alphabet();
+    private static final Alphabet<Byte> TARGET_ALPHABET = new Base11Alphabet();
 
     @Override
-    public Sequence<Short>[] convert(Sequence<Character> sequence) {
+    public Sequence<Byte>[] convert(Sequence<Character> sequence) {
 
         if (sequence.length() < 3) {
             return new Sequence[0];
         }
         StringBuilder triplet = new StringBuilder();
-        short[][] translations = new short[6][];
+        byte[][] translations = new byte[6][];
         for (int i = 0; i < 3; i++) {
-            translations[i*2] = new short[(sequence.length()-i)/3];
-            translations[i*2+1] = new short[(sequence.length()-i)/3];
+            translations[i*2] = new byte[(sequence.length()-i)/3];
+            translations[i*2+1] = new byte[(sequence.length()-i)/3];
         }
         triplet.append(sequence.get(0)).append(sequence.get(1));
 
         for (int i = 2; i < sequence.length(); i++) {
             triplet.append(sequence.get(i));
-            short[] encoding = encodeDNA(triplet.toString());
+            byte[] encoding = encodeDNA(triplet.toString());
             int i2 = i*2-4;
             translations[i2%6][i2/6] = encoding[0];
             translations[(i2%6)+1][i2/6] = encoding[1];
@@ -39,23 +39,23 @@ public class DNAtoBase11 implements Converter<Character, Short> {
         }
         if (sequence.length() == 3) {
             return new Sequence[]{
-                    new ShortSequence(new Base11Alphabet(), translations[0]),
-                    new ShortSequence(new Base11Alphabet(), translations[1])};
+                    new Compressed4BitSequence(new Base11Alphabet(), translations[0]),
+                    new Compressed4BitSequence(new Base11Alphabet(), translations[1])};
         }
         if (sequence.length() == 4) {
             return new Sequence[]{
-                    new ShortSequence(new Base11Alphabet(), translations[0]),
-                    new ShortSequence(new Base11Alphabet(), translations[1]),
-                    new ShortSequence(new Base11Alphabet(), translations[2]),
-                    new ShortSequence(new Base11Alphabet(), translations[3])};
+                    new Compressed4BitSequence(new Base11Alphabet(), translations[0]),
+                    new Compressed4BitSequence(new Base11Alphabet(), translations[1]),
+                    new Compressed4BitSequence(new Base11Alphabet(), translations[2]),
+                    new Compressed4BitSequence(new Base11Alphabet(), translations[3])};
         }
         return new Sequence[]{
-                new ShortSequence(new Base11Alphabet(), translations[0]),
-                new ShortSequence(new Base11Alphabet(), translations[1]),
-                new ShortSequence(new Base11Alphabet(), translations[2]),
-                new ShortSequence(new Base11Alphabet(), translations[3]),
-                new ShortSequence(new Base11Alphabet(), translations[4]),
-                new ShortSequence(new Base11Alphabet(), translations[5])};
+                new Compressed4BitSequence(new Base11Alphabet(), translations[0]),
+                new Compressed4BitSequence(new Base11Alphabet(), translations[1]),
+                new Compressed4BitSequence(new Base11Alphabet(), translations[2]),
+                new Compressed4BitSequence(new Base11Alphabet(), translations[3]),
+                new Compressed4BitSequence(new Base11Alphabet(), translations[4]),
+                new Compressed4BitSequence(new Base11Alphabet(), translations[5])};
     }
 
     @Override
@@ -64,7 +64,7 @@ public class DNAtoBase11 implements Converter<Character, Short> {
     }
 
     @Override
-    public Alphabet<Short> getTargetAlphabet() {
+    public Alphabet<Byte> getTargetAlphabet() {
         return TARGET_ALPHABET;
     }
 
@@ -73,7 +73,7 @@ public class DNAtoBase11 implements Converter<Character, Short> {
      * @param codon DNA codon
      * @return number representation of the codon in base 11 encoding
      */
-    public static short codonToAAAndBase11(String codon) {
+    public static byte codonToAAAndBase11(String codon) {
         switch (codon) {
             case "GAT", "GAC",                                  // D
                  "GAA", "GAG",                                  // E
@@ -140,7 +140,7 @@ public class DNAtoBase11 implements Converter<Character, Short> {
             String reverse = Utilities.reverseComplement(codon);
             int codonEncoding = codonToAAAndBase11(codon);
             int reverseEncoding = codonToAAAndBase11(reverse);
-            String encoding = "(short)" + codonEncoding + ", " + "(short)" + reverseEncoding;
+            String encoding = "(byte)" + codonEncoding + ", " + "(byte)" + reverseEncoding;
             encodingToCodons.computeIfAbsent(encoding, k -> new LinkedList<>());
             encodingToCodons.computeIfPresent(encoding, (k, v) -> { v.add(codon); return v; });
         }
@@ -151,36 +151,36 @@ public class DNAtoBase11 implements Converter<Character, Short> {
                 sb.append("\"").append(codon).append("\", ");
             }
             sb.delete(sb.length() - 2, sb.length());
-            sb.append(" -> { return new short[]{").append(encoding).append("}; }");
+            sb.append(" -> { return new byte[]{").append(encoding).append("}; }");
             System.out.println(sb);
         }
     }
 
-    public short[] encodeDNA(String codon) {
+    public byte[] encodeDNA(String codon) {
         switch (codon) {
-            case "ACC", "GCC", "TCC" -> { return new short[]{(short)1, (short)3}; }
-            case "ATA", "GTA" -> { return new short[]{(short)2, (short)6}; }
-            case "AGA", "CGA", "CGC", "CGT", "TGA" -> { return new short[]{(short)0, (short)1}; }
-            case "ACT", "AGC", "AGT", "GCT" -> { return new short[]{(short)1, (short)1}; }
-            case "ACG", "GCG", "TCA", "TCG", "TCT" -> { return new short[]{(short)1, (short)0}; }
-            case "AAC", "AAG", "AAT", "CAA", "CAG", "GAC", "GAG", "GAT", "TAA", "TAG" -> { return new short[]{(short)0, (short)2}; }
-            case "GGG" -> { return new short[]{(short)3, (short)4}; }
-            case "AAA", "GAA" -> { return new short[]{(short)0, (short)5}; }
-            case "GTG" -> { return new short[]{(short)2, (short)8}; }
-            case "AGG", "CGG" -> { return new short[]{(short)0, (short)4}; }
-            case "ATG" -> { return new short[]{(short)9, (short)8}; }
-            case "TGG" -> { return new short[]{(short)10, (short)4}; }
-            case "CCC" -> { return new short[]{(short)4, (short)3}; }
-            case "TTC", "TTT" -> { return new short[]{(short)5, (short)0}; }
-            case "CCG", "CCT" -> { return new short[]{(short)4, (short)0}; }
-            case "CCA" -> { return new short[]{(short)4, (short)10}; }
-            case "CAT" -> { return new short[]{(short)8, (short)9}; }
-            case "TAC", "TAT" -> { return new short[]{(short)6, (short)2}; }
-            case "TGC", "TGT" -> { return new short[]{(short)7, (short)1}; }
-            case "GGA", "GGC", "GGT" -> { return new short[]{(short)3, (short)1}; }
-            case "CAC" -> { return new short[]{(short)8, (short)2}; }
-            case "ACA", "GCA" -> { return new short[]{(short)1, (short)7}; }
-            case "ATC", "ATT", "CTA", "CTC", "CTG", "CTT", "GTC", "GTT", "TTA", "TTG" -> { return new short[]{(short)2, (short)0}; }
+            case "ACC", "GCC", "TCC" -> { return new byte[]{(byte)1, (byte)3}; }
+            case "ATA", "GTA" -> { return new byte[]{(byte)2, (byte)6}; }
+            case "AGA", "CGA", "CGC", "CGT", "TGA" -> { return new byte[]{(byte)0, (byte)1}; }
+            case "ACT", "AGC", "AGT", "GCT" -> { return new byte[]{(byte)1, (byte)1}; }
+            case "ACG", "GCG", "TCA", "TCG", "TCT" -> { return new byte[]{(byte)1, (byte)0}; }
+            case "AAC", "AAG", "AAT", "CAA", "CAG", "GAC", "GAG", "GAT", "TAA", "TAG" -> { return new byte[]{(byte)0, (byte)2}; }
+            case "GGG" -> { return new byte[]{(byte)3, (byte)4}; }
+            case "AAA", "GAA" -> { return new byte[]{(byte)0, (byte)5}; }
+            case "GTG" -> { return new byte[]{(byte)2, (byte)8}; }
+            case "AGG", "CGG" -> { return new byte[]{(byte)0, (byte)4}; }
+            case "ATG" -> { return new byte[]{(byte)9, (byte)8}; }
+            case "TGG" -> { return new byte[]{(byte)10, (byte)4}; }
+            case "CCC" -> { return new byte[]{(byte)4, (byte)3}; }
+            case "TTC", "TTT" -> { return new byte[]{(byte)5, (byte)0}; }
+            case "CCG", "CCT" -> { return new byte[]{(byte)4, (byte)0}; }
+            case "CCA" -> { return new byte[]{(byte)4, (byte)10}; }
+            case "CAT" -> { return new byte[]{(byte)8, (byte)9}; }
+            case "TAC", "TAT" -> { return new byte[]{(byte)6, (byte)2}; }
+            case "TGC", "TGT" -> { return new byte[]{(byte)7, (byte)1}; }
+            case "GGA", "GGC", "GGT" -> { return new byte[]{(byte)3, (byte)1}; }
+            case "CAC" -> { return new byte[]{(byte)8, (byte)2}; }
+            case "ACA", "GCA" -> { return new byte[]{(byte)1, (byte)7}; }
+            case "ATC", "ATT", "CTA", "CTC", "CTG", "CTT", "GTC", "GTT", "TTA", "TTG" -> { return new byte[]{(byte)2, (byte)0}; }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);
         }
     }

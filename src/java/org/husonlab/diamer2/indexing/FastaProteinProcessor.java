@@ -2,9 +2,9 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.encoder.Encoder;
-import org.husonlab.diamer2.seq.kmers.KmerExtractor;
-import org.husonlab.diamer2.seq.kmers.KmerExtractorProtein;
+import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
+import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
+import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,8 +12,8 @@ import java.util.concurrent.Phaser;
 
 public class FastaProteinProcessor implements Runnable {
     private final Phaser phaser;
-    private final SequenceRecord<Integer, Short>[] sequenceRecords;
-    private final KmerExtractor<Short> kmerExtractor;
+    private final SequenceRecord<Integer, Byte>[] sequenceRecords;
+    private final KmerExtractor kmerExtractor;
     private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
     private final Tree tree;
     private final int rangeStart;
@@ -25,10 +25,10 @@ public class FastaProteinProcessor implements Runnable {
      * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
      * @param tree Tree to find the LCA of two taxIds.
      */
-    public FastaProteinProcessor(Phaser phaser, SequenceRecord<Integer, Short>[] sequenceRecords, Encoder encoder, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
+    public FastaProteinProcessor(Phaser phaser, SequenceRecord<Integer, Byte>[] sequenceRecords, EncodingSettings encodingSettings, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
         this.phaser = phaser;
         this.sequenceRecords = sequenceRecords;
-        this.kmerExtractor = new KmerExtractorProtein(encoder);
+        this.kmerExtractor = new KmerExtractor(new KmerEncoder(encodingSettings.getTargetAlphabet().getBase(), encodingSettings.getMask()));
         this.bucketMaps = bucketMaps;
         this.tree = tree;
         this.rangeStart = rangeStart;
@@ -38,12 +38,12 @@ public class FastaProteinProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (SequenceRecord<Integer, Short> fasta : sequenceRecords) {
-                if (fasta == null || fasta.getSequence().length() < kmerExtractor.getK()) {
+            for (SequenceRecord<Integer, Byte> fasta : sequenceRecords) {
+                if (fasta == null || fasta.sequence().length() < kmerExtractor.getK()) {
                     continue;
                 }
-                Sequence<Short> sequence = fasta.getSequence();
-                int taxId = fasta.getId();
+                Sequence<Byte> sequence = fasta.sequence();
+                int taxId = fasta.id();
                 long[] kmers = kmerExtractor.extractKmers(sequence);
                 for (long kmerEnc : kmers) {
                     int bucketName = IndexEncoding.getBucketName(kmerEnc);

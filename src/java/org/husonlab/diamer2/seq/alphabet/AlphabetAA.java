@@ -1,13 +1,21 @@
 package org.husonlab.diamer2.seq.alphabet;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 public class AlphabetAA implements Alphabet<Character> {
-    private final List<Character> symbols = List.of(
+
+    /**
+     * Array with all 26 letters of the alphabet that occur in amino acid sequences.
+     * <p>extended amino acid alphabet:
+     *     <li><a href="https://www.ddbj.nig.ac.jp/ddbj/code-e.html">DDBJ</a></li>
+     *     <li><a href="https://www.ncbi.nlm.nih.gov/CBBResearch/Yu/logoddslogo/apidocs/weblogo/seq.html">NCBI</a></li>
+     * </p>
+     */
+    private final Character[] symbols = new Character[]{
             'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
-            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
-    private final HashSet<Character> symbolSet = new HashSet<>(symbols);
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
+    private final HashSet<Character> symbolSet = new HashSet<>(Arrays.asList(symbols));
 
     @Override
     public boolean contains(Character symbol) {
@@ -16,12 +24,12 @@ public class AlphabetAA implements Alphabet<Character> {
 
     @Override
     public Character[] getSymbols() {
-        return symbols.toArray(new Character[0]);
+        return symbols;
     }
 
     @Override
     public int getBase() {
-        return symbols.size();
+        return symbols.length;
     }
 
     @Override

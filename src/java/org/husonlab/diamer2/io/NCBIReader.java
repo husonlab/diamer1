@@ -55,7 +55,7 @@ public class NCBIReader {
             SequenceRecord<String, Character> seq;
             while ((seq = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
-                neededAccessions.addAll(extractIdsFromHeader(seq.getId()));
+                neededAccessions.addAll(extractIdsFromHeader(seq.id()));
             }
             progressBar.finish();
         }
@@ -100,7 +100,7 @@ public class NCBIReader {
                 progressLogger.setProgress(processedFastas);
 
                 // Extract taxIds and compute LCA taxId
-                String header = fasta.getId();
+                String header = fasta.id();
                 ArrayList<Integer> taxIds = new ArrayList<>();
                 for (String id: extractIdsFromHeader(header)) {
                     int taxId = accessionMapping.getTaxId(id);
@@ -151,7 +151,7 @@ public class NCBIReader {
 
                 // Write the sequenceRecords to the output file
                 for (SequenceRecord<String, Character> fasta2 : fastas) {
-                    bw.write(fasta2.getId());
+                    bw.write(fasta2.id());
                     bw.newLine();
                     bw.write(fasta2.getSequenceString());
                     bw.newLine();

@@ -1,7 +1,9 @@
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.FastqReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
@@ -18,17 +20,17 @@ public class TestClass {
     @Test
     public void test() throws IOException {
         long[] counts = new long[11];
-        try (SequenceSupplier<String, Short> supplier = new SequenceSupplier<>(
+        try (SequenceSupplier<String, Byte> supplier = new SequenceSupplier<>(
                 new FastqReader(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\Zymo-GridION-EVEN-3Peaks-R103-merged.fq")),
                 new DNAtoBase11(), false)) {
 
             ProgressBar progressBar = new ProgressBar(supplier.getFileSize(), 20);
             new OneLineLogger("Counter", 1000).addElement(progressBar);
 
-            SequenceRecord<String, Short> record;
+            SequenceRecord<String, Byte> record;
             while ((record = supplier.next()) != null) {
                 progressBar.setProgress(supplier.getBytesRead());
-                for (Short base : record.getSequence()) {
+                for (Byte base : record.sequence()) {
                     counts[base]++;
                 }
             }
@@ -48,17 +50,17 @@ public class TestClass {
     @Test
     public void test2() throws IOException {
         long[] counts = new long[11];
-        try (SequenceSupplier<String, Short> supplier = new SequenceSupplier<>(
+        try (SequenceSupplier<String, Byte> supplier = new SequenceSupplier<>(
                 new FastaReader(new File("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100.fsa")),
                 new AAtoBase11(), false)) {
 
             ProgressBar progressBar = new ProgressBar(supplier.getFileSize(), 20);
             new OneLineLogger("Counter", 1000).addElement(progressBar);
 
-            SequenceRecord<String, Short> record;
+            SequenceRecord<String, Byte> record;
             while ((record = supplier.next()) != null) {
                 progressBar.setProgress(supplier.getBytesRead());
-                for (Short base : record.getSequence()) {
+                for (Byte base : record.sequence()) {
                     counts[base]++;
                 }
             }
@@ -73,5 +75,12 @@ public class TestClass {
                 writer.write(i + ": " + counts[i] + "\n");
             }
         }
+    }
+
+    @Test
+    public void testCompressed4BitSequence() {
+        Compressed4BitSequence sequence = new Compressed4BitSequence(new Base11Alphabet(),
+                new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 5, 10, 6, 8, 2});
+        System.out.println(sequence);
     }
 }

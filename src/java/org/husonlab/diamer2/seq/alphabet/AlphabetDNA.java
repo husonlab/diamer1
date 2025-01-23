@@ -1,13 +1,13 @@
 package org.husonlab.diamer2.seq.alphabet;
 
+import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 
 public class AlphabetDNA implements Alphabet<Character> {
 
-    private final List<Character> symbols = List.of('A', 'C', 'G', 'T', 'N');
+    private final Character[] symbols = new Character[]{'A', 'C', 'G', 'T'};
 
-    private final HashSet<Character> symbolSet = new HashSet<>(symbols);
+    private final HashSet<Character> symbolSet = new HashSet<>(Arrays.asList(symbols));
 
     @Override
     public boolean contains(Character symbol) {
@@ -16,7 +16,7 @@ public class AlphabetDNA implements Alphabet<Character> {
 
     @Override
     public Character[] getSymbols() {
-        return symbols.toArray(new Character[0]);
+        return symbols;
     }
 
     @Override

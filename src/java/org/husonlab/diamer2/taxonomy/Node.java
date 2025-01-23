@@ -24,6 +24,11 @@ public class Node {
     private final ArrayList<Node> children;
 
     /**
+     * public ArrayList that can be used to associate custom values with the node.
+     */
+    public final ArrayList<Integer> customValues;
+
+    /**
      * Construct a new {@link Node} with a taxonomic ID.
      * @param taxId the taxonomic ID of the node
      */
@@ -33,6 +38,7 @@ public class Node {
         this.labels = new ArrayList<String>();
         this.weight = 0;
         this.accumulatedWeight = 0;
+        this.customValues = new ArrayList<>();
     }
 
     /**

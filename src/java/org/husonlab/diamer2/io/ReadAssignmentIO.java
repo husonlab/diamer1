@@ -127,6 +127,9 @@ public class ReadAssignmentIO {
         logger.logInfo("Writing raw read assignments to " + file.getAbsolutePath());
         ProgressBar progressBar = new ProgressBar(readAssignment.size(), 20);
         new OneLineLogger("ReadAssignmentIO", 100).addElement(progressBar);
+
+        readAssignment.sortKmerMatches();
+
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             bw.write(readAssignment.size() + "\n");
             for (int i = 0; i < readAssignment.size(); i++) {

@@ -9,33 +9,56 @@ import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.*;
 
-import static org.husonlab.diamer2.io.taxonomy.TreeIO.getAccumulatedeWeightPerRank;
-
+/**
+ * Class to store and handle the taxon assignments of all reads.
+ */
 public class ReadAssignment {
 
     private final Logger logger;
     private final Tree tree;
+    /**
+     * Number of reads
+     */
     private final int size;
     private final String[] readHeaderMapping;
+    /**
+     * Raw kmer matches for each read. Each entry is an array of taxon id and the number of kmer matches.
+     */
     private final ArrayList<int[]>[] kmerMatches;
+    /**
+     * List of all assignment algorithms that have been run.
+     */
     private final ArrayList<AssignmentAlgorithm> assignmentAlgorithms;
+    /**
+     * Taxon assignments for each read. Each entry is the taxon id assigned by the corresponding assignment algorithm.
+     */
     private final ArrayList<Integer>[] taxonAssignments;
 
+    /**
+     * @param tree Taxonomic tree
+     * @param readHeaderMapping Array of all read headers. The position of the header in the array is the read id.
+     */
     public ReadAssignment(Tree tree, String[] readHeaderMapping) {
         logger = new Logger("ReadAssignment");
         logger.addElement(new Time());
-        this.size = readHeaderMapping.length;
+        size = readHeaderMapping.length;
         this.tree = tree;
         this.readHeaderMapping = readHeaderMapping;
-        this.kmerMatches = new ArrayList[size];
-        this.assignmentAlgorithms = new ArrayList<>();
-        this.taxonAssignments = new ArrayList[size];
+        kmerMatches = new ArrayList[size];
+        assignmentAlgorithms = new ArrayList<>();
+        taxonAssignments = new ArrayList[size];
         for (int i = 0; i < size; i++) {
             this.kmerMatches[i] = new ArrayList<>();
             this.taxonAssignments[i] = new ArrayList<>();
         }
     }
 
+    /**
+     * Constructor to create a ReadAssignment with already existing raw read assignments.
+     * @param tree Taxonomic tree
+     * @param readHeaderMapping Array of all read headers. The position of the header in the array is the read id.
+     * @param kmerMatches Array of kmer matches for each read. Each entry is an array of taxon id and the number of kmer matches.
+     */
     public ReadAssignment(Tree tree, String[] readHeaderMapping, ArrayList<int[]>[] kmerMatches) {
         this(tree, readHeaderMapping);
         for (int i = 0; i < size; i++) {
@@ -45,82 +68,75 @@ public class ReadAssignment {
         }
     }
 
+    /**
+     * @return the number of reads
+     */
     public int size() {
         return this.size;
     }
 
+    /**
+     * Add a kmer match to the read assignment.
+     * @param readId Id of the read
+     * @param taxId Id of the taxon
+     */
     public void addReadAssignment(int readId, int taxId) {
         synchronized (kmerMatches[readId]) {
-            if (kmerMatches[readId].contains(taxId)) {
-                kmerMatches[readId].get(taxId)[1]++;
-            } else {
-                kmerMatches[readId].add(new int[]{taxId, 1});
+            for (int[] kmerMatch : kmerMatches[readId]) {
+                if (kmerMatch[0] == taxId) {
+                    kmerMatch[1]++;
+                    return;
+                }
             }
+            kmerMatches[readId].add(new int[]{taxId, 1});
         }
     }
 
+    /**
+     * Sort the kmer matches for each read by the number of kmer matches per taxon.
+     */
+    public void sortKmerMatches() {
+        for (int i = 0; i < size; i++) {
+            kmerMatches[i].sort(Comparator.comparingInt(a -> a[1]));
+        }
+    }
+
+    /**
+     * Assigns the kmer matches to the tree, accumulates and saves them.
+     */
+    public void addKmerCounts() {
+        logger.logInfo("Adding kmer counts to the tree ...");
+        tree.resetWeights();
+        tree.addWeights(kmerMatches);
+        logger.logInfo("Accumulating and saving weights on the tree ...");
+        tree.accumulateWeights();
+        tree.transferAccumulatedWeightToCustomValue("kmer count");
+    }
+
+    /**
+     * Run an assignment algorithm on the raw read assignments.
+     * <p>The results will be added to the {@link ReadAssignment} as well as the nodes of the tree.</p>
+     * @param algorithm Assignment algorithm to run
+     */
     public void runAssignmentAlgorithm(AssignmentAlgorithm algorithm) {
         logger.logInfo("Running assignment algorithm: " + algorithm.getName());
         ProgressBar progressBar = new ProgressBar(size, 20);
         new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
         assignmentAlgorithms.add(algorithm);
+        tree.resetWeights();
         for (int i = 0; i < size; i++) {
             progressBar.incrementProgress();
-            taxonAssignments[i].add(algorithm.assignRead(kmerMatches[i]));
+            int taxId = algorithm.assignRead(kmerMatches[i]);
+            if (taxId != -1) {
+                tree.addWeight(taxId, 1);
+                taxonAssignments[i].add(taxId);
+            }
         }
         progressBar.finish();
-    }
-
-    public AssignmentStatistics calculateStatistics() {
-        return new AssignmentStatistics(
-                tree,
-                calculateKmerStatistics(),
-                calculateReadStatistics()
-        );
-    }
-
-    private Tree.WeightsPerRank[] calculateKmerStatistics() {
-        logger.logInfo("Adding kmer counts to the tree ...");
-        tree.resetWeights();
-        tree.addWeights(kmerMatches);
-        logger.logInfo("Accumulating kmer counts ...");
-        tree.autoFindRoot();
+        logger.logInfo("Accumulating and saving weights on the tree ...");
         tree.accumulateWeights();
-        logger.logInfo("Calculating kumulative kmer matches per rank ...");
-        return getAccumulatedeWeightPerRank(tree, 10);
+        tree.transferAccumulatedWeightToCustomValue(algorithm.getName());
     }
-
-    private AssignmentStatistics.PerAlgorithmStatistics[] calculateReadStatistics() {
-        logger.logInfo("Calculating read statistics ...");
-        AssignmentStatistics.PerAlgorithmStatistics[] perAlgorithmStatistics = new AssignmentStatistics.PerAlgorithmStatistics[assignmentAlgorithms.size()];
-
-        for (int i = 0; i < assignmentAlgorithms.size(); i++) {
-            int assignedReads = 0;
-            int unassignedReads = 0;
-            AssignmentAlgorithm assignmentAlgorithm = assignmentAlgorithms.get(i);
-            logger.logInfo("Calculating statistics for algorithm: " + assignmentAlgorithm.getName());
-            tree.resetWeights();
-            for (int j = 0; j < size; j++) {
-                int assignment = taxonAssignments[j].get(i);
-                if (assignment == -1) {
-                    unassignedReads++;
-                } else {
-                    assignedReads++;
-                    tree.addWeight(assignment, 1);
-                }
-            }
-            tree.autoFindRoot();
-            tree.accumulateWeights();
-            perAlgorithmStatistics[i] = new AssignmentStatistics.PerAlgorithmStatistics(
-                    assignmentAlgorithm.getName(),
-                    assignedReads,
-                    unassignedReads,
-                    getAccumulatedeWeightPerRank(tree, 1)
-            );
-        }
-        return perAlgorithmStatistics;
-    }
-
 
     public Tree getTree() {
         return tree;

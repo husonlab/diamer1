@@ -1,23 +1,28 @@
 package org.husonlab.diamer2.seq.alphabet.converter;
 
 import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.seq.ShortSequence;
+import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.AlphabetAA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 
-public class AAtoBase11 implements Converter<Character, Short> {
+import java.util.Objects;
+
+/**
+ * Converts the standard amino acid alphabet to a base 11 alphabet.
+ */
+public class AAtoBase11 implements Converter<Character, Byte> {
 
     private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetAA();
-    private static final Alphabet<Short> TARGET_ALPHABET = new Base11Alphabet();
+    private static final Alphabet<Byte> TARGET_ALPHABET = new Base11Alphabet();
 
     @Override
-    public Sequence<Short>[] convert(Sequence<Character> sequence) {
-        short[] result = new short[sequence.length()];
+    public Sequence<Byte>[] convert(Sequence<Character> sequence) {
+        byte[] result = new byte[sequence.length()];
         for (int i = 0; i < sequence.length(); i++) {
             result[i] = encodeAA(sequence.get(i));
         }
-        return new Sequence[]{new ShortSequence(TARGET_ALPHABET, result)};
+        return new Sequence[]{new Compressed4BitSequence(TARGET_ALPHABET, result)};
     }
 
     @Override
@@ -26,7 +31,7 @@ public class AAtoBase11 implements Converter<Character, Short> {
     }
 
     @Override
-    public Alphabet<Short> getTargetAlphabet() {
+    public Alphabet<Byte> getTargetAlphabet() {
         return TARGET_ALPHABET;
     }
 
@@ -35,7 +40,7 @@ public class AAtoBase11 implements Converter<Character, Short> {
      * @param aa amino acid (upper case)
      * @return number representation of the amino acid in the base 11 alphabet
      */
-    public short encodeAA(char aa) {
+    public byte encodeAA(char aa) {
         switch (aa) {
             // X unknown, B aspartate/asparagine, Z glutamate/glutamine, O pyrrolysine
             case 'B', 'D', 'E', 'K', 'N', 'O', 'Q', 'R', 'X', 'Z' -> { return 0; }

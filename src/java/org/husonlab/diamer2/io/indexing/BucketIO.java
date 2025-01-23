@@ -58,7 +58,7 @@ public class BucketIO {
         public BucketReader(File file) {
             try {
                 fis = new FileInputStream(file);
-                dis = new DataInputStream(fis);
+                dis = new DataInputStream(new BufferedInputStream(fis));
             } catch (Exception e) {
                 throw new RuntimeException("Could not open bucket file " + file.getName(), e);
             }

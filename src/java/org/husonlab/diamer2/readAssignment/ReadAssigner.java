@@ -3,6 +3,7 @@ package org.husonlab.diamer2.readAssignment;
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
+import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
 
@@ -14,14 +15,16 @@ public class ReadAssigner {
     private final Tree tree;
     private final DBIndexIO dbIndex;
     private final ReadIndexIO readsIndex;
+    private final EncodingSettings encodingSettings;
     private final int MAX_THREADS;
     private final String[] readHeaderMapping;
 
-    public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath) {
+    public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath, EncodingSettings encodingSettings) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         this.tree = tree;
         this.dbIndex = new DBIndexIO(dbIndexPath);
         this.readsIndex = new ReadIndexIO(readsIndexPath);
+        this.encodingSettings = encodingSettings;
         this.MAX_THREADS = MAX_THREADS;
         if(readsIndex.existsReadHeaderMapping()) {
             this.readHeaderMapping = this.readsIndex.getReadHeaderMapping();
@@ -56,7 +59,7 @@ public class ReadAssigner {
 
         for (int i = 0; i < 1024; i++) {
             if (dbIndex.isBucketAvailable(i) && readsIndex.isBucketAvailable(i)) {
-                threadPoolExecutor.submit(new BucketProcessor(readAssignment, dbIndex, readsIndex, i));
+                threadPoolExecutor.submit(new BucketProcessor(readAssignment, dbIndex, readsIndex, i, encodingSettings));
             } else {
                 bucketsSkipped++;
             }

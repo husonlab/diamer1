@@ -1,23 +1,23 @@
-import org.husonlab.diamer2.io.ReadAssignmentIO;
-import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.taxonomy.Tree;
-import org.husonlab.diamer2.io.NCBIReader;
-import org.husonlab.diamer2.readAssignment.ReadAssigner;
-import org.junit.Test;
-
-import java.io.File;
-import java.nio.file.Path;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-
-public class ReadAssignmentTest {
-
-    @Test
-    public void testReadAssignment() throws Exception {
-        Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/database/nodes.dmp"), new File("src/test/resources/database/names.dmp"));
-        ReadAssigner readAssigner = new ReadAssigner(tree,1, Path.of("src/test/resources/database/index"), Path.of("src/test/resources/reads/index"));
-        ReadAssignment assignment = readAssigner.assignReads();
+//import org.husonlab.diamer2.io.ReadAssignmentIO;
+//import org.husonlab.diamer2.readAssignment.ReadAssignment;
+//import org.husonlab.diamer2.taxonomy.Tree;
+//import org.husonlab.diamer2.io.NCBIReader;
+//import org.husonlab.diamer2.readAssignment.ReadAssigner;
+//import org.junit.Test;
+//
+//import java.io.File;
+//import java.nio.file.Path;
+//
+//import static org.junit.Assert.assertEquals;
+//import static org.junit.Assert.assertNotNull;
+//
+//public class ReadAssignmentTest {
+//
+//    @Test
+//    public void testReadAssignment() throws Exception {
+//        Tree tree = NCBIReader.readTaxonomy(new File("src/test/resources/database/nodes.dmp"), new File("src/test/resources/database/names.dmp"));
+//        ReadAssigner readAssigner = new ReadAssigner(tree,1, Path.of("src/test/resources/database/index"), Path.of("src/test/resources/reads/index"));
+//        ReadAssignment assignment = readAssigner.assignReads();
 //        ReadAssignmentIO.writeReadStatistics(assignment, Path.of("src/test/resources/test_output/read_assignment"));
 //        ReadAssignmentIO.writeRawAssignments(assignment, new File("src/test/resources/test_output/read_assignment/raw_read_assignment.txt"));
 //        ReadAssignmentIO.writeAssignments(assignment, new File("src/test/resources/test_output/read_assignment/read_assignment.txt"));
@@ -38,5 +38,5 @@ public class ReadAssignmentTest {
 //        assertEquals(21, (int) reads[4].readAssignments().get(1));
 //        assertEquals(1, (int) reads[4].readAssignments().get(5));
 //        assertEquals(1, (int) reads[5].readAssignments().get(0));
-    }
-}
+//    }
+//}

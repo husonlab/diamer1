@@ -3,6 +3,7 @@ package org.husonlab.diamer2.taxonomy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,16 +14,24 @@ public class Tree {
      */
     HashSet<String> standardRanks = new HashSet<>(
             Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species"));
-
     /**
      * Maps all taxonomic IDs to their respective nodes.
      */
     public final HashMap<Integer, Node> idMap;
     @Nullable
     private Node root;
+    /**
+     * List that describes the custom values associated with the nodes.
+     */
+    private final ArrayList<String> nodeCustomValueDescriptors;
 
     public Tree() {
         this.idMap = new HashMap<>();
+        this.nodeCustomValueDescriptors = new ArrayList<>();
+    }
+
+    public ArrayList<String> getNodeCustomValueDescriptors() {
+        return nodeCustomValueDescriptors;
     }
 
     public Node getRoot() {
@@ -182,6 +191,28 @@ public class Tree {
     }
 
     /**
+     * Adds the weight of each node to the nodes custom values.
+     * @param description the description of the custom value that is added
+     */
+    public void transferWeightToCustomValue(String description) {
+        nodeCustomValueDescriptors.add(description);
+        for (Node node : idMap.values()) {
+            node.customValues.add(node.getWeight());
+        }
+    }
+
+    /**
+     * Adds the accumulated weight of each node to the nodes custom values.
+     * @param description the description of the custom value that is added
+     */
+    public void transferAccumulatedWeightToCustomValue(String description) {
+        nodeCustomValueDescriptors.add(description);
+        for (Node node : idMap.values()) {
+            node.customValues.add(node.getAccumulatedWeight());
+        }
+    }
+
+    /**
      * Searches for the node with the given rank in the path from the given node to the root.
      * @param node the node to start from
      * @param rank the rank to search for
@@ -296,6 +327,21 @@ public class Tree {
         }
     }
 
+    /**
+     * @return a HashMap with an ArrayList for every rank containing all nodes of that rank
+     */
+    public HashMap<String, ArrayList<Node>> getNodesPerRank() {
+        HashMap<String, ArrayList<Node>> nodesPerRank = new HashMap<>();
+        for (Node node : idMap.values()) {
+            String rank = node.getRank();
+            if (!nodesPerRank.containsKey(rank)) {
+                nodesPerRank.put(rank, new ArrayList<>());
+            }
+            nodesPerRank.get(rank).add(node);
+        }
+        return nodesPerRank;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -308,6 +354,7 @@ public class Tree {
         return Objects.hash(idMap, root);
     }
 
+    @Deprecated
     public record WeightsPerRank(String rank, int totalWeight, int[][] taxonWeights) {
     }
 }

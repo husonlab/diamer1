@@ -5,7 +5,7 @@ import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.encoder.Encoder;
+import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.Message;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
@@ -21,7 +21,7 @@ public class ReadIndexer {
     private final File fastqFile;
     private final Path indexDir;
     private final ReadIndexIO readIndexIO;
-    private final Encoder encoder;
+    private final EncodingSettings encodingSettings;
     private final int MAX_THREADS;
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
@@ -29,7 +29,7 @@ public class ReadIndexer {
 
     public ReadIndexer(File fastqFile,
                      Path indexDir,
-                     Encoder encoder,
+                     EncodingSettings encodingSettings,
                      int MAX_THREADS,
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
@@ -38,7 +38,7 @@ public class ReadIndexer {
         this.fastqFile = fastqFile;
         this.indexDir = indexDir;
         this.readIndexIO = new ReadIndexIO(indexDir);
-        this.encoder = encoder;
+        this.encodingSettings = encodingSettings;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
@@ -62,7 +62,7 @@ public class ReadIndexer {
         Phaser indexPhaser = new Phaser(1);
 
         try (FastqIdReader fastqIdReader = new FastqIdReader(fastqFile);
-             SequenceSupplier<Integer, Short> sup = new SequenceSupplier<>(fastqIdReader, encoder.getDNAConverter(), true)) {
+             SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(fastqIdReader, encodingSettings.getDNAConverter(), true)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");
@@ -73,7 +73,7 @@ public class ReadIndexer {
             // Initialize Concurrent LinkedQueue to store index entries of each bucket
             final ConcurrentLinkedQueue<Long>[] bucketLists = new ConcurrentLinkedQueue[bucketsPerCycle];
 
-            final int maxBuckets = (int) Math.pow(2, encoder.getBitsBucketNames());
+            final int maxBuckets = (int) Math.pow(2, encodingSettings.getBitsOfBucketNames());
             for (int i = 0; i < maxBuckets; i += bucketsPerCycle) {
                 int rangeStart = i;
                 int rangeEnd = Math.min(i + bucketsPerCycle, maxBuckets);
@@ -86,9 +86,9 @@ public class ReadIndexer {
                 }
 
                 progressBar.setProgress(0);
-                SequenceRecord<Integer, Short>[] batch = new SequenceRecord[BATCH_SIZE];
+                SequenceRecord<Integer, Byte>[] batch = new SequenceRecord[BATCH_SIZE];
                 int batchPosition = 0;
-                SequenceRecord<Integer, Short> seq;
+                SequenceRecord<Integer, Byte> seq;
                 while ((seq = sup.next()) != null) {
                     batch[batchPosition] = seq;
                     progressBar.setProgress(sup.getBytesRead());
@@ -99,7 +99,7 @@ public class ReadIndexer {
                                 new FastqDNAProcessor(
                                         indexPhaser,
                                         batch,
-                                        encoder,
+                                        encodingSettings,
                                         bucketLists,
                                         rangeStart,
                                         rangeEnd)
@@ -116,7 +116,7 @@ public class ReadIndexer {
                         new FastqDNAProcessor(
                                 indexPhaser,
                                 batch,
-                                encoder,
+                                encodingSettings,
                                 bucketLists,
                                 rangeStart,
                                 rangeEnd));
