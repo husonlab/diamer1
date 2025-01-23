@@ -97,7 +97,7 @@ public class ReadAssignment {
      */
     public void sortKmerMatches() {
         for (int i = 0; i < size; i++) {
-            kmerMatches[i].sort(Comparator.comparingInt(a -> a[1]));
+            kmerMatches[i].sort(Comparator.comparingInt(a -> ((int[])a)[1]).reversed());
         }
     }
 

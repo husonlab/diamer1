@@ -6,10 +6,7 @@ import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
-import org.husonlab.diamer2.util.logging.Logger;
-import org.husonlab.diamer2.util.logging.Message;
-import org.husonlab.diamer2.util.logging.OneLineLogger;
-import org.husonlab.diamer2.util.logging.ProgressBar;
+import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -35,6 +32,7 @@ public class ReadIndexer {
                      int BATCH_SIZE,
                      int bucketsPerCycle) {
         this.logger = new Logger("ReadIndexer");
+        logger.addElement(new Time());
         this.fastqFile = fastqFile;
         this.indexDir = indexDir;
         this.readIndexIO = new ReadIndexIO(indexDir);
@@ -67,6 +65,7 @@ public class ReadIndexer {
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");
             new OneLineLogger("ReadIndexer", 1000)
+                    .addElement(new RunningTime())
                     .addElement(progressBar)
                     .addElement(progressMessage);
 

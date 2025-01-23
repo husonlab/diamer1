@@ -10,6 +10,9 @@ import org.husonlab.diamer2.seq.alphabet.Utilities;
 import java.util.HashMap;
 import java.util.LinkedList;
 
+/**
+ * Converter to convert DNA to the base 11 alphabet in all 6 reading frames.
+ */
 public class DNAtoBase11 implements Converter<Character, Byte> {
 
     private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetDNA();
@@ -18,10 +21,12 @@ public class DNAtoBase11 implements Converter<Character, Byte> {
     @Override
     public Sequence<Byte>[] convert(Sequence<Character> sequence) {
 
+        // The sequence is too short to be translated
         if (sequence.length() < 3) {
             return new Sequence[0];
         }
         StringBuilder triplet = new StringBuilder();
+        // Setup byte array for each reading frame
         byte[][] translations = new byte[6][];
         for (int i = 0; i < 3; i++) {
             translations[i*2] = new byte[(sequence.length()-i)/3];

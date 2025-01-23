@@ -21,12 +21,12 @@ public class TreeIO {
         try (BufferedWriter writer = java.nio.file.Files.newBufferedWriter(file)) {
             writer.write(tree.idMap.size() + "\n");
             if (nodeLabels) {
-                writer.write("name\t");
+                writer.write("name");
             } else {
-                writer.write("taxId\t");
+                writer.write("taxId");
             }
             for (String description: tree.getNodeCustomValueDescriptors()) {
-                writer.write(description + "\t");
+                writer.write("\t" + description);
             }
             writer.write("\n");
             for (Node node : tree.idMap.values()) {
@@ -35,12 +35,12 @@ public class TreeIO {
                     continue;
                 }
                 if (nodeLabels) {
-                    writer.write(node + "\t");
+                    writer.write(node.toString());
                 } else {
-                    writer.write(node.getTaxId() + "\t");
+                    writer.write(Integer.toString(node.getTaxId()));
                 }
                 for (int value: node.customValues) {
-                    writer.write(value + "\t");
+                    writer.write("\t" + value);
                 }
                 writer.write("\n");
             }

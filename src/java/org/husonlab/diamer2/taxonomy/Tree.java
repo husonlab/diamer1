@@ -127,7 +127,7 @@ public class Tree {
      * @return true if the weight was added, false if the node does not exist in the tree
      */
     public boolean addWeight(int taxId, int weight) {
-        if (idMap.containsKey(taxId)) {
+        if (!idMap.containsKey(taxId)) {
             return false;
         }
         idMap.get(taxId).addWeight(weight);
