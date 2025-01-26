@@ -1,7 +1,6 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
-import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
@@ -55,6 +54,180 @@ public class NCBIReader {
         }
         progressBar.finish();
         return neededAccessions;
+    }
+
+    /**
+     * Preprocesses the NR database to have only the taxid of the LCA in the headers of the sequenceRecords.
+     * Skips sequenceRecords that can not be found in the taxonomy.
+     * Handles non-amino acid characters.
+     * @param output: file to write the preprocessed database to
+     * @param tree: NCBI taxonomy tree
+     */
+    public static void preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
+
+        HashSet<String> highRanks = new HashSet<>(
+                Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
+
+        Logger logger = new Logger("NCBIReader").addElement(new Time());
+
+        logger.logInfo("Preprocessing NR database...");
+        int fastaIndex = 0;
+        int skippedNoTaxId = 0;
+        int skippedRank = 0;
+        HashMap<String, Integer> rankMapping = new HashMap<>();
+        SequenceRecord<String, Character> fasta;
+
+        try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
+             BufferedWriter bw = Files.newBufferedWriter(output);
+             BufferedWriter bwSkipped = Files.newBufferedWriter(output.getParent().resolve("skipped_sequences.fsa"))) {
+
+            ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
+            ProgressLogger progressLogger = new ProgressLogger("Fastas");
+            new OneLineLogger("NCBIReader", 1000)
+                    .addElement(new RunningTime())
+                    .addElement(progressBar)
+                    .addElement(progressLogger);
+
+            int bufferSize = 100000;
+            Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer = new Pair[bufferSize];
+            ArrayList<String> accessionBuffer = new ArrayList<>();
+
+            while ((fasta = sup.next()) != null) {
+                progressBar.setProgress(sup.getBytesRead());
+                progressLogger.setProgress(fastaIndex + 1);
+
+                // Extract taxIds and compute LCA taxId
+                String header = fasta.id();
+                ArrayList<String> accessions = extractIdsFromHeader(header);
+                sequenceBuffer[fastaIndex % bufferSize] = new Pair<>(fasta, accessions.size());
+                accessionBuffer.addAll(accessions);
+
+                if (fastaIndex > 0 && (fastaIndex + 1) % bufferSize == 0) {
+                    ArrayList<Integer> taxIdBuffer = accessionMapping.getTaxIds(accessionBuffer);
+                    emptyBuffer(bufferSize, sequenceBuffer, accessionBuffer, taxIdBuffer, bw, bwSkipped, tree,
+                            highRanks, rankMapping, skippedNoTaxId, skippedRank);
+                }
+                fastaIndex++;
+            }
+            emptyBuffer(fastaIndex % bufferSize, sequenceBuffer, accessionBuffer, new ArrayList<>(), bw, bwSkipped, tree,
+                    highRanks, rankMapping, skippedNoTaxId, skippedRank);
+            progressBar.finish();
+        }
+        String report = """
+                \tdate \t %s
+                \tinput file \t %s
+                \toutput file \t %s
+                \tprocessed sequenceRecords \t %d
+                \tkept sequenceRecords \t %d
+                \tskipped sequenceRecords without (valid) accession \t %d
+                \tskipped sequenceRecords with rank too high (%s) \t %d
+                """.formatted(
+                java.time.LocalDateTime.now(),
+                sequenceSupplier.getFile(),
+                output,
+                fastaIndex + 1,
+                fastaIndex - skippedNoTaxId - skippedRank + 1,
+                skippedNoTaxId,
+                String.join(", ", highRanks),
+                skippedRank);
+
+        logger.logInfo("Finished preprocessing NR database.\n" + report);
+
+        try (BufferedWriter bw = Files.newBufferedWriter(output.getParent().resolve("preprocessing_report.txt"))) {
+            bw.write(report);
+            bw.newLine();
+            rankMapping.entrySet().stream()
+            .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+            .forEach(entry -> {
+                try {
+                    bw.write("%s\t%d".formatted(entry.getKey(), entry.getValue()));
+                    bw.newLine();
+                } catch (IOException e) {
+                    System.err.println("Could not write preprocessing report.");
+                }
+            });
+        }
+    }
+
+    private static void emptyBuffer(int bufferSize, Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer,
+                                    ArrayList<String> accessionBuffer, ArrayList<Integer> taxIdBuffer,
+                                    BufferedWriter bw, BufferedWriter bwSkipped, Tree tree,
+                                    HashSet<String> highRanks, HashMap<String, Integer> rankMapping,
+                                    Integer skippedNoTaxId, Integer skippedRank) throws IOException {
+        for (int i = 0; i < bufferSize; i++) {
+            if (sequenceBuffer[i] == null) {
+                break;
+            }
+            SequenceRecord<String, Character> record = sequenceBuffer[i].first();
+            String header = record.id();
+            String sequence = record.getSequenceString();
+            int nrOfAccessions = sequenceBuffer[i].last();
+            if (nrOfAccessions == 0) {
+                skippedNoTaxId++;
+                bwSkipped.write(record.id() + " (No accession found in header)");
+                bwSkipped.newLine();
+                bwSkipped.write(sequence);
+                bwSkipped.newLine();
+                continue;
+            }
+            ArrayList<Integer> taxIdsNode = new ArrayList<>();
+            for (int j = 0; j < nrOfAccessions; j++) {
+                int taxId = taxIdBuffer.get(i++);
+                if (taxId != -1) {
+                    taxIdsNode.add(taxId);
+                }
+            }
+            int taxId;
+            if (!taxIdsNode.isEmpty()) {
+                taxId = taxIdsNode.getFirst();
+                for (int j = 1; j < taxIdsNode.size(); j++) {
+                    taxId = tree.findLCA(taxId, taxIdsNode.get(j));
+                }
+            } else {
+                skippedNoTaxId++;
+                bwSkipped.write(header + " (Accession(s) not found in mapping)");
+                bwSkipped.newLine();
+                bwSkipped.write(sequence);
+                bwSkipped.newLine();
+                continue;
+            }
+            if (!tree.idMap.containsKey(taxId)) {
+                skippedNoTaxId++;
+                bwSkipped.write(header + " (taxId not found in taxonomy %d)".formatted(taxId));
+                bwSkipped.newLine();
+                bwSkipped.write(sequence);
+                bwSkipped.newLine();
+                continue;
+            }
+            String rank = tree.idMap.get(taxId).getRank();
+            rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
+            rankMapping.putIfAbsent(rank, 1);
+            if (highRanks.contains(rank)) {
+                skippedRank++;
+                bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
+                bwSkipped.newLine();
+                bwSkipped.write(sequence);
+                bwSkipped.newLine();
+                continue;
+            }
+            header = ">%d".formatted(taxId);
+
+            // Split the sequence by stop codons
+            ArrayList<SequenceRecord<String, Character>> newRecords = new ArrayList<>();
+            for (String sequencePart : sequence.split("\\*")) {
+                newRecords.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequencePart)));
+            }
+
+            // Write the sequenceRecords to the output file
+            for (SequenceRecord<String, Character> newRecord : newRecords) {
+                bw.write(newRecord.id());
+                bw.newLine();
+                bw.write(newRecord.getSequenceString());
+                bw.newLine();
+            }
+        }
+        accessionBuffer.clear();
+        Arrays.fill(sequenceBuffer, null);
     }
 
     /**
@@ -178,15 +351,15 @@ public class NCBIReader {
             bw.write(report);
             bw.newLine();
             rankMapping.entrySet().stream()
-            .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-            .forEach(entry -> {
-                try {
-                    bw.write("%s\t%d".formatted(entry.getKey(), entry.getValue()));
-                    bw.newLine();
-                } catch (IOException e) {
-                    System.err.println("Could not write preprocessing report.");
-                }
-            });
+                    .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                    .forEach(entry -> {
+                        try {
+                            bw.write("%s\t%d".formatted(entry.getKey(), entry.getValue()));
+                            bw.newLine();
+                        } catch (IOException e) {
+                            System.err.println("Could not write preprocessing report.");
+                        }
+                    });
         }
     }
 

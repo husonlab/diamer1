@@ -19,8 +19,6 @@ import org.husonlab.diamer2.main.encoders.K15Base11;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.util.Pair;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.InvalidPathException;
@@ -317,7 +315,7 @@ public class Main {
                             tree,
                             neededAccessions);
                 }
-                NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
+                NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -78,10 +78,12 @@ public class Tree {
      * @param node2 the second node
      * @return the lowest common ancestor of the two nodes or null if the nodes are null or not in the same tree.
      */
-    @Contract("null, null -> null; null, _ -> null; _, null -> null")
+    @Contract("null, null -> null; null, _ -> _; _, null -> _")
     public Node findLCA(Node node1, Node node2) {
         if (node1 == null || node2 == null) {
-            return null;
+            if (node1 != null) {
+                return node1;
+            } else return node2;
         }
         ArrayList<Node> path1 = pathToRoot(node1);
         ArrayList<Node> path2 = pathToRoot(node2);

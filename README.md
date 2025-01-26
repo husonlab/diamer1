@@ -16,7 +16,7 @@
 * Set up benchmarking framework to test different assignment algorithms 
 
 # Next time:
-* Document Alphabet, Sequence, ... classes
+* Properly test new NCBIReader.preprocessNRBuffered
 
 # Process:
 ## 1. Annotating nr database with taxon ids

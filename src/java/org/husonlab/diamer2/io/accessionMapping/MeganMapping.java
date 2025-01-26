@@ -36,15 +36,18 @@ public class MeganMapping extends AccessionMapping {
     @Override
     public ArrayList<Integer> getTaxIds(List<String> accessions) {
         try (PreparedStatement statement = c.prepareStatement(
-                "SELECT Accession, Taxonomy FROM mappings WHERE Accession in (" + "?".repeat(accessions.size()) + ");")) {
+                "SELECT Accession, Taxonomy FROM mappings WHERE Accession in (" + ", ?".repeat(accessions.size()).replaceFirst(", ", "") + ");")) {
             for (int i = 0; i < accessions.size(); i++) {
                 statement.setString(i + 1, removeVersion(accessions.get(i)));
             }
             ResultSet result = statement.executeQuery();
             HashMap<String, Integer> map = new HashMap<>(accessions.size());
-            while (result.next()) {
-                map.put(result.getString(1), result.getInt(2));
+            if (!result.isBeforeFirst()) {
+                return new ArrayList<>();
             }
+            do {
+                map.put(result.getString(1), result.getInt(2));
+            } while (result.next());
             ArrayList<Integer> taxIds = new ArrayList<>(accessions.size());
             for (String accession : accessions) {
                 taxIds.add(map.getOrDefault(removeVersion(accession), -1));
