@@ -3,6 +3,7 @@ package org.husonlab.diamer2.indexing;
 import org.jetbrains.annotations.NotNull;
 
 public class Sorting {
+    // todo: change to be able to adjust the number of bits that are used for sorting flexibly
     /**
      * Sorts a long array by its first 44 bits.
      * @param input Array to sort.

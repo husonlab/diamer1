@@ -3,28 +3,39 @@ package org.husonlab.diamer2.readAssignment;
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
-import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
+import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
 
 import java.nio.file.Path;
 import java.util.concurrent.*;
 
+/**
+ * Class to handle the process of matching kmers between the index of the database and the index of the reads.
+ */
 public class ReadAssigner {
     private final Logger logger;
     private final Tree tree;
     private final DBIndexIO dbIndex;
     private final ReadIndexIO readsIndex;
-    private final EncodingSettings encodingSettings;
+    private final Encoder encoder;
     private final int MAX_THREADS;
     private final String[] readHeaderMapping;
 
-    public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath, EncodingSettings encodingSettings) {
+    /**
+     * @param tree taxonomic tree with all nodes that occure in the database index
+     * @param MAX_THREADS maximum number of threads to use for the threadpool. MAX_THREADS + 1 (main thread) equals the
+     *                    number of buckets that are processed in parallel.
+     * @param dbIndexPath path to the folder with database index files (buckets)
+     * @param readsIndexPath path to the folder with reads index files (buckets)
+     * @param encoder encoder with the settings used for encoding the kmers
+     */
+    public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath, Encoder encoder) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         this.tree = tree;
         this.dbIndex = new DBIndexIO(dbIndexPath);
         this.readsIndex = new ReadIndexIO(readsIndexPath);
-        this.encodingSettings = encodingSettings;
+        this.encoder = encoder;
         this.MAX_THREADS = MAX_THREADS;
         if(readsIndex.existsReadHeaderMapping()) {
             this.readHeaderMapping = this.readsIndex.getReadHeaderMapping();
@@ -37,11 +48,14 @@ public class ReadAssigner {
     }
 
     /**
-     * Compares the database and the read index and assigns taxIds with kmer counts to the reads.
+     * Starts a thread for each pair of buckets that is contained in both indexes.
+     * <p>The hits are stored in a {@link ReadAssignment} object. The {@link ReadAssignment} can be used to further
+     * analyze the results.</p>
+     * @return {@link ReadAssignment} with all the found kmer matches
      */
     public ReadAssignment assignReads() {
-        logger.logInfo("Assigning readAssignment ...");
-        ProgressBar progressBar = new ProgressBar(1024, 20);
+        logger.logInfo("Searching kmer matches ...");
+        ProgressBar progressBar = new ProgressBar(encoder.getNumberOfBuckets(), 20);
         Logger progressBarLogger = new OneLineLogger("ReadAssigner", 1000)
                 .addElement(new RunningTime())
                 .addElement(progressBar);
@@ -57,9 +71,9 @@ public class ReadAssigner {
 
         int bucketsSkipped = 0;
 
-        for (int i = 0; i < 1024; i++) {
+        for (int i = 0; i < encoder.getNumberOfBuckets(); i++) {
             if (dbIndex.isBucketAvailable(i) && readsIndex.isBucketAvailable(i)) {
-                threadPoolExecutor.submit(new BucketProcessor(readAssignment, dbIndex, readsIndex, i, encodingSettings));
+                threadPoolExecutor.submit(new BucketProcessor(readAssignment, dbIndex, readsIndex, i, encoder));
             } else {
                 bucketsSkipped++;
             }
@@ -77,7 +91,10 @@ public class ReadAssigner {
         }
 
         progressBar.finish();
-        progressBarLogger.logInfo("Finished assigning readAssignment.");
+        if (bucketsSkipped > 0) {
+            logger.logWarning("Skipped %d buckets.".formatted(bucketsSkipped));
+        }
+        progressBarLogger.logInfo("Finished matching kmers.");
         return readAssignment;
     }
 }

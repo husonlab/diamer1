@@ -2,7 +2,7 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
+import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 
@@ -13,7 +13,7 @@ public class FastqDNAProcessor implements Runnable {
 
     private final Phaser phaser;
     private final SequenceRecord<Integer, Byte>[] batch;
-    private final EncodingSettings encodingSettings;
+    private final Encoder encoder;
     private final KmerExtractor kmerExtractor;
     private final ConcurrentLinkedQueue<Long>[] bucketLists;
     private final int rangeStart;
@@ -22,14 +22,14 @@ public class FastqDNAProcessor implements Runnable {
     public FastqDNAProcessor(
             Phaser phaser,
             SequenceRecord<Integer, Byte>[] batch,
-            EncodingSettings encodingSettings,
+            Encoder encoder,
             ConcurrentLinkedQueue<Long>[] bucketLists,
             int rangeStart,
             int rangeEnd) {
         this.phaser = phaser;
         this.batch = batch;
-        this.encodingSettings = encodingSettings;
-        this.kmerExtractor = new KmerExtractor(new KmerEncoder(encodingSettings.getTargetAlphabet().getBase(), encodingSettings.getMask()));
+        this.encoder = encoder;
+        this.kmerExtractor = new KmerExtractor(new KmerEncoder(encoder.getTargetAlphabet().getBase(), encoder.getMask()));
         this.bucketLists = bucketLists;
         this.rangeStart = rangeStart;
         this.rangeEnd = rangeEnd;
@@ -46,9 +46,9 @@ public class FastqDNAProcessor implements Runnable {
                 Sequence<Byte> sequence = fastq.sequence();
                 long[] kmers = kmerExtractor.extractKmers(sequence);
                 for (long kmer : kmers) {
-                    int bucketName = encodingSettings.getBucketNameFromKmer(kmer);
+                    int bucketName = encoder.getBucketNameFromKmer(kmer);
                     if (bucketName >= rangeStart && bucketName < rangeEnd) {
-                        bucketLists[bucketName - rangeStart].add(encodingSettings.getIndex(id, kmer));
+                        bucketLists[bucketName - rangeStart].add(encoder.getIndex(id, kmer));
                     }
                 }
             }

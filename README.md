@@ -48,8 +48,9 @@ java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dm
 ```shell
 java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/nr_taxid_full.fsa -o /beegfs/HPCscratch/noel/dbindex/
 
-java -Xmx12g -jar .\diamer2.jar --indexdb -t 12 -b 8 -no F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\nodes.dmp -na F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\names.dmp -d F:\Studium\Master\semester5\thesis\data\NCBI\100\nr100_preprocessed.fsa -o F:\Studium\Master\semester5\thesis\data\NCBI\100\index_longspaced
-java -Xmx12g -jar .\diamer2.jar --indexreads -t 12 -b 8 -d F:\Studium\Master\semester5\thesis\data\test_dataset\Zymo-GridION-EVEN-3Peaks-R103-merged.fq -o F:\Studium\Master\semester5\thesis\data\test_dataset\index_longspaced
+java -Xmx12g -jar .\diamer2.jar --indexdb -t 16 -b 8 -no F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\nodes.dmp -na F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\names.dmp -d F:\Studium\Master\semester5\thesis\data\NCBI\100\nr100_preprocessed.fsa -o F:\Studium\Master\semester5\thesis\data\NCBI\100\index_longspaced
+java -Xmx12g -jar .\diamer2.jar --indexreads -t 16 -b 8 -d F:\Studium\Master\semester5\thesis\data\test_dataset\Zymo-GridION-EVEN-3Peaks-R103-merged.fq -o F:\Studium\Master\semester5\thesis\data\test_dataset\index_longspaced
+java -Xmx12g -jar .\diamer2.jar --assignreads -t 16 -no F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\nodes.dmp -na F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\names.dmp -d F:\Studium\Master\semester5\thesis\data\NCBI\100\index_longspaced F:\Studium\Master\semester5\thesis\data\test_dataset\index_longspaced -o F:\Studium\Master\semester5\thesis\data\test_results
 ```
 
 ## 3. Read Assignment
@@ -91,11 +92,14 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 ````
 
 # Questions:
+
 * How to add analysis stuff to code without breaking it?
-* What output format do I need to display the result in SplitsTree?
-* How to handle stop codons?
+* What output format do I need to display the result in Megan?
+* WIFI / LAN
+* Spain
 
 # TODO
+* make radix sort flexible with respect to the bits that are used for sorting
 * make sequence readers deal with ids
 * Use ArrayList to store Kmers rather than HashMaps and collapse kmers with same taxid later
 * Change Sequence record header to an ID as soon as possible to drop the strings

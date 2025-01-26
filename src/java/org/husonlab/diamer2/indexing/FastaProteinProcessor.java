@@ -2,7 +2,7 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
+import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.taxonomy.Tree;
@@ -25,10 +25,10 @@ public class FastaProteinProcessor implements Runnable {
      * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
      * @param tree Tree to find the LCA of two taxIds.
      */
-    public FastaProteinProcessor(Phaser phaser, SequenceRecord<Integer, Byte>[] sequenceRecords, EncodingSettings encodingSettings, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
+    public FastaProteinProcessor(Phaser phaser, SequenceRecord<Integer, Byte>[] sequenceRecords, Encoder encoder, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
         this.phaser = phaser;
         this.sequenceRecords = sequenceRecords;
-        this.kmerExtractor = new KmerExtractor(new KmerEncoder(encodingSettings.getTargetAlphabet().getBase(), encodingSettings.getMask()));
+        this.kmerExtractor = new KmerExtractor(new KmerEncoder(encoder.getTargetAlphabet().getBase(), encoder.getMask()));
         this.bucketMaps = bucketMaps;
         this.tree = tree;
         this.rangeStart = rangeStart;

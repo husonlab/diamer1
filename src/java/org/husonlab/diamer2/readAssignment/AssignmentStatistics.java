@@ -2,6 +2,7 @@ package org.husonlab.diamer2.readAssignment;
 
 import org.husonlab.diamer2.taxonomy.Tree;
 
+@Deprecated
 public record AssignmentStatistics (
         Tree tree,
         Tree.WeightsPerRank[] kmerStatistics,

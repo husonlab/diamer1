@@ -9,13 +9,12 @@ import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
-import org.husonlab.diamer2.readAssignment.AssignmentStatistics;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
-import org.husonlab.diamer2.main.encodingSettings.EncodingSettings;
-import org.husonlab.diamer2.main.encodingSettings.K15Base11;
+import org.husonlab.diamer2.main.encoders.Encoder;
+import org.husonlab.diamer2.main.encoders.K15Base11;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -240,8 +239,8 @@ public class Main {
                     System.exit(1);
                 }
                 Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                EncodingSettings encodingSettings = new K15Base11(mask, 22);
-                DBIndexer dbIndexer = new DBIndexer(database, output, tree, encodingSettings, maxThreads, 2*maxThreads, 10000, bucketsPerCycle, false);
+                Encoder encoder = new K15Base11(mask, 22);
+                DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, maxThreads, 2*maxThreads, 10000, bucketsPerCycle, false);
                 dbIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();
@@ -253,8 +252,8 @@ public class Main {
                 int bucketsPerCycle = cli.getParsedOptionValue("b");
                 File reads = cli.getParsedOptionValue("d");
                 Path output = cli.getParsedOptionValue("o");
-                EncodingSettings encodingSettings = new K15Base11(mask, 22);
-                ReadIndexer readIndexer = new ReadIndexer(reads, output, encodingSettings, maxThreads, 2*maxThreads, 1000, bucketsPerCycle);
+                Encoder encoder = new K15Base11(mask, 22);
+                ReadIndexer readIndexer = new ReadIndexer(reads, output, encoder, maxThreads, 2*maxThreads, 1000, bucketsPerCycle);
                 readIndexer.index();
             } catch (ParseException | NullPointerException | IOException e) {
                 e.printStackTrace();

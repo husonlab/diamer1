@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.main.encodingSettings;
+package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
@@ -6,9 +6,9 @@ import org.husonlab.diamer2.seq.alphabet.converter.Converter;
 import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
 
 /**
- * {@link EncodingSettings} that uses the base 11 alphabet to encode kmers.
+ * {@link Encoder} that uses the base 11 alphabet to encode kmers.
  */
-public class K15Base11 extends EncodingSettings {
+public class K15Base11 extends Encoder {
 
     private static final AAtoBase11 aaEncoder = new AAtoBase11();
     private static final DNAtoBase11 dnaEncoder = new DNAtoBase11();
@@ -20,11 +20,13 @@ public class K15Base11 extends EncodingSettings {
      * number of bits that do not fit in the bucket and are stored in the bucket names.
      */
     private final int bitsOfBucketNames;
+    private final int numberOfBuckets;
 
     public K15Base11(long mask, int bitsIds) {
         super(new Base11Alphabet(), mask, bitsIds);
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
+        numberOfBuckets = (int)Math.pow(2, bitsOfBucketNames);
     }
 
     @Override
@@ -70,5 +72,10 @@ public class K15Base11 extends EncodingSettings {
     @Override
     public int getBitsOfBucketNames() {
         return bitsOfBucketNames;
+    }
+
+    @Override
+    public int getNumberOfBuckets() {
+        return numberOfBuckets;
     }
 }

@@ -1,4 +1,4 @@
-package org.husonlab.diamer2.main.encodingSettings;
+package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.Converter;
@@ -6,7 +6,7 @@ import org.husonlab.diamer2.seq.alphabet.converter.Converter;
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
  */
-public abstract class EncodingSettings {
+public abstract class Encoder {
 
     protected final Alphabet<Byte> targetAlphabet;
     /**
@@ -29,7 +29,7 @@ public abstract class EncodingSettings {
      * @param mask bit mask to use for spaced kmer extraction
      * @param bitsForIds number of bits required to represent the ids of the sequences (taxon ids or read ids)
      */
-    public EncodingSettings(Alphabet<Byte> targetAlphabet, long mask, int bitsForIds) {
+    public Encoder(Alphabet<Byte> targetAlphabet, long mask, int bitsForIds) {
         this.targetAlphabet = targetAlphabet;
         // remove trailing zeros (the least significant bits with value 0)
         this.mask = mask / Long.lowestOneBit(mask);
@@ -111,6 +111,8 @@ public abstract class EncodingSettings {
      * @return the number of bits that remain and make up the names of the buckets.
      */
     public abstract int getBitsOfBucketNames();
+
+    public abstract int getNumberOfBuckets();
 
     /**
      * Calculates the number of bits required to represent a kmer of length k_s with an alphabet with a given base.

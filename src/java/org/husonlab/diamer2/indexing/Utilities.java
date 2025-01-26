@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Utilities {
 
+    @Deprecated
     public static void analyzeDBIndex(DBIndexIO dbIndexIO, Tree tree, Path output, int resolution, int MAX_THREADS) {
         Logger logger = new Logger("DBIndexAnalyzer");
         logger.addElement(new Time());

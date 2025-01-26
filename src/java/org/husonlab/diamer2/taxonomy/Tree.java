@@ -3,9 +3,7 @@ package org.husonlab.diamer2.taxonomy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Tree {
 
@@ -239,7 +237,7 @@ public class Tree {
      * @param nodesAndWeights an array of arrays of node IDs and weights [[nodeId1, weight1], [nodeId2, weight2], ...]
      * @return a new tree with the nodes and weights given in the array
      */
-    public Tree getWeightedSubTree(ArrayList<int[]> nodesAndWeights) {
+    public Tree getWeightedSubTree(List<int[]> nodesAndWeights) {
 
         Tree subTree = new Tree();
 
