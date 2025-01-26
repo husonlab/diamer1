@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.io.accessionMapping;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -8,11 +8,11 @@ import java.util.List;
 
 public class MeganMapping extends AccessionMapping {
 
-    private Connection c;
+    private final Connection c;
 
-    public MeganMapping(File dbFile) {
+    public MeganMapping(Path dbFile) {
         try{
-            c = DriverManager.getConnection("jdbc:sqlite:" + dbFile.getAbsolutePath());
+            c = DriverManager.getConnection("jdbc:sqlite:" + dbFile);
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

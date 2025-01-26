@@ -138,14 +138,25 @@ public class ReadAssignment {
         tree.transferAccumulatedWeightToCustomValue(algorithm.getName());
     }
 
+    /**
+     * @return Taxonomic tree used for the read assignment
+     */
     public Tree getTree() {
         return tree;
     }
 
+    /**
+     * @param readId The id of the read
+     * @return The header string that belongs to the input read id
+     */
     public String getReadHeader(int readId) {
         return readHeaderMapping[readId];
     }
 
+    /**
+     * @param readId The id of the read
+     * @return The taxon assignments for the input read id in the form [[taxon id, number of kmer matches], ...]
+     */
     public ArrayList<int[]> getKmerMatches(int readId) {
         return kmerMatches[readId];
     }

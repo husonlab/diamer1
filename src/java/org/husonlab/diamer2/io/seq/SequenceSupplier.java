@@ -164,5 +164,9 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
         return sequenceReader.getFile();
     }
 
+    public int approximateNumberOfSequences() {
+        return sequenceReader.approximateNumberOfSequences();
+    }
+
     private record MemoryEntry<H, S>(int sequencesRead, long bytesRead, H id, Sequence<S>[] sequences) {}
 }

@@ -5,6 +5,7 @@ import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,15 +19,15 @@ public class NCBIMapping extends AccessionMapping {
     private final Tree tree;
     private final HashSet<String> neededAccessions;
 
-    public NCBIMapping(NCBIMappingFile[] NCBIMappingFiles, Tree tree, HashSet<String> neededAccessions) {
+    public NCBIMapping(Iterable<Path> NCBIMappingFiles, Tree tree, HashSet<String> neededAccessions) {
         logger = new Logger("NCBIMapping");
         logger.addElement(new Time());
         accessionMap = new HashMap<>();
         this.tree = tree;
         this.neededAccessions = neededAccessions;
 
-        for (NCBIMappingFile ncbiMappingFile : NCBIMappingFiles) {
-            logger.logInfo("Reading accession taxID mapping from: " + ncbiMappingFile.mappingFile);
+        for (Path ncbiMappingFile : NCBIMappingFiles) {
+            logger.logInfo("Reading accession taxID mapping from: " + ncbiMappingFile);
             readAccessionMap(ncbiMappingFile);
         }
         logger.logInfo("Finished reading accession taxID mapping (%d entries)".formatted(accessionMap.size()));
@@ -46,22 +47,22 @@ public class NCBIMapping extends AccessionMapping {
         return taxIds;
     }
 
-    public void readAccessionMap(NCBIMappingFile ncbiMappingFile) {
-        ProgressBar progressBar = new ProgressBar(ncbiMappingFile.mappingFile.length(), 20);
+    public void readAccessionMap(Path ncbiMappingFile) {
+        ProgressBar progressBar = new ProgressBar(ncbiMappingFile.toFile().length(), 20);
         ProgressLogger progressLogger = new ProgressLogger("Accessions");
         new OneLineLogger("NCBIMapping", 500)
                 .addElement(new RunningTime())
                 .addElement(progressBar)
                 .addElement(progressLogger);
 
-        try (FileInputStream fis = new FileInputStream(ncbiMappingFile.mappingFile);
+        try (FileInputStream fis = new FileInputStream(ncbiMappingFile.toFile());
              GZIPInputStream gis = new GZIPInputStream(fis);
              CountingInputStream cis = new CountingInputStream(gis);
              BufferedReader br = new BufferedReader(new InputStreamReader(cis))) {
-            int accessionCol = ncbiMappingFile.accessionCol();
-            int taxIdCol = ncbiMappingFile.taxIdCol();
-            String line;
-            br.readLine(); // skip header
+            String line = br.readLine();
+            ArrayList<String> header = new ArrayList<>(List.of(line.toLowerCase().split("\t")));
+            int accessionCol = header.indexOf("accession");
+            int taxIdCol = header.indexOf("taxid");
             long i = 0;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t");
@@ -82,8 +83,8 @@ public class NCBIMapping extends AccessionMapping {
             }
             progressBar.finish();
         } catch (IOException e) {
+            System.err.println("Error reading accession mapping file: " + ncbiMappingFile);
             throw new RuntimeException(e);
         }
     }
-    public record NCBIMappingFile(File mappingFile, int accessionCol, int taxIdCol) {}
 }

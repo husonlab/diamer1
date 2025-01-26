@@ -36,30 +36,25 @@ public class NCBIReader {
         return tree;
     }
 
-    public static Pair<HashSet<String>, SequenceSupplier<String, Character>> extractNeededAccessions(File fasta) throws IOException {
-
+    public static HashSet<String> extractNeededAccessions(
+            SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
-
         logger.logInfo("Estimating number of sequenceRecords in database...");
-        int numberOfSequencesEst = org.husonlab.diamer2.io.Utilities.approximateNumberOfSequences(fasta, "\n>");
+        int numberOfSequencesEst = sequenceSupplier.approximateNumberOfSequences();
         HashSet<String> neededAccessions = new HashSet<>(numberOfSequencesEst);
         logger.logInfo("Extracting accessions from database...");
-        SequenceSupplier<String, Character> sequenceSupplier;
-        try(SequenceSupplier<String, Character> sup = new SequenceSupplier<>(new FastaReader(fasta), null, false)) {
-            sequenceSupplier = sup;
-            ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
-            new OneLineLogger("NCBIReader", 1000)
-                    .addElement(new RunningTime())
-                    .addElement(progressBar);
-
-            SequenceRecord<String, Character> seq;
-            while ((seq = sup.next()) != null) {
-                progressBar.setProgress(sup.getBytesRead());
-                neededAccessions.addAll(extractIdsFromHeader(seq.id()));
-            }
-            progressBar.finish();
+        ProgressBar progressBar = new ProgressBar(sequenceSupplier.getFileSize(), 20);
+        new OneLineLogger("NCBIReader", 1000)
+                .addElement(new RunningTime())
+                .addElement(progressBar);
+        SequenceRecord<String, Character> seq;
+        sequenceSupplier.reset();
+        while ((seq = sequenceSupplier.next()) != null) {
+            progressBar.setProgress(sequenceSupplier.getBytesRead());
+            neededAccessions.addAll(extractIdsFromHeader(seq.id()));
         }
-        return new Pair<>(neededAccessions, sequenceSupplier);
+        progressBar.finish();
+        return neededAccessions;
     }
 
     /**
@@ -69,7 +64,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(File output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
+    public static void preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -84,8 +79,8 @@ public class NCBIReader {
         SequenceRecord<String, Character> fasta;
 
         try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
-             BufferedWriter bw = Files.newBufferedWriter(output.toPath());
-             BufferedWriter bwSkipped = Files.newBufferedWriter(Path.of(output.getParent(), "skipped_sequences.fsa"))) {
+             BufferedWriter bw = Files.newBufferedWriter(output);
+             BufferedWriter bwSkipped = Files.newBufferedWriter(output.getParent().resolve("skipped_sequences.fsa"))) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("Fastas");
@@ -179,7 +174,7 @@ public class NCBIReader {
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);
 
-        try (BufferedWriter bw = Files.newBufferedWriter(Path.of(output.getParent(), "preprocessing_report.txt"))) {
+        try (BufferedWriter bw = Files.newBufferedWriter(output.getParent().resolve("preprocessing_report.txt"))) {
             bw.write(report);
             bw.newLine();
             rankMapping.entrySet().stream()
