@@ -23,7 +23,7 @@ public class NCBIReader {
      * @param namesDumpfile path to the names dumpfile (names.dmp)
      */
     @NotNull
-    public static Tree readTaxonomy(@NotNull File nodesDumpfile, @NotNull File namesDumpfile){
+    public static Tree readTaxonomy(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile){
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         final Tree tree = new Tree();
         logger.logInfo("Reading nodes dumpfile...");
@@ -72,8 +72,7 @@ public class NCBIReader {
 
         logger.logInfo("Preprocessing NR database...");
         int fastaIndex = 0;
-        int skippedNoTaxId = 0;
-        int skippedRank = 0;
+        Counts counts = new Counts();
         HashMap<String, Integer> rankMapping = new HashMap<>();
         SequenceRecord<String, Character> fasta;
 
@@ -88,7 +87,7 @@ public class NCBIReader {
                     .addElement(progressBar)
                     .addElement(progressLogger);
 
-            int bufferSize = 100000;
+            int bufferSize = 100000; // 100000
             Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer = new Pair[bufferSize];
             ArrayList<String> accessionBuffer = new ArrayList<>();
 
@@ -105,12 +104,13 @@ public class NCBIReader {
                 if (fastaIndex > 0 && (fastaIndex + 1) % bufferSize == 0) {
                     ArrayList<Integer> taxIdBuffer = accessionMapping.getTaxIds(accessionBuffer);
                     emptyBuffer(bufferSize, sequenceBuffer, accessionBuffer, taxIdBuffer, bw, bwSkipped, tree,
-                            highRanks, rankMapping, skippedNoTaxId, skippedRank);
+                            highRanks, rankMapping, counts);
                 }
                 fastaIndex++;
             }
-            emptyBuffer(fastaIndex % bufferSize, sequenceBuffer, accessionBuffer, new ArrayList<>(), bw, bwSkipped, tree,
-                    highRanks, rankMapping, skippedNoTaxId, skippedRank);
+            ArrayList<Integer> taxIdBuffer = accessionMapping.getTaxIds(accessionBuffer);
+            emptyBuffer(fastaIndex % bufferSize, sequenceBuffer, accessionBuffer, taxIdBuffer, bw, bwSkipped, tree,
+                    highRanks, rankMapping, counts);
             progressBar.finish();
         }
         String report = """
@@ -126,10 +126,10 @@ public class NCBIReader {
                 sequenceSupplier.getFile(),
                 output,
                 fastaIndex + 1,
-                fastaIndex - skippedNoTaxId - skippedRank + 1,
-                skippedNoTaxId,
+                fastaIndex - counts.skippedNoTaxId - counts.skippedRank + 1,
+                counts.skippedNoTaxId,
                 String.join(", ", highRanks),
-                skippedRank);
+                counts.skippedRank);
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);
 
@@ -153,17 +153,18 @@ public class NCBIReader {
                                     ArrayList<String> accessionBuffer, ArrayList<Integer> taxIdBuffer,
                                     BufferedWriter bw, BufferedWriter bwSkipped, Tree tree,
                                     HashSet<String> highRanks, HashMap<String, Integer> rankMapping,
-                                    Integer skippedNoTaxId, Integer skippedRank) throws IOException {
-        for (int i = 0; i < bufferSize; i++) {
-            if (sequenceBuffer[i] == null) {
+                                    Counts counts) throws IOException {
+        int taxIdIndex = 0;
+        for (Pair<SequenceRecord<String, Character>, Integer> bufferEntry: sequenceBuffer) {
+            if (bufferEntry == null) {    // buffer is not full
                 break;
             }
-            SequenceRecord<String, Character> record = sequenceBuffer[i].first();
+            SequenceRecord<String, Character> record = bufferEntry.first();
             String header = record.id();
             String sequence = record.getSequenceString();
-            int nrOfAccessions = sequenceBuffer[i].last();
+            int nrOfAccessions = bufferEntry.last();
             if (nrOfAccessions == 0) {
-                skippedNoTaxId++;
+                counts.skippedNoTaxId++;
                 bwSkipped.write(record.id() + " (No accession found in header)");
                 bwSkipped.newLine();
                 bwSkipped.write(sequence);
@@ -172,28 +173,27 @@ public class NCBIReader {
             }
             ArrayList<Integer> taxIdsNode = new ArrayList<>();
             for (int j = 0; j < nrOfAccessions; j++) {
-                int taxId = taxIdBuffer.get(i++);
+                int taxId = taxIdBuffer.get(taxIdIndex++);
                 if (taxId != -1) {
                     taxIdsNode.add(taxId);
                 }
             }
-            int taxId;
-            if (!taxIdsNode.isEmpty()) {
-                taxId = taxIdsNode.getFirst();
-                for (int j = 1; j < taxIdsNode.size(); j++) {
-                    taxId = tree.findLCA(taxId, taxIdsNode.get(j));
-                }
-            } else {
-                skippedNoTaxId++;
+            if (taxIdsNode.isEmpty()) {
+                counts.skippedNoTaxId++;
                 bwSkipped.write(header + " (Accession(s) not found in mapping)");
                 bwSkipped.newLine();
                 bwSkipped.write(sequence);
                 bwSkipped.newLine();
                 continue;
             }
+            // Compute LCA of all taxIds
+            int taxId = taxIdsNode.getFirst();
+            for (int j = 1; j < taxIdsNode.size(); j++) {
+                taxId = tree.findLCA(taxId, taxIdsNode.get(j));
+            }
             if (!tree.idMap.containsKey(taxId)) {
-                skippedNoTaxId++;
-                bwSkipped.write(header + " (taxId not found in taxonomy %d)".formatted(taxId));
+                counts.skippedNoTaxId++;
+                bwSkipped.write(header + " (taxId(s) not found in taxonomy %d)".formatted(taxId));
                 bwSkipped.newLine();
                 bwSkipped.write(sequence);
                 bwSkipped.newLine();
@@ -203,7 +203,7 @@ public class NCBIReader {
             rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
             rankMapping.putIfAbsent(rank, 1);
             if (highRanks.contains(rank)) {
-                skippedRank++;
+                counts.skippedRank++;
                 bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
                 bwSkipped.newLine();
                 bwSkipped.write(sequence);
@@ -368,12 +368,12 @@ public class NCBIReader {
      * @param nodesDumpfile: path to the file
      * @param tree: Tree with idMap to store the nodes
      */
-    private static void readNodesDumpfile(File nodesDumpfile, Tree tree){
-        ProgressBar progressBar = new ProgressBar(nodesDumpfile.length(), 20);
+    private static void readNodesDumpfile(Path nodesDumpfile, Tree tree){
+        ProgressBar progressBar = new ProgressBar(nodesDumpfile.toFile().length(), 20);
         new OneLineLogger("NCBIReader", 500)
                 .addElement(progressBar);
         HashMap<Integer, Integer> parentMap = new HashMap<>();
-        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile));
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile.toString()));
              BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -419,11 +419,11 @@ public class NCBIReader {
      * @param namesDumpfile: path to the file
      * @param tree: Tree with idMap of tax_id -> Node objects
      */
-    public static void readNamesDumpfile(File namesDumpfile, Tree tree) {
-        ProgressBar progressBar = new ProgressBar(namesDumpfile.length(), 20);
+    public static void readNamesDumpfile(Path namesDumpfile, Tree tree) {
+        ProgressBar progressBar = new ProgressBar(namesDumpfile.toFile().length(), 20);
         new OneLineLogger("NCBIReader", 500)
                 .addElement(progressBar);
-        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(namesDumpfile));
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(namesDumpfile.toString()));
              BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
             String line;
             while ((line = br.readLine()) != null) {
@@ -441,5 +441,10 @@ public class NCBIReader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static class Counts {
+        public int skippedNoTaxId = 0;
+        public int skippedRank = 0;
     }
 }

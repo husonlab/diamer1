@@ -17,7 +17,7 @@ import java.util.concurrent.*;
 public class DBIndexer {
 
     private final Logger logger;
-    private final File fastaFile;
+    private final Path fastaFile;
     private final Path indexDir;
     private final DBIndexIO DBIndexIO;
     private final Tree tree;
@@ -30,7 +30,7 @@ public class DBIndexer {
     private final ArrayList<Pair<Integer, Integer>> bucketSizes;
     private final StringBuilder report;
 
-    public DBIndexer(File fastaFile,
+    public DBIndexer(Path fastaFile,
                      Path indexDir,
                      Tree tree,
                      Encoder encoder,

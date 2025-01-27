@@ -15,7 +15,7 @@ import java.util.concurrent.*;
 public class ReadIndexer {
 
     private final Logger logger;
-    private final File fastqFile;
+    private final Path fastqFile;
     private final Path indexDir;
     private final ReadIndexIO readIndexIO;
     private final Encoder encoder;
@@ -24,7 +24,7 @@ public class ReadIndexer {
     private final int BATCH_SIZE;
     private final int bucketsPerCycle;
 
-    public ReadIndexer(File fastqFile,
+    public ReadIndexer(Path fastqFile,
                      Path indexDir,
                      Encoder encoder,
                      int MAX_THREADS,

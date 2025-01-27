@@ -3,15 +3,15 @@ package org.husonlab.diamer2.io.seq;
 import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.seq.SequenceRecord;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.LinkedList;
 
 public class FastqIdReader extends SequenceReader<Integer> {
 
     private LinkedList<String> headers;
 
-    public FastqIdReader(File file) {
+    public FastqIdReader(Path file) {
         super(file);
         headers = new LinkedList<>();
     }

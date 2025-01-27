@@ -4,10 +4,11 @@ import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.seq.SequenceRecord;
 
 import java.io.*;
+import java.nio.file.Path;
 
 public class FastqReader extends SequenceReader<String> {
 
-    public FastqReader(File file) {
+    public FastqReader(Path file) {
         super(file);
     }
 

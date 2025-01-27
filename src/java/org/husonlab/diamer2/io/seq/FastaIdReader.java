@@ -3,12 +3,12 @@ package org.husonlab.diamer2.io.seq;
 import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.seq.SequenceRecord;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class FastaIdReader extends SequenceReader<Integer> {
 
-    public FastaIdReader(File file) {
+    public FastaIdReader(Path file) {
         super(file);
     }
 

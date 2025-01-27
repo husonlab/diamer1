@@ -8,6 +8,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -160,7 +161,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
         return bytesRead;
     }
 
-    public File getFile() {
+    public Path getFile() {
         return sequenceReader.getFile();
     }
 

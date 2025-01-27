@@ -3,6 +3,8 @@ package org.husonlab.diamer2.main.encoders;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.Converter;
 
+import java.util.Arrays;
+
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
  */
@@ -17,7 +19,7 @@ public abstract class Encoder {
      * number of spaces between the bits of the mask
      */
     protected final int s;
-    protected final long mask;
+    protected final boolean[] mask;
     /**
      * number of bits required to represent the ids (taxon ids or sequence ids)
      */
@@ -29,14 +31,19 @@ public abstract class Encoder {
      * @param mask bit mask to use for spaced kmer extraction
      * @param bitsForIds number of bits required to represent the ids of the sequences (taxon ids or read ids)
      */
-    public Encoder(Alphabet<Byte> targetAlphabet, long mask, int bitsForIds) {
+    public Encoder(Alphabet<Byte> targetAlphabet, boolean[] mask, int bitsForIds) {
         this.targetAlphabet = targetAlphabet;
-        // remove trailing zeros (the least significant bits with value 0)
-        this.mask = mask / Long.lowestOneBit(mask);
+        this.mask = mask;
         // calculate position of the most significant bit (length of the mask / size of the window)
-        this.k = Long.SIZE - Long.numberOfLeadingZeros(this.mask);
+        this.k = mask.length;
         // calculate the number of spaces between the bits of the mask
-        this.s = k - Long.bitCount(this.mask);
+        int sTemp = 0;
+        for (boolean b : mask) {
+            if (!b) {
+                sTemp++;
+            }
+        }
+        this.s = sTemp;
         this.bitsForIds = bitsForIds;
     }
 
@@ -59,7 +66,7 @@ public abstract class Encoder {
     /**
      * @return the mask used to extract kmers
      */
-    public long getMask() {
+    public boolean[] getMask() {
         return mask;
     }
 

@@ -5,13 +5,14 @@ import org.husonlab.diamer2.seq.SequenceRecord;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 
 public abstract class SequenceReader<H> implements AutoCloseable {
 
-    protected final File file;
+    protected final Path file;
     protected long fileSize;
     protected H id;
     protected StringBuilder sequence;
@@ -19,7 +20,7 @@ public abstract class SequenceReader<H> implements AutoCloseable {
     protected BufferedReader br;
     protected String line;
 
-    public SequenceReader(File file) {
+    public SequenceReader(Path file) {
         this.file = file;
         this.id = null;
         this.sequence = new StringBuilder();
@@ -42,20 +43,20 @@ public abstract class SequenceReader<H> implements AutoCloseable {
 
     public void open() {
         try {
-            this.cis = new CountingInputStream(new FileInputStream(file));
-            if (file.getName().endsWith(".gz")) {
+            this.cis = new CountingInputStream(new FileInputStream(file.toString()));
+            if (file.toFile().getName().endsWith(".gz")) {
                 this.br = new BufferedReader(new InputStreamReader(new GZIPInputStream(cis)));
             } else {
                 this.br = new BufferedReader(new InputStreamReader(cis));
             }
-            this.fileSize = Files.size(Paths.get(file.getAbsolutePath()));
+            this.fileSize = Files.size(Paths.get(file.toString()));
         } catch (IOException e) {
-            throw new RuntimeException("Could not find sequence file: " + file.getAbsolutePath());
+            throw new RuntimeException("Could not find sequence file: " + file);
         }
         try {
             this.line = br.readLine();
         } catch (IOException e) {
-            throw new RuntimeException("Could not read from sequence file: " + file.getAbsolutePath());
+            throw new RuntimeException("Could not read from sequence file: " + file);
         }
     }
 
@@ -69,7 +70,7 @@ public abstract class SequenceReader<H> implements AutoCloseable {
 
     public abstract int approximateNumberOfSequences();
 
-    public File getFile() {
+    public Path getFile() {
         return file;
     }
 

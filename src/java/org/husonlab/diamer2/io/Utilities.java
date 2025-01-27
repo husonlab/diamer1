@@ -84,11 +84,11 @@ public class Utilities {
         createPath(Path.of(file.getParent()));
     }
 
-    public static int approximateNumberOfSequences(File file, String delimiter) {
+    public static int approximateNumberOfSequences(Path file, String delimiter) {
         int numberOfIntendedSamples = 5000;
         int numberOfSamples = 0;
         int bufferLength = 1024;
-        try (RandomAccessFile raf = new RandomAccessFile(file, "r")) {
+        try (RandomAccessFile raf = new RandomAccessFile(file.toString(), "r")) {
             long fileSize = raf.length();
             long totalBytes = 0;
             byte[] buffer = new byte[bufferLength];

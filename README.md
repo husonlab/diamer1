@@ -99,6 +99,7 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * Spain
 
 # TODO
+* try to use duskmaster
 * make radix sort flexible with respect to the bits that are used for sorting
 * make sequence readers deal with ids
 * Use ArrayList to store Kmers rather than HashMaps and collapse kmers with same taxid later

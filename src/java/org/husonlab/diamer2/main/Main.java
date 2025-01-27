@@ -19,6 +19,7 @@ import org.husonlab.diamer2.main.encoders.K15Base11;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
+import org.husonlab.diamer2.util.Pair;
 
 import java.io.*;
 import java.nio.file.InvalidPathException;
@@ -30,9 +31,6 @@ import java.util.HashSet;
 public class Main {
 
     public static void main(String[] args) {
-
-        long mask = 0b11111101101100111000100001L; // longspaced
-//        long mask = 0b111111111111111L;
 
         Options options = new Options();
         OptionGroup computationOptions = new OptionGroup();
@@ -163,7 +161,7 @@ public class Main {
             System.exit(1);
         }
 
-        // default values
+        // parse arguments or set default values
         int maxThreads = Runtime.getRuntime().availableProcessors();
         try {
             Integer parsedThreads = cli.getParsedOptionValue("t");
@@ -186,142 +184,116 @@ public class Main {
             printHelp(options);
             System.exit(1);
         }
-        GlobalSettings globalSettings = new GlobalSettings(maxThreads, maxMemory, false);
+        GlobalSettings globalSettings = new GlobalSettings(maxThreads, maxMemory);
 
         if (cli.hasOption("preprocess")) {
             preprocess(globalSettings, cli);
         } else if (cli.hasOption("indexdb")) {
-            if (!cli.hasOption("no") || !cli.hasOption("na") || !cli.hasOption("d")) {
-                System.err.println("Missing NCBI nodes and names files for indexing database task.");
-                System.exit(1);
-            }
-            System.out.println("Indexing database");
-            try {
-                int bucketsPerCycle = cli.getParsedOptionValue("b");
-                File nodes = cli.getParsedOptionValue("no");
-                File names = cli.getParsedOptionValue("na");
-                File database = cli.getParsedOptionValue("d");
-                Path output = cli.getParsedOptionValue("o");
-
-                if (!nodes.exists() || !names.exists() || !database.exists()) {
-                    System.err.println("One or more required files do not exist.");
-                    System.exit(1);
-                }
-                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                Encoder encoder = new K15Base11(mask, 22);
-                DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, maxThreads, 2*maxThreads, 10000, bucketsPerCycle, false);
-                dbIndexer.index();
-            } catch (ParseException | NullPointerException | IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+            indexdb(globalSettings, cli);
         } else if (cli.hasOption("indexreads")) {
-            System.out.println("Indexing reads");
-            try {
-                int bucketsPerCycle = cli.getParsedOptionValue("b");
-                File reads = cli.getParsedOptionValue("d");
-                Path output = cli.getParsedOptionValue("o");
-                Encoder encoder = new K15Base11(mask, 22);
-                ReadIndexer readIndexer = new ReadIndexer(reads, output, encoder, maxThreads, 2*maxThreads, 1000, bucketsPerCycle);
-                readIndexer.index();
-            } catch (ParseException | NullPointerException | IOException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+            indexreads(globalSettings, cli);
         } else if (cli.hasOption("assignreads")) {
-            System.out.println("Assigning reads");
-            try {
-                File nodes = cli.getParsedOptionValue("no");
-                File names = cli.getParsedOptionValue("na");
-                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-//              tree.reduceToStandardRanks();
-                String[] paths = cli.getOptionValues("d");
-                Path dbIndex = Path.of(paths[0]);
-                Path readsIndex = Path.of(paths[1]);
-                Path output = Path.of(cli.getOptionValue("o"));
-                ReadAssigner readAssigner = new ReadAssigner(tree, maxThreads, dbIndex, readsIndex, new K15Base11(mask, 22));
-                ReadAssignment assignment = readAssigner.assignReads();
-                ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
-                assignment.addKmerCounts();
-                assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
-//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
-                assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
-                TreeIO.saveCustomValues(tree, 1, output.resolve("custom_values.tsv"), true);
-            } catch (Exception e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        } else if (cli.hasOption("statistics")) {
-            System.out.println("Statistics");
-            try {
-                File nodes = cli.getParsedOptionValue("no");
-                File names = cli.getParsedOptionValue("na");
-                File file = new File(cli.getOptionValue("d"));
-                Path path = Path.of(cli.getOptionValue("o"));
-                Utilities.checkFilesAndFolders(new File[]{}, new Path[]{path});
-                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                tree.reduceToStandardRanks();
-                ReadAssignment readAssignment = ReadAssignmentIO.read(tree, file);
-                readAssignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-//                AssignmentStatistics assignmentStatistics = readAssignment.calculateStatistics();
-//                ReadAssignmentIO.writeAssignmentStatistics(assignmentStatistics, path);
-                System.out.println();
-//                ReadAssignmentIO.writeAssignments(readAssignment, path.resolve("assignments.tsv").toFile());
-//                ReadAssignmentIO.writeReadStatistics(readAssignment, path);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        } else if (cli.hasOption("index_statistics")) {
-            try {
-                File nodes = cli.getParsedOptionValue("no");
-                File names = cli.getParsedOptionValue("na");
-                File dbIndex = new File(cli.getOptionValue("d"));
-                File output = new File(cli.getOptionValue("o"));
-                Tree tree = NCBIReader.readTaxonomy(nodes, names);
-                DBIndexIO DBIndexIO = new DBIndexIO(dbIndex.toPath());
-                org.husonlab.diamer2.indexing.Utilities.analyzeDBIndex(DBIndexIO, tree, output.toPath(), 1024, maxThreads);
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
-        } else if (cli.hasOption("debug")) {
-            System.out.println("Debugging");
+            assignreads(globalSettings, cli);
+        } else {
+            System.err.println("No computation option selected");
+            printHelp(options);
+            System.exit(1);
         }
     }
 
     private static void preprocess(GlobalSettings globalSettings, CommandLine cli) {
-        try {
-            checkNodesAndNames(cli);
-            Path nodes = getFile(cli.getOptionValue("no"), true);
-            Path names = getFile(cli.getOptionValue("na"), true);
-            checkNumberOfPositionalArguments(cli, 3);
-            Path database = getFile(cli.getArgs()[0], true);
-            Path output = getFile(cli.getArgs()[1], false);
+        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
+        checkNumberOfPositionalArguments(cli, 3);
+        Path database = getFile(cli.getArgs()[0], true);
+        Path output = getFile(cli.getArgs()[1], false);
 
-            AccessionMapping accessionMapping;
-            ArrayList<Path> mappingFiles = new ArrayList<>();
-            for (int i = 2; i < cli.getArgs().length; i++) {
-                mappingFiles.add(getFile(cli.getArgs()[i], true));
-            }
-            try (SequenceSupplier<String, Character> sequenceSupplier = new SequenceSupplier<>(
-                    new FastaReader(database.toFile()), null, globalSettings.KEEP_IN_MEMORY)) {
-                Tree tree = NCBIReader.readTaxonomy(nodes.toFile(), names.toFile());
-                if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
-                    accessionMapping = new MeganMapping(mappingFiles.getFirst());
-                } else {
-                    HashSet<String> neededAccessions = NCBIReader.extractNeededAccessions(sequenceSupplier);
-                    accessionMapping = new NCBIMapping(
-                            mappingFiles,
-                            tree,
-                            neededAccessions);
-                }
+        AccessionMapping accessionMapping;
+        ArrayList<Path> mappingFiles = new ArrayList<>();
+        for (int i = 2; i < cli.getArgs().length; i++) {
+            mappingFiles.add(getFile(cli.getArgs()[i], true));
+        }
+        try (SequenceSupplier<String, Character> sequenceSupplier = new SequenceSupplier<>(
+                new FastaReader(database), null, globalSettings.KEEP_IN_MEMORY)) {
+            Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
+            if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
+                accessionMapping = new MeganMapping(mappingFiles.getFirst());
                 NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
+            } else {
+                HashSet<String> neededAccessions = NCBIReader.extractNeededAccessions(sequenceSupplier);
+                accessionMapping = new NCBIMapping(
+                        mappingFiles,
+                        tree,
+                        neededAccessions);
+                NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
+    private static void indexdb(GlobalSettings globalSettings, CommandLine cli) {
+        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
+        checkNumberOfPositionalArguments(cli, 2);
+        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : globalSettings.MAX_THREADS;
+        boolean[] mask = getMask(cli);
+        Path database = getFile(cli.getArgs()[0], true);
+        Path output = getFolder(cli.getArgs()[1], false);
+
+        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
+        Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
+        DBIndexer dbIndexer = new DBIndexer(
+                database, output, tree, encoder, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
+                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle, false);
+        try {
+            dbIndexer.index();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void indexreads(GlobalSettings globalSettings, CommandLine cli) {
+        checkNumberOfPositionalArguments(cli, 2);
+        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : globalSettings.MAX_THREADS;
+        boolean[] mask = getMask(cli);
+        Path reads = getFile(cli.getArgs()[0], true);
+        Path output = getFolder(cli.getArgs()[1], false);
+        Encoder encoder = new K15Base11(mask, 22);
+        ReadIndexer readIndexer = new ReadIndexer(
+                reads, output, encoder, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
+                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle);
+        try {
+            readIndexer.index();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void assignreads(GlobalSettings globalSettings, CommandLine cli) {
+        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
+        checkNumberOfPositionalArguments(cli, 3);
+        boolean[] mask = getMask(cli);
+        Path dbIndex = getFolder(cli.getArgs()[0], true);
+        Path readsIndex = getFolder(cli.getArgs()[1], true);
+        Path output = getFolder(cli.getArgs()[2], false);
+
+        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
+//              tree.reduceToStandardRanks();
+        ReadAssigner readAssigner = new ReadAssigner(
+                tree, globalSettings.MAX_THREADS, dbIndex, readsIndex, new K15Base11(mask, 22));
+        ReadAssignment assignment = readAssigner.assignReads();
+        ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
+        assignment.addKmerCounts();
+        assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
+//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
+//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
+        assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
+        TreeIO.saveCustomValues(tree, 1, output.resolve("custom_values.tsv"), true);
+    }
+
+    /**
+     * Print help message.
+     * @param options command line options
+     */
     private static void printHelp(Options options) {
         HelpFormatter helpFormatter = new HelpFormatter();
         // disable alphabetical sorting of options
@@ -330,6 +302,11 @@ public class Main {
                 "[options] <input> <output>", options);
     }
 
+    /**
+     * Check if the number of positional arguments is at least minExpected.
+     * @param cli command line arguments
+     * @param minExpected minimum number of positional arguments
+     */
     private static void checkNumberOfPositionalArguments(CommandLine cli, int minExpected) {
         if (cli.getArgs().length < minExpected) {
             System.err.printf("Expected %d positional arguments, got %d\n", minExpected, cli.getArgs().length);
@@ -337,25 +314,97 @@ public class Main {
         }
     }
 
-    private static void checkNodesAndNames(CommandLine cli) {
+    /**
+     * @param cli command line arguments
+     * @return pair of NCBI nodes and names dump files
+     */
+    private static Pair<Path, Path> getNodesAndNames(CommandLine cli) {
         if (!cli.hasOption("no") || !cli.hasOption("na")) {
             System.err.println("At least one of the required NCBI taxonomy files is missing: " +
                     "nodes.dmp (option -no), names.dmp (option -na)");
             System.exit(1);
         }
+        return new Pair<>(getFile(cli.getOptionValue("no"), true), getFile(cli.getOptionValue("na"), true));
     }
 
-    private static Path getFile(String path, boolean exists) {
+    /**
+     * Get a folder path from a string, check if it exists or not and create folders in the path if necessary.
+     * @param path path to folder
+     * @param exists whether the folder should exist or not
+     * @return absolute path to the folder
+     */
+    private static Path getFolder(String path, boolean exists) {
         Path result = null;
         try {
-            result = Path.of(path);
+            result = Path.of(path).toAbsolutePath();
             if (exists && !result.toFile().exists()) {
-                System.err.printf("File \"%s\" does not exist\n", path);
+                System.err.printf("Folder \"%s\" does not exist\n", path);
                 System.exit(1);
+            } else if (exists && !result.toFile().isDirectory()) {
+                System.err.printf("Path \"%s\" is not a directory\n", path);
+                System.exit(1);
+            } else if (!exists && result.getParent() != null) {
+                result.getParent().toFile().mkdirs();
+                if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
+                    System.err.printf("Could not create directory \"%s\"\n", result.getParent());
+                    System.exit(1);
+                }
             }
         } catch (InvalidPathException e) {
             System.err.printf("Invalid path: \"%s\"\n", path);
             System.exit(1);
+        }
+        return result;
+    }
+
+    /**
+     * Get a file path from a string, check if it exists or not and create folders in the path if necessary.
+     * @param path path to file
+     * @param exists whether the file should exist or not
+     * @return absolute path to the file
+     */
+    private static Path getFile(String path, boolean exists) {
+        Path result = null;
+        try {
+            result = Path.of(path).toAbsolutePath();
+            if (exists && !result.toFile().exists()) {
+                System.err.printf("File \"%s\" does not exist\n", path);
+                System.exit(1);
+            } else if (exists && result.toFile().isDirectory()) {
+                System.err.printf("Path \"%s\" is a directory\n", path);
+                System.exit(1);
+            } else if (!exists && result.getParent() != null) {
+                result.getParent().toFile().mkdirs();
+                if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
+                    System.err.printf("Could not create directory \"%s\"\n", result.getParent());
+                    System.exit(1);
+                }
+            }
+        } catch (InvalidPathException e) {
+            System.err.printf("Invalid path: \"%s\"\n", path);
+            System.exit(1);
+        }
+        return result;
+    }
+
+    /**
+     * @param cli command line arguments
+     * @return mask from cli or default mask
+     */
+    private static boolean[] getMask(CommandLine cli) {
+        return cli.hasOption("mask") ? parseMask(cli.getOptionValue("mask")) : parseMask("11111101101100111000100001");
+    }
+
+    /**
+     * Parse a mask string with 1 and 0 into a boolean array.
+     * @param mask mask string
+     * @return boolean array
+     */
+    private static boolean[] parseMask(String mask) {
+        mask = mask.replaceAll("^0+", "").replaceAll("0+$", "");
+        boolean[] result = new boolean[mask.length()];
+        for (int i = 0; i < mask.length(); i++) {
+            result[i] = mask.charAt(i) == '1';
         }
         return result;
     }

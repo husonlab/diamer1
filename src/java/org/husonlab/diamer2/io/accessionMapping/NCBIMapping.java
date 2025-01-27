@@ -61,7 +61,7 @@ public class NCBIMapping extends AccessionMapping {
              BufferedReader br = new BufferedReader(new InputStreamReader(cis))) {
             String line = br.readLine();
             ArrayList<String> header = new ArrayList<>(List.of(line.toLowerCase().split("\t")));
-            int accessionCol = header.indexOf("accession");
+            int accessionCol = header.contains("accession") ? header.indexOf("accession") : header.indexOf("accession.version");
             int taxIdCol = header.indexOf("taxid");
             long i = 0;
             while ((line = br.readLine()) != null) {
@@ -82,7 +82,7 @@ public class NCBIMapping extends AccessionMapping {
                 progressLogger.setProgress(++i);
             }
             progressBar.finish();
-        } catch (IOException e) {
+        } catch (IOException | ArrayIndexOutOfBoundsException e) {
             System.err.println("Error reading accession mapping file: " + ncbiMappingFile);
             throw new RuntimeException(e);
         }

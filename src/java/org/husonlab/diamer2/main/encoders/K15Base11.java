@@ -22,7 +22,7 @@ public class K15Base11 extends Encoder {
     private final int bitsOfBucketNames;
     private final int numberOfBuckets;
 
-    public K15Base11(long mask, int bitsIds) {
+    public K15Base11(boolean[] mask, int bitsIds) {
         super(new Base11Alphabet(), mask, bitsIds);
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);

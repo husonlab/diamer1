@@ -17,9 +17,7 @@ public class KmerEncoder {
     // spaces between the bits of the mask
     private final int s;
     // bitmask, most significant bit is the first (leftmost) bit of the mask
-    private final long mask;
-    // array representation of the mask
-    private final boolean[] maskArray;
+    private final boolean[] mask;
     // array to store the addends of the encoding
     private final long[] kmer;
     // current encoding of the kmer
@@ -30,18 +28,20 @@ public class KmerEncoder {
      * @param base base of the alphabet to encode the kmer in
      * @param mask bitmask
      */
-    public KmerEncoder(int base, long mask) {
+    public KmerEncoder(int base, boolean[] mask) {
         this.base = base;
         // remove trailing zeros (the least significant bits with value 0)
-        this.mask = mask / Long.lowestOneBit(mask);
+        this.mask = mask;
         // calculate position of the most significant bit (length of the mask / size of the window)
-        this.k = Long.SIZE - Long.numberOfLeadingZeros(this.mask);
+        this.k = mask.length;
         // calculate the number of spaces between the bits of the mask
-        this.s = k - Long.bitCount(this.mask);
-        maskArray = new boolean[k];
-        for (int i = 0; i < k; i++) {
-            maskArray[i] = (mask & (1L << i)) != 0;
+        int sTemp = 0;
+        for (boolean b : mask) {
+            if (!b) {
+                sTemp++;
+            }
         }
+        this.s = sTemp;
         kmer = new long[k];
         for (int i = 0; i < k; i++) {
             kmer[i] = 0;
@@ -90,7 +90,7 @@ public class KmerEncoder {
     private void multiply() {
         int i = k - 1;
         for (int j = 0; j < k; j++) {
-            if (maskArray[i--]) {
+            if (mask[i--]) {
                 kmer[j] *= base;
             }
         }
@@ -103,7 +103,7 @@ public class KmerEncoder {
     private void divide() {
         int i = k - 1;
         for (int j = 0; j < k; j++) {
-            if (maskArray[i--]) {
+            if (mask[i--]) {
                 kmer[j] /= base;
             }
         }
@@ -143,7 +143,7 @@ public class KmerEncoder {
     /**
      * @return the bitmask.
      */
-    public long getMask() {
+    public boolean[] getMask() {
         return mask;
     }
 
