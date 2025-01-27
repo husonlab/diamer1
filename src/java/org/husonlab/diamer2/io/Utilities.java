@@ -6,68 +6,10 @@ import java.io.RandomAccessFile;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utilities {
-    public static void checkFilesAndFolders(File[] files, Path[] paths) {
-
-        ArrayList<File> existingFiles = new ArrayList<>();
-        ArrayList<Path> existingFolders = new ArrayList<>();
-
-        for (File file : files) {
-            try {
-                Files.createDirectories(file.toPath().getParent());
-            } catch (FileAlreadyExistsException e) {
-                throw new RuntimeException("The path contains a file with the same name as the directory to create: " + file.toPath().getParent());
-            } catch (IOException e) {
-                throw new RuntimeException("Could not create directory: " + file.toPath().getParent(), e);
-            }
-            if (file.isDirectory()) {
-                throw new RuntimeException("The path is a directory: " + file);
-            }
-            if (file.isFile()) {
-                existingFiles.add(file);
-            }
-        }
-
-        for (Path path : paths) {
-            if (Files.isDirectory(path)) {
-                existingFolders.add(path);
-            }
-            try {
-                Files.createDirectories(path);
-            } catch (FileAlreadyExistsException e) {
-                throw new RuntimeException("The path contains a file with the same name as the directory to create: " + path.getParent());
-            } catch (IOException e) {
-                throw new RuntimeException("Could not create directory: " + path.getParent(), e);
-            }
-        }
-
-        if (!existingFiles.isEmpty() || !existingFolders.isEmpty()) {
-            for (int i = 0; i < 10; i++) {
-                System.out.println("The following files and folders already exist:");
-                for (File file : existingFiles) {
-                    System.out.println(file);
-                }
-                for (Path path : existingFolders) {
-                    System.out.println(path);
-                }
-                System.out.println("Do you want to overwrite them? (Y/N)");
-                try {
-                    int c = System.in.read();
-                    if (c == 'y' || c == 'Y') {
-                        break;
-                    } else if (c == 'n' || c == 'N') {
-                        System.exit(1);
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-    }
 
     public static Path createPath(Path path) {
         try {
@@ -80,11 +22,16 @@ public class Utilities {
         return path;
     }
 
-    public static void createPath(File file) {
-        createPath(Path.of(file.getParent()));
-    }
-
+    /**
+     * Approximates the number of sequences in a file by randomly sampling sequences in the file and calculating the
+     * average number of bytes required for one sequence.
+     * @param file File to approximate the number of sequences in
+     * @param delimiter Delimiter that separates sequences ('\n>' for fasta, '\n@' for fastq)
+     * @return Approximated number of sequences in the file
+     */
     public static int approximateNumberOfSequences(Path file, String delimiter) {
+        // The number of intended samples can be different from the actual number of samples taken in the end
+        // because a random sampling that starts within the last sequence will not yield a valid sample.
         int numberOfIntendedSamples = 5000;
         int numberOfSamples = 0;
         int bufferLength = 1024;
