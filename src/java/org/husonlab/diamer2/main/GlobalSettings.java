@@ -13,7 +13,7 @@ public class GlobalSettings {
     /**
      * Whether to keep sequences in memory during iterations or not (in the SequenceSupplier class)
      */
-    public final boolean KEEP_IN_MEMORY= false;
+    public final boolean KEEP_IN_MEMORY;
     /**
      * How many bits of the index are reserved for the ids of the sequences
      */
@@ -23,8 +23,11 @@ public class GlobalSettings {
      */
     public final int SEQUENCE_BATCH_SIZE = 10000;
 
-    public GlobalSettings(int MAX_THREADS, int MAX_MEMORY) {
+    public static final boolean DEBUG = false;
+
+    public GlobalSettings(int MAX_THREADS, int MAX_MEMORY, boolean KEEP_IN_MEMORY) {
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_MEMORY = MAX_MEMORY;
+        this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
     }
 }

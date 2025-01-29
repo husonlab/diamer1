@@ -211,6 +211,13 @@ public class Node {
     }
 
     /**
+     * @return the list of custom values associated with the node
+     */
+    public ArrayList<Integer> getCustomValues() {
+        return customValues;
+    }
+
+    /**
      * Set the parent of the node.
      * @param parent the parent to set
      */

@@ -1,10 +1,10 @@
 package org.husonlab.diamer2.io;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -84,5 +84,65 @@ public class Utilities {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Get a folder path from a string, check if it exists or not and create folders in the path if necessary.
+     * @param path path to folder
+     * @param exists whether the folder should exist or not
+     * @return absolute path to the folder
+     */
+    public static Path getFolder(String path, boolean exists) {
+        Path result = null;
+        try {
+            result = Path.of(path).toAbsolutePath();
+            if (exists && !result.toFile().exists()) {
+                System.err.printf("Folder \"%s\" does not exist\n", path);
+                System.exit(1);
+            } else if (exists && !result.toFile().isDirectory()) {
+                System.err.printf("Path \"%s\" is not a directory\n", path);
+                System.exit(1);
+            } else if (!exists && result.getParent() != null) {
+                result.getParent().toFile().mkdirs();
+                if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
+                    System.err.printf("Could not create directory \"%s\"\n", result.getParent());
+                    System.exit(1);
+                }
+            }
+        } catch (InvalidPathException e) {
+            System.err.printf("Invalid path: \"%s\"\n", path);
+            System.exit(1);
+        }
+        return result;
+    }
+
+    /**
+     * Get a file path from a string, check if it exists or not and create folders in the path if necessary.
+     * @param path path to file
+     * @param exists whether the file should exist or not
+     * @return absolute path to the file
+     */
+    public static Path getFile(String path, boolean exists) {
+        Path result = null;
+        try {
+            result = Path.of(path).toAbsolutePath();
+            if (exists && !result.toFile().exists()) {
+                System.err.printf("File \"%s\" does not exist\n", path);
+                System.exit(1);
+            } else if (exists && result.toFile().isDirectory()) {
+                System.err.printf("Path \"%s\" is a directory\n", path);
+                System.exit(1);
+            } else if (!exists && result.getParent() != null) {
+                result.getParent().toFile().mkdirs();
+                if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
+                    System.err.printf("Could not create directory \"%s\"\n", result.getParent());
+                    System.exit(1);
+                }
+            }
+        } catch (InvalidPathException e) {
+            System.err.printf("Invalid path: \"%s\"\n", path);
+            System.exit(1);
+        }
+        return result;
     }
 }

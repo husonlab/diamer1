@@ -23,6 +23,7 @@ public class ReadIndexer {
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
     private final int bucketsPerCycle;
+    private final boolean KEEP_IN_MEMORY;
 
     public ReadIndexer(Path fastqFile,
                      Path indexDir,
@@ -30,7 +31,8 @@ public class ReadIndexer {
                      int MAX_THREADS,
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
-                     int bucketsPerCycle) {
+                     int bucketsPerCycle,
+                     boolean KEEP_IN_MEMORY) {
         this.logger = new Logger("ReadIndexer");
         logger.addElement(new Time());
         this.fastqFile = fastqFile;
@@ -41,6 +43,7 @@ public class ReadIndexer {
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
         this.bucketsPerCycle = bucketsPerCycle;
+        this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
     }
 
     /**

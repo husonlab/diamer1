@@ -26,6 +26,7 @@ public class DBIndexer {
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
     private final int bucketsPerCycle;
+    private final boolean KEEP_IN_MEMORY;
     private final boolean debug;
     private final ArrayList<Pair<Integer, Integer>> bucketSizes;
     private final StringBuilder report;
@@ -38,6 +39,7 @@ public class DBIndexer {
                      int MAX_QUEUE_SIZE,
                      int BATCH_SIZE,
                      int bucketsPerCycle,
+                     boolean KEEP_IN_MEMORY,
                      boolean debug) {
         this.logger = new Logger("DBIndexer");
         logger.addElement(new Time());
@@ -50,6 +52,7 @@ public class DBIndexer {
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
         this.bucketsPerCycle = bucketsPerCycle;
+        this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
         this.debug = debug;
         this.bucketSizes = new ArrayList<>();
         report = new StringBuilder();

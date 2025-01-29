@@ -3,7 +3,6 @@ package org.husonlab.diamer2.main;
 import org.apache.commons.cli.*;
 import org.husonlab.diamer2.indexing.DBIndexer;
 import org.husonlab.diamer2.indexing.ReadIndexer;
-import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
@@ -12,7 +11,6 @@ import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
-import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.main.encoders.K15Base11;
@@ -22,10 +20,12 @@ import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.util.Pair;
 
 import java.io.*;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
+
+import static org.husonlab.diamer2.io.Utilities.getFile;
+import static org.husonlab.diamer2.io.Utilities.getFolder;
 
 
 public class Main {
@@ -121,6 +121,13 @@ public class Main {
                         .build()
         );
         options.addOption(
+                Option.builder()
+                        .longOpt("keep-in-memory")
+                        .desc("If set, keeps the sequence files" +
+                                "(database or reads) in memory during indexing and preprocessing.")
+                        .build()
+        );
+        options.addOption(
                 Option.builder("no")
                         .longOpt("nodes")
                         .argName("file")
@@ -184,7 +191,7 @@ public class Main {
             printHelp(options);
             System.exit(1);
         }
-        GlobalSettings globalSettings = new GlobalSettings(maxThreads, maxMemory);
+        GlobalSettings globalSettings = new GlobalSettings(maxThreads, maxMemory, cli.hasOption("keep-in-memory"));
 
         if (cli.hasOption("preprocess")) {
             preprocess(globalSettings, cli);
@@ -243,7 +250,7 @@ public class Main {
         Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
         DBIndexer dbIndexer = new DBIndexer(
                 database, output, tree, encoder, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
-                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle, false);
+                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle, globalSettings.KEEP_IN_MEMORY, globalSettings.DEBUG);
         try {
             dbIndexer.index();
         } catch (IOException e) {
@@ -260,7 +267,7 @@ public class Main {
         Encoder encoder = new K15Base11(mask, 22);
         ReadIndexer readIndexer = new ReadIndexer(
                 reads, output, encoder, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
-                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle);
+                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle, globalSettings.KEEP_IN_MEMORY);
         try {
             readIndexer.index();
         } catch (IOException e) {
@@ -281,7 +288,7 @@ public class Main {
         ReadAssigner readAssigner = new ReadAssigner(
                 tree, globalSettings.MAX_THREADS, dbIndex, readsIndex, new K15Base11(mask, 22));
         ReadAssignment assignment = readAssigner.assignReads();
-        ReadAssignmentIO.writeRawAssignments(assignment, output.resolve("raw_assignments.tsv").toFile());
+        ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCounts();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
 //                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
@@ -325,66 +332,6 @@ public class Main {
             System.exit(1);
         }
         return new Pair<>(getFile(cli.getOptionValue("no"), true), getFile(cli.getOptionValue("na"), true));
-    }
-
-    /**
-     * Get a folder path from a string, check if it exists or not and create folders in the path if necessary.
-     * @param path path to folder
-     * @param exists whether the folder should exist or not
-     * @return absolute path to the folder
-     */
-    private static Path getFolder(String path, boolean exists) {
-        Path result = null;
-        try {
-            result = Path.of(path).toAbsolutePath();
-            if (exists && !result.toFile().exists()) {
-                System.err.printf("Folder \"%s\" does not exist\n", path);
-                System.exit(1);
-            } else if (exists && !result.toFile().isDirectory()) {
-                System.err.printf("Path \"%s\" is not a directory\n", path);
-                System.exit(1);
-            } else if (!exists && result.getParent() != null) {
-                result.getParent().toFile().mkdirs();
-                if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
-                    System.err.printf("Could not create directory \"%s\"\n", result.getParent());
-                    System.exit(1);
-                }
-            }
-        } catch (InvalidPathException e) {
-            System.err.printf("Invalid path: \"%s\"\n", path);
-            System.exit(1);
-        }
-        return result;
-    }
-
-    /**
-     * Get a file path from a string, check if it exists or not and create folders in the path if necessary.
-     * @param path path to file
-     * @param exists whether the file should exist or not
-     * @return absolute path to the file
-     */
-    private static Path getFile(String path, boolean exists) {
-        Path result = null;
-        try {
-            result = Path.of(path).toAbsolutePath();
-            if (exists && !result.toFile().exists()) {
-                System.err.printf("File \"%s\" does not exist\n", path);
-                System.exit(1);
-            } else if (exists && result.toFile().isDirectory()) {
-                System.err.printf("Path \"%s\" is a directory\n", path);
-                System.exit(1);
-            } else if (!exists && result.getParent() != null) {
-                result.getParent().toFile().mkdirs();
-                if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
-                    System.err.printf("Could not create directory \"%s\"\n", result.getParent());
-                    System.exit(1);
-                }
-            }
-        } catch (InvalidPathException e) {
-            System.err.printf("Invalid path: \"%s\"\n", path);
-            System.exit(1);
-        }
-        return result;
     }
 
     /**

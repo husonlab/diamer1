@@ -160,4 +160,19 @@ public class ReadAssignment {
     public ArrayList<int[]> getKmerMatches(int readId) {
         return kmerMatches[readId];
     }
+
+    /**
+     * @return List of all assignment algorithms that have been run
+     */
+    public ArrayList<AssignmentAlgorithm> getAssignmentAlgorithms() {
+        return assignmentAlgorithms;
+    }
+
+    /**
+     * @param readId The id of the read
+     * @return The taxon assignments for the input read id
+     */
+    public ArrayList<Integer> getTaxonAssignments(int readId) {
+        return taxonAssignments[readId];
+    }
 }

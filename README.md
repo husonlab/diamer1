@@ -71,6 +71,16 @@ java -jar diamer2.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../.
   * ~ 30 min
   * ~ 32 gb
 
+# Time
+## NR 50 Canterbury
+### preprocess:
+~ 30 min
+### indexdb
+````shell
+java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexdb --keep-in-memory -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr50_preprocesses.fsa index_longspaced/
+````
+~ 2:35h
+
 ## Indexing Reads
 * with 5GB, 16 threads and 8 buckets in one run:
   * ~ 5h
