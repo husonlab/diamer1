@@ -80,6 +80,12 @@ java -jar diamer2.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../.
 java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexdb --keep-in-memory -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr50_preprocesses.fsa index_longspaced/
 ````
 ~ 2:35h
+### indexreads
+````shell
+java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory -t 16 -b 16 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
+````
+~ 40 GB would have been enough
+
 
 ## Indexing Reads
 * with 5GB, 16 threads and 8 buckets in one run:
