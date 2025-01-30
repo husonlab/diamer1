@@ -79,7 +79,7 @@ public class KmerEncoder {
         kmer[k - 1] = 0;
         multiply();
         kmer[k - 1] = last;
-        encoding = (encoding - first) * base + last;
+        encoding = encode();
         return encoding;
     }
 
@@ -88,10 +88,9 @@ public class KmerEncoder {
      * <p>Used to update the encoding of the kmer after adding a value to the back (right side) of the kmer.</p>
      */
     private void multiply() {
-        int i = k - 1;
-        for (int j = 0; j < k; j++) {
-            if (mask[i--]) {
-                kmer[j] *= base;
+        for (int i = 0; i < k; i++) {
+            if (mask[i]) {
+                kmer[i] *= base;
             }
         }
     }
@@ -101,12 +100,25 @@ public class KmerEncoder {
      * <p>Used to update the encoding of the kmer after adding a value to the front (left side) of the kmer.</p>
      */
     private void divide() {
-        int i = k - 1;
-        for (int j = 0; j < k; j++) {
-            if (mask[i--]) {
-                kmer[j] /= base;
+        for (int i = 0; i < k; i++) {
+            if (mask[i]) {
+                kmer[i] /= base;
             }
         }
+    }
+
+    /**
+     * Adds all masked elements of the kmer array to get the encoding of the kmer.
+     * @return the encoding of the kmer
+     */
+    private long encode() {
+        long result = 0;
+        for (int i = 0; i < k; i++) {
+            if (mask[i]) {
+                result += kmer[i];
+            }
+        }
+        return result;
     }
 
     /**

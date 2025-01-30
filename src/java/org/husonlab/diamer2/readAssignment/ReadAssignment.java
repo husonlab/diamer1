@@ -129,8 +129,8 @@ public class ReadAssignment {
             int taxId = algorithm.assignRead(kmerMatches[i]);
             if (taxId != -1) {
                 tree.addWeight(taxId, 1);
-                taxonAssignments[i].add(taxId);
             }
+            taxonAssignments[i].add(taxId);
         }
         progressBar.finish();
         logger.logInfo("Accumulating and saving weights on the tree ...");

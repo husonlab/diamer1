@@ -294,7 +294,9 @@ public class Main {
 //                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
 //                assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
-        TreeIO.saveCustomValues(tree, 1, output.resolve("custom_values.tsv"), true);
+        ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
+        ReadAssignmentIO.writePerTaxonAssignments(assignment, output.resolve("per_taxon_assignments.tsv"), 1, true);
+        ReadAssignmentIO.writeForMEGANImport(assignment, output.resolve("megan.tsv"), 1, 0);
     }
 
     /**

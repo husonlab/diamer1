@@ -103,7 +103,7 @@ public class Utilities {
                 System.err.printf("Path \"%s\" is not a directory\n", path);
                 System.exit(1);
             } else if (!exists && result.getParent() != null) {
-                result.getParent().toFile().mkdirs();
+                result.toFile().mkdirs();
                 if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
                     System.err.printf("Could not create directory \"%s\"\n", result.getParent());
                     System.exit(1);

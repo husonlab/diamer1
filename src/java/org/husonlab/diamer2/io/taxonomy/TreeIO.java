@@ -17,6 +17,7 @@ public class TreeIO {
      * @param file the file to save the values to
      * @param nodeLabels if true the node labels are saved instead of only taxIds
      */
+    @Deprecated
     public static void saveCustomValues(Tree tree, int threshold, Path file, boolean nodeLabels) {
         try (BufferedWriter writer = java.nio.file.Files.newBufferedWriter(file)) {
             writer.write(tree.idMap.size() + "\n");
