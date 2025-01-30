@@ -5,26 +5,28 @@ import org.jetbrains.annotations.NotNull;
 public class Sorting {
     // todo: change to be able to adjust the number of bits that are used for sorting flexibly
     /**
-     * Sorts a long array by its first 44 bits.
+     * Sorts a long array by its most significant N bits.
      * @param input Array to sort.
-     * @return Array sorted by the first 44 bits.
+     * @param nBits Number of bits to sort by.
+     * @return Array sorted by the most significant N bits.
      */
     @NotNull
-    public static long[] radixSort44bits(@NotNull long[] input) {
-        for (int i = 0; i < 4; i++) {
-            input = countingSort(input, i);
+    public static long[] radixSortNBits(@NotNull long[] input, int nBits) {
+        int shift = Math.ceilDiv(nBits, 16) - 1;
+        for (int i = shift; i >= 0; i--) {
+            input = countingSort(input, i*16);
         }
         return input;
     }
 
     /**
-     * Sorts a long array by its first 11 bits.
+     * Sorts a long array by a 16 bit window of the most significant bits. The window can be shifted to the right.
      * @param input Array to sort.
-     * @return Array sorted by the first 11 bits.
+     * @return Sorted array.
      */
     @NotNull
     public static long[] countingSort(@NotNull long[] input, int shift) {
-        final int[] count = new int[2048];
+        final int[] count = new int[65536];
         final long[] output = new long[input.length];
         for (long l : input) {
             count[applyMask(l, shift)]++;
@@ -39,12 +41,12 @@ public class Sorting {
     }
 
     /**
-     * Applies a mask of length 11 bits to a long. The first 20 bits are ignored. The mask can be shifted to the left.
+     * Applies a mask of length 16 bits to the most significant bits of a long. The mask can be shifted to the right.
      * @param input Long to apply the mask to.
-     * @param shift Number*11 to shift the mask to the left.
+     * @param shift Number*16 to shift the mask to the right.
      * @return Integer that corresponds to the masked bits.
      */
     private static int applyMask(long input, int shift) {
-        return (int) ((input >> (shift * 11 + 20)) & 0b11111111111);
+        return (int) ((input >>> (48 - shift)) & 0b1111111111111111);
     }
 }

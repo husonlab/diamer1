@@ -57,13 +57,12 @@ public class KmerEncoder {
      * @return the new encoding of the kmer
      */
     public long addFront(short value) {
-        long last = kmer[k - 1];
         int first = (int)(value * Math.pow(base, k - s - 1));
         System.arraycopy(kmer, 0, kmer, 1, k - 1);
         kmer[0] = 0;
         divide();
         kmer[0] = first;
-        encoding = (encoding - last) / base + first;
+        encoding = encode();
         return encoding;
     }
 
@@ -73,7 +72,6 @@ public class KmerEncoder {
      * @return the new encoding of the kmer
      */
     public long addBack(short value) {
-        long first = kmer[0];
         int last = (int)value;
         System.arraycopy(kmer, 1, kmer, 0, k - 1);
         kmer[k - 1] = 0;

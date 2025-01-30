@@ -18,21 +18,113 @@ import org.husonlab.diamer2.taxonomy.Node;
 public class NCBIReader {
 
     /**
-     * ReadAssignment the NCBI taxonomy from the nodes and names dumpfiles.
+     * Read the NCBI taxonomy from the nodes and names dumpfile.
+     * <p>Can usually be downloaded under
+     * <a href=https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/>https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/</a>.</p>
      * @param nodesDumpfile path to the nodes dumpfile (nodes.dmp)
      * @param namesDumpfile path to the names dumpfile (names.dmp)
      */
     @NotNull
     public static Tree readTaxonomy(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile){
         Logger logger = new Logger("NCBIReader").addElement(new Time());
-        final Tree tree = new Tree();
         logger.logInfo("Reading nodes dumpfile...");
-        readNodesDumpfile(nodesDumpfile, tree);
+        Tree tree = readNodesDumpfile(nodesDumpfile, logger);
         logger.logInfo("Reading names dumpfile...");
         readNamesDumpfile(namesDumpfile, tree);
         logger.logInfo("Finished reading taxonomy. Tree with %d nodes."
                 .formatted(tree.idMap.size()));
         return tree;
+    }
+
+    /**
+     * Generates a taxonomic tree from the NCBI nodes dumpfile.
+     * @param nodesDumpfile: path to the file
+     * @return A taxonomic trees with the nodes from the dumpfile
+     */
+    private static Tree readNodesDumpfile(Path nodesDumpfile, Logger logger) {
+        Tree tree = new Tree();
+        ProgressBar progressBar = new ProgressBar(nodesDumpfile.toFile().length(), 20);
+        new OneLineLogger("NCBIReader", 500)
+                .addElement(progressBar);
+        HashMap<Integer, Integer> parentMap = new HashMap<>();
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile.toString()));
+             BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split("\t\\|\t");
+                int taxId = Integer.parseInt(values[0]);
+                int parentTaxId = Integer.parseInt(values[1]);
+                String rank = values[2];
+                Node node = new Node(taxId, rank);
+                tree.idMap.put(taxId, node);
+                // parents are recorded separately since the node objects might not have been created yet
+                parentMap.put(taxId, parentTaxId);
+                progressBar.setProgress(cis.getBytesRead());
+            }
+            progressBar.finish();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        logger.logInfo("Connecting nodes...");
+        // set the parent-child relationships after all nodes have been created
+        parentMap.forEach( (nodeId, parentId) -> {
+            if (!Objects.equals(nodeId, parentId)) {
+                Node node = tree.idMap.get(nodeId);
+                Node parent = tree.idMap.get(parentId);
+                node.setParent(parent);
+                parent.addChild(node);
+            }
+        });
+        tree.autoFindRoot();
+        return tree;
+    }
+
+    /**
+     * Extracts the sequence accessions from the header of a fasta file.
+     * <p>
+     *     Each accession has to start with ">".
+     * </p>
+     * @param header the header of a fasta file
+     * @return a list of accessions
+     */
+    public static ArrayList<String> extractAccessionsFromHeader(String header) {
+        String[] values = header.split(" ");
+        ArrayList<String> ids = new ArrayList<>();
+        for (String value : values) {
+            if (value.startsWith(">")) {
+                ids.add(AccessionMapping.removeVersion(value.substring(1)));
+            }
+        }
+        return ids;
+    }
+
+    /**
+     * ReadAssignment the NCBI names.dmp file and adds the names to the corresponding Node objects.
+     * @param namesDumpfile: path to the file
+     * @param tree: Tree with idMap of tax_id -> Node objects
+     */
+    public static void readNamesDumpfile(Path namesDumpfile, Tree tree) {
+        ProgressBar progressBar = new ProgressBar(namesDumpfile.toFile().length(), 20);
+        new OneLineLogger("NCBIReader", 500)
+                .addElement(progressBar);
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(namesDumpfile.toString()));
+             BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
+            String line;
+            while ((line = br.readLine()) != null) {
+                String[] values = line.split("\t\\|\t");
+                int taxId = Integer.parseInt(values[0]);
+                String label = values[1];
+                Node node = tree.idMap.get(taxId);
+                node.addLabel(label);
+                if (values.length > 3 && values[3].equals("scientific name\t|")) {
+                    node.setScientificName(label);
+                }
+                progressBar.setProgress(cis.getBytesRead());
+            }
+            progressBar.finish();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static HashSet<String> extractNeededAccessions(
@@ -50,7 +142,7 @@ public class NCBIReader {
         sequenceSupplier.reset();
         while ((seq = sequenceSupplier.next()) != null) {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
-            neededAccessions.addAll(extractIdsFromHeader(seq.id()));
+            neededAccessions.addAll(extractAccessionsFromHeader(seq.id()));
         }
         progressBar.finish();
         return neededAccessions;
@@ -97,7 +189,7 @@ public class NCBIReader {
 
                 // Extract taxIds and compute LCA taxId
                 String header = fasta.id();
-                ArrayList<String> accessions = extractIdsFromHeader(header);
+                ArrayList<String> accessions = extractAccessionsFromHeader(header);
                 sequenceBuffer[fastaIndex % bufferSize] = new Pair<>(fasta, accessions.size());
                 accessionBuffer.addAll(accessions);
 
@@ -270,7 +362,7 @@ public class NCBIReader {
                 // Extract taxIds and compute LCA taxId
                 String header = fasta.id();
                 ArrayList<Integer> taxIds = new ArrayList<>();
-                for (String id: extractIdsFromHeader(header)) {
+                for (String id: extractAccessionsFromHeader(header)) {
                     int taxId = accessionMapping.getTaxId(id);
                     if (taxId != -1) {
                         taxIds.add(taxId);
@@ -360,86 +452,6 @@ public class NCBIReader {
                             System.err.println("Could not write preprocessing report.");
                         }
                     });
-        }
-    }
-
-    /**
-     * ReadAssignment the NCBI nodes.dmp file and creates a map of tax_id -> Node objects.
-     * @param nodesDumpfile: path to the file
-     * @param tree: Tree with idMap to store the nodes
-     */
-    private static void readNodesDumpfile(Path nodesDumpfile, Tree tree){
-        ProgressBar progressBar = new ProgressBar(nodesDumpfile.toFile().length(), 20);
-        new OneLineLogger("NCBIReader", 500)
-                .addElement(progressBar);
-        HashMap<Integer, Integer> parentMap = new HashMap<>();
-        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile.toString()));
-             BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split("\t\\|\t");
-                int taxId = Integer.parseInt(values[0]);
-                int parentTaxId = Integer.parseInt(values[1]);
-                String rank = values[2];
-                Node node = new Node(taxId, rank);
-                tree.idMap.put(taxId, node);
-                // parents are recorded separately since the node objects might not have been created yet
-                parentMap.put(taxId, parentTaxId);
-                progressBar.setProgress(cis.getBytesRead());
-            }
-            progressBar.finish();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        // set the parent-child relationships after all nodes have been created
-        parentMap.forEach( (nodeId, parentId) -> {
-            if (!Objects.equals(nodeId, parentId)) {
-                Node node = tree.idMap.get(nodeId);
-                Node parent = tree.idMap.get(parentId);
-                node.setParent(parent);
-                parent.addChild(node);
-            }
-        });
-        tree.autoFindRoot();
-    }
-
-    public static ArrayList<String> extractIdsFromHeader(String header) {
-        String[] values = header.split(" ");
-        ArrayList<String> ids = new ArrayList<>();
-        for (String value : values) {
-            if (value.startsWith(">")) {
-                ids.add(AccessionMapping.removeVersion(value.substring(1)));
-            }
-        }
-        return ids;
-    }
-
-    /**
-     * ReadAssignment the NCBI names.dmp file and adds the names to the corresponding Node objects.
-     * @param namesDumpfile: path to the file
-     * @param tree: Tree with idMap of tax_id -> Node objects
-     */
-    public static void readNamesDumpfile(Path namesDumpfile, Tree tree) {
-        ProgressBar progressBar = new ProgressBar(namesDumpfile.toFile().length(), 20);
-        new OneLineLogger("NCBIReader", 500)
-                .addElement(progressBar);
-        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(namesDumpfile.toString()));
-             BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                String[] values = line.split("\t\\|\t");
-                int taxId = Integer.parseInt(values[0]);
-                String label = values[1];
-                Node node = tree.idMap.get(taxId);
-                node.addLabel(label);
-                if (values.length > 3 && values[3].equals("scientific name\t|")) {
-                    node.setScientificName(label);
-                }
-                progressBar.setProgress(cis.getBytesRead());
-            }
-            progressBar.finish();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
     }
 

@@ -77,7 +77,7 @@ public class DBIndexer {
 
         int processedFastas = 0;
 
-        try (SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getAAConverter(), true)) {
+        try (SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getAAConverter(), KEEP_IN_MEMORY)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("sequences");

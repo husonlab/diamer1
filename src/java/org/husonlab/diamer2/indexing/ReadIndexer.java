@@ -16,33 +16,30 @@ public class ReadIndexer {
 
     private final Logger logger;
     private final Path fastqFile;
-    private final Path indexDir;
     private final ReadIndexIO readIndexIO;
     private final Encoder encoder;
+    private final int bucketsPerCycle;
     private final int MAX_THREADS;
     private final int MAX_QUEUE_SIZE;
     private final int BATCH_SIZE;
-    private final int bucketsPerCycle;
     private final boolean KEEP_IN_MEMORY;
 
     public ReadIndexer(Path fastqFile,
-                     Path indexDir,
-                     Encoder encoder,
-                     int MAX_THREADS,
-                     int MAX_QUEUE_SIZE,
-                     int BATCH_SIZE,
-                     int bucketsPerCycle,
-                     boolean KEEP_IN_MEMORY) {
+                       Path indexDir,
+                       Encoder encoder,
+                       int bucketsPerCycle, int MAX_THREADS,
+                       int MAX_QUEUE_SIZE,
+                       int BATCH_SIZE,
+                       boolean KEEP_IN_MEMORY) {
         this.logger = new Logger("ReadIndexer");
         logger.addElement(new Time());
         this.fastqFile = fastqFile;
-        this.indexDir = indexDir;
         this.readIndexIO = new ReadIndexIO(indexDir);
         this.encoder = encoder;
+        this.bucketsPerCycle = bucketsPerCycle;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
         this.BATCH_SIZE = BATCH_SIZE;
-        this.bucketsPerCycle = bucketsPerCycle;
         this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
     }
 
@@ -51,7 +48,7 @@ public class ReadIndexer {
      * @throws IOException If an error occurs during reading the file or writing the buckets.
      */
     public DBIndexIO index() throws IOException {
-        logger.logInfo("Indexing " + fastqFile + " to " + indexDir);
+        logger.logInfo("Indexing " + fastqFile + " to " + readIndexIO.getIndexFolder());
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
@@ -63,7 +60,7 @@ public class ReadIndexer {
         Phaser indexPhaser = new Phaser(1);
 
         try (FastqIdReader fastqIdReader = new FastqIdReader(fastqFile);
-             SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(fastqIdReader, encoder.getDNAConverter(), true)) {
+             SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(fastqIdReader, encoder.getDNAConverter(), KEEP_IN_MEMORY)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");

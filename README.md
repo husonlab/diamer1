@@ -85,6 +85,11 @@ java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexdb --keep-in-memory -t 
 java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory -t 16 -b 16 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
 ````
 ~ 40 GB would have been enough
+~ 2 h
+### assignreads
+````shell
+
+````
 
 
 ## Indexing Reads
@@ -115,7 +120,8 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * Spain
 
 # TODO
-* try to use duskmaster
+* try to use duskmaster to mask low complexity regions
+* 
 * make radix sort flexible with respect to the bits that are used for sorting
 * make sequence readers deal with ids
 * Use ArrayList to store Kmers rather than HashMaps and collapse kmers with same taxid later

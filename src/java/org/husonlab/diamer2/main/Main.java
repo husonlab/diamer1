@@ -8,7 +8,6 @@ import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
@@ -266,8 +265,8 @@ public class Main {
         Path output = getFolder(cli.getArgs()[1], false);
         Encoder encoder = new K15Base11(mask, 22);
         ReadIndexer readIndexer = new ReadIndexer(
-                reads, output, encoder, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
-                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle, globalSettings.KEEP_IN_MEMORY);
+                reads, output, encoder, bucketsPerCycle, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
+                globalSettings.SEQUENCE_BATCH_SIZE, globalSettings.KEEP_IN_MEMORY);
         try {
             readIndexer.index();
         } catch (IOException e) {

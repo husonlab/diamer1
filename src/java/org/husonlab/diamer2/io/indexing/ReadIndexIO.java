@@ -2,7 +2,6 @@ package org.husonlab.diamer2.io.indexing;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
 
 public class ReadIndexIO extends DBIndexIO {

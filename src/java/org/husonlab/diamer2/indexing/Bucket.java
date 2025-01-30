@@ -58,7 +58,7 @@ public class Bucket {
      */
     public void sort() {
         if (content != null) {
-            content = Sorting.radixSort44bits(content);
+            content = Sorting.radixSortNBits(content, 44);
         } else {
             throw new NullPointerException("Bucket is empty and can not be sorted.");
         }

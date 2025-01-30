@@ -10,7 +10,6 @@ import org.husonlab.diamer2.readAssignment.*;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.io.*;
-import java.nio.Buffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
