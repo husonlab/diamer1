@@ -28,9 +28,12 @@ public class DNAtoBase11 implements Converter<Character, Byte> {
         StringBuilder triplet = new StringBuilder();
         // Setup byte array for each reading frame
         byte[][] translations = new byte[6][];
+        int[] sequenceLengths = new int[3];
         for (int i = 0; i < 3; i++) {
-            translations[i*2] = new byte[(sequence.length()-i)/3];
-            translations[i*2+1] = new byte[(sequence.length()-i)/3];
+            int len = (sequence.length()-i)/3;
+            sequenceLengths[i] = len;
+            translations[i*2] = new byte[len];
+            translations[i*2+1] = new byte[len];
         }
         triplet.append(sequence.get(0)).append(sequence.get(1));
 
@@ -38,8 +41,10 @@ public class DNAtoBase11 implements Converter<Character, Byte> {
             triplet.append(sequence.get(i));
             byte[] encoding = encodeDNA(triplet.toString());
             int i2 = i*2-4;
+            // Forward reading frame
             translations[i2%6][i2/6] = encoding[0];
-            translations[(i2%6)+1][i2/6] = encoding[1];
+            // Reverse reading frame, gets filled in reverse order
+            translations[(i2%6)+1][sequenceLengths[(i+1)%3]-i2/6-1] = encoding[1];
             triplet.deleteCharAt(0);
         }
         if (sequence.length() == 3) {

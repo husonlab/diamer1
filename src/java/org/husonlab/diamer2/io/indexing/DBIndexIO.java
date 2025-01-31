@@ -31,13 +31,6 @@ public class DBIndexIO {
      */
     public DBIndexIO(Path indexFolder) {
         this.logger = new Logger("DBIndexIO");
-        if (!indexFolder.toFile().isDirectory()) {
-            if (!indexFolder.toFile().isDirectory()) {
-                if (!indexFolder.toFile().mkdirs()) {
-                    throw new RuntimeException("Could not create index folder: " + indexFolder);
-                }
-            }
-        }
         this.indexFolder = indexFolder;
         this.bucketIOs = new BucketIO[1024];
         for (int i = 0; i < 1024; i++) {
