@@ -13,8 +13,13 @@ import org.husonlab.diamer2.main.encoders.K15Base11;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
+import org.husonlab.diamer2.seq.CharSequence;
+import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
+import org.husonlab.diamer2.seq.alphabet.converter.Converter;
+import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.junit.Test;
 
@@ -85,5 +90,21 @@ public class IndexDBTest {
 //                assertTrue(found);
 //            }
 //        }
+    }
+
+    @Test
+    public void toBase11Test() {
+        Converter<Character, Byte> dnaConverter = new DNAtoBase11();
+        Converter<Character, Byte> aaConverter = new AAtoBase11();
+        for (Sequence<Byte> sequence: dnaConverter.convert(new CharSequence(
+                new AlphabetDNA(),
+                "ATCGCATTCAATGCTGCTGCGCATCAGATAGCACACGCGCGCGCCATACTGATACAGTTTGCGCAGGCTATGCAGGTTTTCTTCGCGCAGCGGGCATTC"))) {
+            System.out.println(sequence);
+        }
+        for (Sequence<Byte> sequence: aaConverter.convert(new CharSequence(
+                new AlphabetDNA(),
+                "ECPLREENLHSLRKLYQYGARVCYLMRSSIECD"))) {
+            System.out.println(sequence);
+        }
     }
 }
