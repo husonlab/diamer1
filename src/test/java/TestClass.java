@@ -1,3 +1,4 @@
+import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.FastqReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
@@ -14,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class TestClass {
 
@@ -82,6 +84,14 @@ public class TestClass {
         Compressed4BitSequence sequence = new Compressed4BitSequence(new Base11Alphabet(),
                 new byte[]{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 5, 10, 6, 8, 2});
         System.out.println(sequence);
+    }
+
+    @Test
+    public void testApproximateNumberOfSequences() {
+        System.out.println(
+                Utilities.approximateNumberOfSequences(Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100.fsa"), "\n>"));
+        System.out.println(
+                Utilities.approximateNumberOfSequences(Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100.fsa.gz"), "\n>"));
     }
 
 }

@@ -41,6 +41,14 @@ public class ProgressLogger extends LoggerElement {
         logger.notifyUpdate();
     }
 
+    /**
+     * Increments the number of processed items by one.
+     */
+    public void incrementProgress() {
+        processedItems++;
+        logger.notifyUpdate();
+    }
+
     @Override
     String getMessage() {
         long currentTime = System.currentTimeMillis();

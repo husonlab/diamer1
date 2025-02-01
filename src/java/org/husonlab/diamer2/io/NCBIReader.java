@@ -12,6 +12,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.taxonomy.Node;
 
@@ -135,13 +138,16 @@ public class NCBIReader {
         HashMap<String, Integer> neededAccessions = new HashMap<>(numberOfSequencesEst);
         logger.logInfo("Extracting accessions from database...");
         ProgressBar progressBar = new ProgressBar(sequenceSupplier.getFileSize(), 20);
+        ProgressLogger progressLogger = new ProgressLogger("Fastas");
         new OneLineLogger("NCBIReader", 1000)
                 .addElement(new RunningTime())
-                .addElement(progressBar);
+                .addElement(progressBar)
+                .addElement(progressLogger);
         SequenceRecord<String, Character> seq;
         sequenceSupplier.reset();
         while ((seq = sequenceSupplier.next()) != null) {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
+            progressLogger.incrementProgress();
             for (String accession : extractAccessionsFromHeader(seq.id())) {
                 neededAccessions.put(accession, -1);
             }
@@ -171,8 +177,10 @@ public class NCBIReader {
         SequenceRecord<String, Character> fasta;
 
         try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
-             BufferedWriter bw = Files.newBufferedWriter(output);
-             BufferedWriter bwSkipped = Files.newBufferedWriter(output.getParent().resolve("skipped_sequences.fsa"))) {
+             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
+                     Files.newOutputStream(output))));
+             BufferedWriter bwSkipped = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
+                     Files.newOutputStream(output.getParent().resolve("skipped_sequences.fsa.gz")))))) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("Fastas");

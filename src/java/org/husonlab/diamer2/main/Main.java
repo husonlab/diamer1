@@ -213,6 +213,9 @@ public class Main {
         checkNumberOfPositionalArguments(cli, 3);
         Path database = getFile(cli.getArgs()[0], true);
         Path output = getFile(cli.getArgs()[1], false);
+        if (!output.toString().endsWith(".gz")) {
+            output = output.getParent().resolve(output.getFileName() + ".gz");
+        }
 
         AccessionMapping accessionMapping;
         ArrayList<Path> mappingFiles = new ArrayList<>();

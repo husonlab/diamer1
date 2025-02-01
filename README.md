@@ -72,6 +72,18 @@ java -jar diamer2.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../.
   * ~ 32 gb
 
 # Time
+## NR
+### preprocess:
+````shell
+java -Xmx200g -jar ~/Documents/diamer2/diamer2.jar --preprocess -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr.gz preprocess_ncbi/nr_preprocessed_ncbi.fsa ~/Documents/ncbi/taxmapping/dead_prot.accession2taxid.FULL.gz ~/Documents/ncbi/taxmapping/prot.accession2taxid.FULL.gz
+````
+~ 5h
+### indexdb
+````shell
+java -Xmx200g -jar ~/Documents/diamer2/diamer2.jar --indexdb -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr_preprocessed_ncbi.fsa index_longspaced/
+````
+
+
 ## NR 50 Canterbury
 ### preprocess:
 ~ 30 min
