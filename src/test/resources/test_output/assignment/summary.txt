@@ -1,14 +1,14 @@
 Total reads: 6
 
 OVO (ratio: 0.200000)
-Total assignments:	3 (0.5%)
-1 from root: 1
+Total assignments:	4 (0.7%)
+1 from root: 2
 no rank: 1
 2 from root: 1
 
 OVO (ratio: 0.800000)
-Total assignments:	3 (0.5%)
-1 from root: 1
+Total assignments:	4 (0.7%)
+1 from root: 2
 no rank: 1
 2 from root: 1
 

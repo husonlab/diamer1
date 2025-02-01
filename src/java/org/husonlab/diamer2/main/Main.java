@@ -21,6 +21,7 @@ import org.husonlab.diamer2.util.Pair;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import static org.husonlab.diamer2.io.Utilities.getFile;
@@ -225,11 +226,11 @@ public class Main {
                 accessionMapping = new MeganMapping(mappingFiles.getFirst());
                 NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
             } else {
-                HashSet<String> neededAccessions = NCBIReader.extractNeededAccessions(sequenceSupplier);
+                HashMap<String, Integer> accession2Taxid = NCBIReader.extractNeededAccessions(sequenceSupplier);
                 accessionMapping = new NCBIMapping(
                         mappingFiles,
                         tree,
-                        neededAccessions);
+                        accession2Taxid);
                 NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
             }
         } catch (IOException e) {

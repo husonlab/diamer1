@@ -17,14 +17,12 @@ public class NCBIMapping extends AccessionMapping {
     private final Logger logger;
     private final HashMap<String, Integer> accessionMap;
     private final Tree tree;
-    private final HashSet<String> neededAccessions;
 
-    public NCBIMapping(Iterable<Path> NCBIMappingFiles, Tree tree, HashSet<String> neededAccessions) {
+    public NCBIMapping(Iterable<Path> NCBIMappingFiles, Tree tree, HashMap<String, Integer> neededAccessions) {
         logger = new Logger("NCBIMapping");
         logger.addElement(new Time());
-        accessionMap = new HashMap<>();
+        accessionMap = neededAccessions;
         this.tree = tree;
-        this.neededAccessions = neededAccessions;
 
         for (Path ncbiMappingFile : NCBIMappingFiles) {
             logger.logInfo("Reading accession taxID mapping from: " + ncbiMappingFile);
@@ -69,16 +67,14 @@ public class NCBIMapping extends AccessionMapping {
                 String accession = removeVersion(values[accessionCol]);
                 int taxId = Integer.parseInt(values[taxIdCol]);
                 // only add accessions, if the tax_id is in the tree and the accession is needed
-                if (neededAccessions.contains(accession) && tree.idMap.containsKey(taxId)) {
-                    accessionMap.computeIfPresent(accession, (key, value) -> {
-                        if (taxId == value) {
-                            return value;
-                        }
-                        return tree.findLCA(taxId, value);
-                    });
-                    accessionMap.computeIfAbsent(accession, key -> taxId);
+                if (accessionMap.containsKey(accession) && tree.idMap.containsKey(taxId)) {
+                    if (accessionMap.get(accession) == -1) {
+                        accessionMap.put(accession, taxId);
+                    } else {
+                        accessionMap.put(accession, tree.findLCA(taxId, accessionMap.get(accession)));
+                    }
                 }
-                progressBar.setProgress(cis.getBytesRead()/6);
+                progressBar.setProgress((long)(cis.getBytesRead()/6.5));
                 progressLogger.setProgress(++i);
             }
             progressBar.finish();

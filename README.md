@@ -86,12 +86,16 @@ java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory 
 ````
 ~ 40 GB would have been enough
 ~ 2 h
+````shell
+java -Xmx80g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory -t 16 -b 64 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
+````
+~ 2 h
 ### assignreads
 ````shell
 java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --assignreads -t 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp ../ncbi/nr50/index_longspaced ../test_dataset/index_longspaced/ read_assignment
 ````
 ~ 30 GB
-~git 
+~ 20 min
 
 
 ## Indexing Reads

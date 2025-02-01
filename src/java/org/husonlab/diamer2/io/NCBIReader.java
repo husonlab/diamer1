@@ -127,12 +127,12 @@ public class NCBIReader {
         }
     }
 
-    public static HashSet<String> extractNeededAccessions(
+    public static HashMap<String, Integer> extractNeededAccessions(
             SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Estimating number of sequenceRecords in database...");
         int numberOfSequencesEst = sequenceSupplier.approximateNumberOfSequences();
-        HashSet<String> neededAccessions = new HashSet<>(numberOfSequencesEst);
+        HashMap<String, Integer> neededAccessions = new HashMap<>(numberOfSequencesEst);
         logger.logInfo("Extracting accessions from database...");
         ProgressBar progressBar = new ProgressBar(sequenceSupplier.getFileSize(), 20);
         new OneLineLogger("NCBIReader", 1000)
@@ -142,7 +142,9 @@ public class NCBIReader {
         sequenceSupplier.reset();
         while ((seq = sequenceSupplier.next()) != null) {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
-            neededAccessions.addAll(extractAccessionsFromHeader(seq.id()));
+            for (String accession : extractAccessionsFromHeader(seq.id())) {
+                neededAccessions.put(accession, -1);
+            }
         }
         progressBar.finish();
         return neededAccessions;
@@ -212,7 +214,7 @@ public class NCBIReader {
                 \tprocessed sequenceRecords \t %d
                 \tkept sequenceRecords \t %d
                 \tskipped sequenceRecords without (valid) accession \t %d
-                \tskipped sequenceRecords with rank too high (%s) \t %d
+                \t[DISABLED] skipped sequenceRecords with rank too high (%s) \t %d
                 """.formatted(
                 java.time.LocalDateTime.now(),
                 sequenceSupplier.getFile(),
@@ -221,7 +223,8 @@ public class NCBIReader {
                 fastaIndex - counts.skippedNoTaxId - counts.skippedRank + 1,
                 counts.skippedNoTaxId,
                 String.join(", ", highRanks),
-                counts.skippedRank);
+                counts.skippedRank
+        );
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);
 
@@ -294,14 +297,14 @@ public class NCBIReader {
             String rank = tree.idMap.get(taxId).getRank();
             rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
             rankMapping.putIfAbsent(rank, 1);
-            if (highRanks.contains(rank)) {
-                counts.skippedRank++;
-                bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
-                bwSkipped.newLine();
-                bwSkipped.write(sequence);
-                bwSkipped.newLine();
-                continue;
-            }
+//            if (highRanks.contains(rank)) {
+//                counts.skippedRank++;
+//                bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
+//                bwSkipped.newLine();
+//                bwSkipped.write(sequence);
+//                bwSkipped.newLine();
+//                continue;
+//            }
             header = ">%d".formatted(taxId);
 
             // Split the sequence by stop codons
