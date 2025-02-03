@@ -12,6 +12,9 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.taxonomy.Node;
 
@@ -127,22 +130,27 @@ public class NCBIReader {
         }
     }
 
-    public static HashSet<String> extractNeededAccessions(
+    public static HashMap<String, Integer> extractNeededAccessions(
             SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Estimating number of sequenceRecords in database...");
         int numberOfSequencesEst = sequenceSupplier.approximateNumberOfSequences();
-        HashSet<String> neededAccessions = new HashSet<>(numberOfSequencesEst);
+        HashMap<String, Integer> neededAccessions = new HashMap<>(numberOfSequencesEst);
         logger.logInfo("Extracting accessions from database...");
         ProgressBar progressBar = new ProgressBar(sequenceSupplier.getFileSize(), 20);
+        ProgressLogger progressLogger = new ProgressLogger("Fastas");
         new OneLineLogger("NCBIReader", 1000)
                 .addElement(new RunningTime())
-                .addElement(progressBar);
+                .addElement(progressBar)
+                .addElement(progressLogger);
         SequenceRecord<String, Character> seq;
         sequenceSupplier.reset();
         while ((seq = sequenceSupplier.next()) != null) {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
-            neededAccessions.addAll(extractAccessionsFromHeader(seq.id()));
+            progressLogger.incrementProgress();
+            for (String accession : extractAccessionsFromHeader(seq.id())) {
+                neededAccessions.put(accession, -1);
+            }
         }
         progressBar.finish();
         return neededAccessions;
@@ -169,8 +177,10 @@ public class NCBIReader {
         SequenceRecord<String, Character> fasta;
 
         try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
-             BufferedWriter bw = Files.newBufferedWriter(output);
-             BufferedWriter bwSkipped = Files.newBufferedWriter(output.getParent().resolve("skipped_sequences.fsa"))) {
+             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
+                     Files.newOutputStream(output))));
+             BufferedWriter bwSkipped = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
+                     Files.newOutputStream(output.getParent().resolve("skipped_sequences.fsa.gz")))))) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("Fastas");
@@ -212,7 +222,7 @@ public class NCBIReader {
                 \tprocessed sequenceRecords \t %d
                 \tkept sequenceRecords \t %d
                 \tskipped sequenceRecords without (valid) accession \t %d
-                \tskipped sequenceRecords with rank too high (%s) \t %d
+                \t[DISABLED] skipped sequenceRecords with rank too high (%s) \t %d
                 """.formatted(
                 java.time.LocalDateTime.now(),
                 sequenceSupplier.getFile(),
@@ -221,7 +231,8 @@ public class NCBIReader {
                 fastaIndex - counts.skippedNoTaxId - counts.skippedRank + 1,
                 counts.skippedNoTaxId,
                 String.join(", ", highRanks),
-                counts.skippedRank);
+                counts.skippedRank
+        );
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);
 
@@ -294,14 +305,14 @@ public class NCBIReader {
             String rank = tree.idMap.get(taxId).getRank();
             rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
             rankMapping.putIfAbsent(rank, 1);
-            if (highRanks.contains(rank)) {
-                counts.skippedRank++;
-                bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
-                bwSkipped.newLine();
-                bwSkipped.write(sequence);
-                bwSkipped.newLine();
-                continue;
-            }
+//            if (highRanks.contains(rank)) {
+//                counts.skippedRank++;
+//                bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
+//                bwSkipped.newLine();
+//                bwSkipped.write(sequence);
+//                bwSkipped.newLine();
+//                continue;
+//            }
             header = ">%d".formatted(taxId);
 
             // Split the sequence by stop codons

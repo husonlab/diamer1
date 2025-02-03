@@ -21,6 +21,7 @@ import org.husonlab.diamer2.util.Pair;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import static org.husonlab.diamer2.io.Utilities.getFile;
@@ -212,6 +213,9 @@ public class Main {
         checkNumberOfPositionalArguments(cli, 3);
         Path database = getFile(cli.getArgs()[0], true);
         Path output = getFile(cli.getArgs()[1], false);
+        if (!output.toString().endsWith(".gz")) {
+            output = output.getParent().resolve(output.getFileName() + ".gz");
+        }
 
         AccessionMapping accessionMapping;
         ArrayList<Path> mappingFiles = new ArrayList<>();
@@ -225,11 +229,11 @@ public class Main {
                 accessionMapping = new MeganMapping(mappingFiles.getFirst());
                 NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
             } else {
-                HashSet<String> neededAccessions = NCBIReader.extractNeededAccessions(sequenceSupplier);
+                HashMap<String, Integer> accession2Taxid = NCBIReader.extractNeededAccessions(sequenceSupplier);
                 accessionMapping = new NCBIMapping(
                         mappingFiles,
                         tree,
-                        neededAccessions);
+                        accession2Taxid);
                 NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
             }
         } catch (IOException e) {

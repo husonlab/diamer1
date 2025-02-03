@@ -1,13 +1,13 @@
 package org.husonlab.diamer2.io;
 
-import java.io.IOException;
-import java.io.RandomAccessFile;
+import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 public class Utilities {
 
@@ -23,13 +23,31 @@ public class Utilities {
     }
 
     /**
-     * Approximates the number of sequences in a file by randomly sampling sequences in the file and calculating the
-     * average number of bytes required for one sequence.
+     * Approximates the number of sequences in a file.
+     * <p>
+     *     In case of an unzipped file, the method reads a random sample of sequences from the file and calculates the
+     *     average number of bytes per sequence. The number of sequences is then approximated by dividing the file size
+     *     by the average number of bytes per sequence. In case of a gzipped file, the method reads the first 5000
+     *     sequences from the file, which might not be a representative sample.
+     * </p>
      * @param file File to approximate the number of sequences in
      * @param delimiter Delimiter that separates sequences ('\n>' for fasta, '\n@' for fastq)
      * @return Approximated number of sequences in the file
      */
     public static int approximateNumberOfSequences(Path file, String delimiter) {
+        long averageBytesPerSequence = file.toFile().getName().endsWith(".gz") ?
+                getAverageBytesPerSequenceGZIP(file, delimiter) : getAverageBytesPerSequence(file, delimiter);
+        long fileSize = file.toFile().length();
+        return (int) (fileSize / averageBytesPerSequence);
+    }
+
+    /**
+     * Approximates the average number of bytes per sequence in a file by reading a random sample of sequences.
+     * @param file File to approximate the average number of bytes per sequence in
+     * @param delimiter Delimiter that separates sequences ('\n>' for fasta, '\n@' for fastq)
+     * @return Approximated average number of bytes per sequence in the file
+     */
+    private static long getAverageBytesPerSequence(Path file, String delimiter) {
         // The number of intended samples can be different from the actual number of samples taken in the end
         // because a random sampling that starts within the last sequence will not yield a valid sample.
         int numberOfIntendedSamples = 5000;
@@ -76,14 +94,40 @@ public class Utilities {
                     numberOfSamples++;
                 }
             }
-            double averageBytes = (double) totalBytes / numberOfSamples;
-            if (numberOfSamples == 0) {
-                return 0;
-            }
-            return (int) (fileSize / averageBytes);
+            return totalBytes / numberOfSamples;
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Approximates the average number of bytes per sequence in a gzipped file by reading the first 5000 sequences.
+     * @param file File to approximate the average number of bytes per sequence in
+     * @param delimiter Delimiter that separates sequences ('\n>' for fasta, '\n@' for fastq)
+     * @return Approximated average number of bytes per sequence in the file
+     */
+    private static long getAverageBytesPerSequenceGZIP(Path file, String delimiter) {
+        int numberOfIntendedSamples = 5000;
+        int numberOfSamples = 0;
+        long totalBytes = 0;
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(file.toString()));
+             InputStreamReader isr = new InputStreamReader(new GZIPInputStream(cis))) {
+            int c;
+            StringBuilder sb = new StringBuilder();
+            Pattern pattern = Pattern.compile(delimiter);
+            while (numberOfSamples <= numberOfIntendedSamples + 1 && (c = isr.read()) != -1) {
+                sb.append((char) c);
+                Matcher matcher = pattern.matcher(sb);
+                if (matcher.find()) {
+                    numberOfSamples++;
+                    sb.delete(0, matcher.end());
+                }
+            }
+            totalBytes = cis.getBytesRead();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return numberOfSamples == 0 ? 0 : totalBytes / numberOfSamples;
     }
 
     /**

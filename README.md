@@ -72,6 +72,18 @@ java -jar diamer2.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../.
   * ~ 32 gb
 
 # Time
+## NR
+### preprocess:
+````shell
+java -Xmx200g -jar ~/Documents/diamer2/diamer2.jar --preprocess -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr.gz preprocess_ncbi/nr_preprocessed_ncbi.fsa ~/Documents/ncbi/taxmapping/dead_prot.accession2taxid.FULL.gz ~/Documents/ncbi/taxmapping/prot.accession2taxid.FULL.gz
+````
+~ 5h
+### indexdb
+````shell
+java -Xmx200g -jar ~/Documents/diamer2/diamer2.jar --indexdb -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr_preprocessed_ncbi.fsa index_longspaced/
+````
+
+
 ## NR 50 Canterbury
 ### preprocess:
 ~ 30 min
@@ -86,12 +98,16 @@ java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory 
 ````
 ~ 40 GB would have been enough
 ~ 2 h
+````shell
+java -Xmx80g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory -t 16 -b 64 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
+````
+~ 2 h
 ### assignreads
 ````shell
 java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --assignreads -t 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp ../ncbi/nr50/index_longspaced ../test_dataset/index_longspaced/ read_assignment
 ````
 ~ 30 GB
-~git 
+~ 20 min
 
 
 ## Indexing Reads
