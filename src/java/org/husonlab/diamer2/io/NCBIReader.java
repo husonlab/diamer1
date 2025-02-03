@@ -12,7 +12,6 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 import org.husonlab.diamer2.taxonomy.Tree;
@@ -130,7 +129,12 @@ public class NCBIReader {
         }
     }
 
-    public static HashMap<String, Integer> extractNeededAccessions(
+    /**
+     * Extracts the accessions from the headers of input sequences
+     * @param sequenceSupplier supplier of the sequences
+     * @return a HashMap with the accessions as keys and -1 as values
+     */
+    public static HashMap<String, Integer> extractAccessions(
             SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Estimating number of sequenceRecords in database...");

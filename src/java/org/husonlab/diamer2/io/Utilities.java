@@ -1,8 +1,8 @@
 package org.husonlab.diamer2.io;
 
+import org.husonlab.diamer2.util.logging.Logger;
+
 import java.io.*;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
 import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.regex.Matcher;
@@ -10,17 +10,6 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
 
 public class Utilities {
-
-    public static Path createPath(Path path) {
-        try {
-            Files.createDirectories(path);
-        } catch (FileAlreadyExistsException e) {
-            throw new RuntimeException("The path contains a file with the same name as the directory to create: " + path.getParent());
-        } catch (IOException e) {
-            throw new RuntimeException("Could not create directory: " + path.getParent(), e);
-        }
-        return path;
-    }
 
     /**
      * Approximates the number of sequences in a file.
@@ -35,10 +24,13 @@ public class Utilities {
      * @return Approximated number of sequences in the file
      */
     public static int approximateNumberOfSequences(Path file, String delimiter) {
+        Logger logger = new Logger("Utilities");
         long averageBytesPerSequence = file.toFile().getName().endsWith(".gz") ?
                 getAverageBytesPerSequenceGZIP(file, delimiter) : getAverageBytesPerSequence(file, delimiter);
         long fileSize = file.toFile().length();
-        return (int) (fileSize / averageBytesPerSequence);
+        int result = (int) (fileSize / averageBytesPerSequence);
+        logger.logInfo("Approximated number of sequences in file " + file + ": " + result);
+        return result;
     }
 
     /**
