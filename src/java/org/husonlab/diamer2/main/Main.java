@@ -294,9 +294,10 @@ public class Main {
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCounts();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
-//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-//                assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
+        assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
+        assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
+        assignment.runAssignmentAlgorithm(new OVO(tree, 0.9f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
         ReadAssignmentIO.writePerTaxonAssignments(assignment, output.resolve("per_taxon_assignments.tsv"), 1, true);
         ReadAssignmentIO.writeForMEGANImport(assignment, output.resolve("megan.tsv"), 1, 0);
