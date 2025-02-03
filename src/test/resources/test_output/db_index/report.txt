@@ -1,4 +1,4 @@
-2025-01-31T20:50:13.504475700
+2025-02-01T19:02:46.075898
 input file: src\test\resources\database\db_preprocessed.fsa
 output directory: src\test\resources\test_output\db_index
 processed sequenceRecords: 7

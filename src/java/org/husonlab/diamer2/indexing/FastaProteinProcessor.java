@@ -18,6 +18,7 @@ public class FastaProteinProcessor implements Runnable {
     private final Tree tree;
     private final int rangeStart;
     private final int rangeEnd;
+    private final Encoder encoder;
 
     /**
      * Processes a batch of Sequence sequences and adds the kmers to the corresponding bucket maps.
@@ -33,6 +34,7 @@ public class FastaProteinProcessor implements Runnable {
         this.tree = tree;
         this.rangeStart = rangeStart;
         this.rangeEnd = rangeEnd;
+        this.encoder = encoder;
     }
 
     @Override
@@ -46,7 +48,7 @@ public class FastaProteinProcessor implements Runnable {
                 int taxId = fasta.id();
                 long[] kmers = kmerExtractor.extractKmers(sequence);
                 for (long kmerEnc : kmers) {
-                    int bucketName = IndexEncoding.getBucketName(kmerEnc);
+                    int bucketName = encoder.getBucketNameFromKmer(kmerEnc);
                     if (bucketName >= rangeStart && bucketName < rangeEnd) {
                         bucketMaps[bucketName - rangeStart].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
                         bucketMaps[bucketName - rangeStart].computeIfAbsent(kmerEnc, k -> taxId);

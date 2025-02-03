@@ -137,7 +137,7 @@ public class DBIndexer {
 
                     threadPoolExecutor.submit(() -> {
                         try {
-                            DBIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ]));
+                            DBIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ], encoder));
 
                         } catch (RuntimeException | IOException e) {
                             throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);

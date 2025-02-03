@@ -16,6 +16,7 @@ import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.seq.CharSequence;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.AlphabetAA;
 import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
 import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.alphabet.converter.Converter;
@@ -25,9 +26,6 @@ import org.junit.Test;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
-
-import static org.junit.Assert.assertTrue;
 
 public class IndexDBTest {
     @Test
@@ -94,17 +92,42 @@ public class IndexDBTest {
 
     @Test
     public void toBase11Test() {
+        boolean[] mask = new boolean[]{
+                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true
+        };
+
         Converter<Character, Byte> dnaConverter = new DNAtoBase11();
         Converter<Character, Byte> aaConverter = new AAtoBase11();
-        for (Sequence<Byte> sequence: dnaConverter.convert(new CharSequence(
+        Sequence<Byte>[] dna = dnaConverter.convert(new CharSequence(
                 new AlphabetDNA(),
-                "ATCGCATTCAATGCTGCTGCGCATCAGATAGCACACGCGCGCGCCATACTGATACAGTTTGCGCAGGCTATGCAGGTTTTCTTCGCGCAGCGGGCATTC"))) {
+                "GTTTGCTGCGCAGATCATCCGCGCTCAGCTGATACACGGTAATTTCATATCAGCGACAAAACCAGTTGACACCAGCTCCAACGAAAATCTCTCGATTCTTCAAGCTCTAAGTCCAGTTCGCACAAGAAGAGTAGCCGCAAGAACCCTCAATTCTTCTTCTACCGACTACAGGAAACCTACACCTACTCATCTCTAAACCGGAATCGAGCTCTTCTTCCGTGTACTCCTCCGGTTC"));
+        Sequence<Byte>[] aa = aaConverter.convert(new CharSequence(
+                new AlphabetAA(),
+                "NQFLFAGIELILRKYEITVYQLSADDLRSHKVRKDHVFFIECPLREENLHSLRKLYQYGARVCYLMRSSIECDRKNASQFIDITTEMNVFIAKVLKTINNSACPPAVNIVRLTNQEFSVGRLVLCGHSDVDIASELLITIRSSQDHINRVLKKLGGKSVADIYLQRNVIYGSGTTLQKQKSR"));
+
+        for (Sequence<Byte> sequence: dna) {
             System.out.println(sequence);
         }
-        for (Sequence<Byte> sequence: aaConverter.convert(new CharSequence(
-                new AlphabetDNA(),
-                "ECPLREENLHSLRKLYQYGARVCYLMRSSIECD"))) {
+        for (Sequence<Byte> sequence: aa) {
             System.out.println(sequence);
+        }
+
+        KmerExtractor extractor = new KmerExtractor(new KmerEncoder(11, mask));
+        long[][] dnaKmers = new long[dna.length][];
+        for (int i = 0; i < dna.length; i++) {
+            Sequence<Byte> sequence = dna[i];
+            dnaKmers[i] = extractor.extractKmers(sequence);
+        }
+        long[] aaKmers = extractor.extractKmers(aa[0]);
+        for (long[] kmers: dnaKmers) {
+            for (long kmer: kmers) {
+                System.out.print(" " + (kmer >> 10));
+            }
+            System.out.println();
+        }
+        System.out.println();
+        for (long kmer: aaKmers) {
+            System.out.print(" " + (kmer >> 10));
         }
     }
 }

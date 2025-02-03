@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.main.encoders.Encoder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,12 +31,12 @@ public class Bucket {
      * @param bucketMap Content of the bucket as a concurrent HashMap of kmer and taxId/readId.
      * @param name Name (number) of the bucket.
      */
-    public Bucket(int name, ConcurrentHashMap<Long, Integer> bucketMap) {
+    public Bucket(int name, ConcurrentHashMap<Long, Integer> bucketMap, Encoder encoder) {
         this.name = name;
         content = new long[bucketMap.size()];
         int i = 0;
         for (ConcurrentHashMap.Entry<Long, Integer> entry : bucketMap.entrySet()) {
-            content[i] = IndexEncoding.getIndexEntry(entry.getKey(), entry.getValue());
+            content[i] = encoder.getIndex(entry.getValue(), entry.getKey());
             i++;
         }
         sort();
