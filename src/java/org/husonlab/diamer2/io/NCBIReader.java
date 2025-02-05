@@ -408,14 +408,14 @@ public class NCBIReader {
                 String rank = tree.idMap.get(taxId).getRank();
                 rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
                 rankMapping.putIfAbsent(rank, 1);
-                if (highRanks.contains(rank)) {
-                    skippedRank++;
-                    bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
-                    bwSkipped.newLine();
-                    bwSkipped.write(fasta.getSequenceString());
-                    bwSkipped.newLine();
-                    continue;
-                }
+//                if (highRanks.contains(rank)) {
+//                    skippedRank++;
+//                    bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
+//                    bwSkipped.newLine();
+//                    bwSkipped.write(fasta.getSequenceString());
+//                    bwSkipped.newLine();
+//                    continue;
+//                }
                 header = ">%d".formatted(taxId);
 
                 // Split the sequence by stop codons

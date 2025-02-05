@@ -7,10 +7,25 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.LinkedList;
 
+/**
+ * Class to read {@link SequenceRecord}s containing the sequence and an integer ID from a FASTQ file.
+ * <p>
+ *     The ID is the index of the sequence in the file, starting from 0.
+ * </p>
+ * <p>
+ *     A List of the original headers can be obtained with {@link #getHeaders()}.
+ * </p>
+ */
 public class FastqIdReader extends SequenceReader<Integer> {
 
-    private LinkedList<String> headers;
+    /**
+     * List to store the headers of the sequences during reading.
+     */
+    private final LinkedList<String> headers;
 
+    /**
+     * @param file Path to the file (gzipped or not) to read from
+     */
     public FastqIdReader(Path file) {
         super(file);
         headers = new LinkedList<>();
@@ -18,6 +33,7 @@ public class FastqIdReader extends SequenceReader<Integer> {
 
     @Override
     public SequenceRecord<Integer, Character> next() throws IOException {
+        sequencesRead++;
         if (line != null && line.startsWith("@")) {
             id = headers.size();
             headers.add(line);
@@ -36,6 +52,9 @@ public class FastqIdReader extends SequenceReader<Integer> {
         }
     }
 
+    /**
+     * @return A list with all headers of the sequences that have been read so far
+     */
     public LinkedList<String> getHeaders() {
         return headers;
     }
