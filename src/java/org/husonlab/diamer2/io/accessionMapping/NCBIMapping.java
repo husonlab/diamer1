@@ -18,13 +18,13 @@ public class NCBIMapping extends AccessionMapping {
     private final HashMap<String, Integer> accessionMap;
     private final Tree tree;
 
-    public NCBIMapping(Iterable<Path> NCBIMappingFiles, Tree tree, HashMap<String, Integer> neededAccessions) {
+    public NCBIMapping(Iterable<Path> ncbiMappingFiles, Tree tree, HashMap<String, Integer> neededAccessions) {
         logger = new Logger("NCBIMapping");
         logger.addElement(new Time());
         accessionMap = neededAccessions;
         this.tree = tree;
 
-        for (Path ncbiMappingFile : NCBIMappingFiles) {
+        for (Path ncbiMappingFile : ncbiMappingFiles) {
             logger.logInfo("Reading accession taxID mapping from: " + ncbiMappingFile);
             readAccessionMap(ncbiMappingFile);
         }

@@ -17,11 +17,13 @@ import static java.util.Collections.emptyIterator;
 
 public class SequenceSupplier<H, S> implements AutoCloseable {
     private final LinkedList<MemoryEntry<H, S>> sequences;
+    private final LinkedList<MemoryEntry2<H, S>> sequenceRecordContainers;
     private final SequenceReader<H> sequenceReader;
     private final Converter<Character, S> converter;
     private final boolean keepInMemory;
     private boolean finishedReading;
     private Iterator<MemoryEntry<H, S>> iterator;
+    private Iterator<MemoryEntry2<H, S>> iterator2;
     private long bytesRead;
     private int sequencesRead;
 
@@ -34,6 +36,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
         this.converter = converter;
         this.keepInMemory = keepInMemory;
         this.sequences = new LinkedList<>();
+        this.sequenceRecordContainers = new LinkedList<>();
         this.finishedReading = false;
         this.bytesRead = 0;
         this.sequencesRead = 0;
@@ -82,6 +85,56 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
         id = sequenceRecord.id();
         bytesRead = sequenceReader.getBytesRead();
         sequencesRead++;
+    }
+
+    public SequenceRecordContainer<H, S> nextRecordContainer() throws IOException {
+        if (keepInMemory) {
+            if (iterator2 != null) {
+                if (iterator2.hasNext()) {
+                    MemoryEntry2<H, S> entry = iterator2.next();
+                    sequencesRead = entry.sequencesRead;
+                    bytesRead = entry.bytesRead;
+                    return entry.sequenceRecordContainer;
+                } else {
+                    return null;
+                }
+            } else {
+                SequenceRecord<H, Character> sequenceRecord;
+                if ((sequenceRecord = sequenceReader.next()) == null) {
+                    finishedReading = true;
+                    iterator2 = sequenceRecordContainers.iterator();
+                    return nextRecordContainer();
+                }
+                MemoryEntry2<H, S> entry = new MemoryEntry2<>(sequencesRead, bytesRead, null);
+                sequenceRecordContainers.add(entry);
+                return getToBeTranslatedContainer(converter, sequenceRecord);
+            }
+        } else {
+            SequenceRecord<H, Character> sequenceRecord;
+            if ((sequenceRecord = sequenceReader.next()) == null) {
+                return null;
+            }
+            return getToBeTranslatedContainer(converter, sequenceRecord);
+        }
+    }
+
+    public SequenceRecordContainer<H, S> getToBeTranslatedContainer(
+            Converter<Character, S> converter, SequenceRecord<H, Character> sequenceRecord) {
+        return new SequenceRecordContainer<H, S>() {
+            @Override
+            public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
+                LinkedList<SequenceRecord<H, S>> sequenceRecords = new LinkedList<>();
+                if (converter != null) {
+                    H header = sequenceRecord.id();
+                    for (Sequence<S> sequence : converter.convert(sequenceRecord.sequence())) {
+                        sequenceRecords.add(new SequenceRecord<>(header, sequence));
+                    }
+                } else {
+                    sequenceRecords.add((SequenceRecord<H, S>) sequenceRecord);
+                }
+                return sequenceRecords;
+            }
+        };
     }
 
     public SequenceRecord<H, S> next() throws IOException {
@@ -169,4 +222,16 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     }
 
     private record MemoryEntry<H, S>(int sequencesRead, long bytesRead, H id, Sequence<S>[] sequences) {}
+
+    private static class MemoryEntry2<H, S>{
+        public final int sequencesRead;
+        public final long bytesRead;
+        public SequenceRecordContainer<H, S> sequenceRecordContainer;
+
+        public MemoryEntry2(int sequencesRead, long bytesRead, SequenceRecordContainer<H, S> sequenceRecordContainer) {
+            this.sequencesRead = sequencesRead;
+            this.bytesRead = bytesRead;
+            this.sequenceRecordContainer = sequenceRecordContainer;
+        }
+    }
 }

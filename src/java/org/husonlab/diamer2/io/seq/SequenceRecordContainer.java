@@ -1,4 +1,9 @@
-package org.husonlab.diamer2.seq;
+package org.husonlab.diamer2.io.seq;
 
-public class SequenceRecordContainer {
+import org.husonlab.diamer2.seq.SequenceRecord;
+
+import java.util.LinkedList;
+
+public abstract class SequenceRecordContainer<H, S> {
+    abstract public LinkedList<SequenceRecord<H, S>> getSequenceRecords();
 }

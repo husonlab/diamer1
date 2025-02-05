@@ -1,6 +1,6 @@
-2025-02-01T19:02:46.075898
-input file: src\test\resources\database\db_preprocessed.fsa
-output directory: src\test\resources\test_output\db_index
+2025-02-05T22:09:48.842690
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 processed sequenceRecords: 7
 bucket sizes: 
 0	0
