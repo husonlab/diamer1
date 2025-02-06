@@ -198,7 +198,7 @@ public class ReadAssignmentIO {
             }
             bw.newLine();
             for (Node node: tree.idMap.values()) {
-                int maxAssignment = 0;
+                long maxAssignment = 0;
                 StringBuilder sb = new StringBuilder(taxonNames ? node.toString() : Integer.toString(node.getTaxId()));
                 for (int i = 0; i < nrOfAssignments; i++) {
                     maxAssignment = Math.max(maxAssignment, node.customValues.get(i));

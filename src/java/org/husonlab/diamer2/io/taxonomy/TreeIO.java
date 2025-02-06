@@ -7,8 +7,43 @@ import java.io.BufferedWriter;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class TreeIO {
+
+    /**
+     * Save the tree as connection table.
+     * <p>
+     *     The table is ordered from root to leaves so that it is possible to parse it in one iteration.
+     * </p>
+     */
+    public static void saveTree(Tree tree, Path file, int[] customValueIndices) {
+        try (BufferedWriter bw = java.nio.file.Files.newBufferedWriter(file)) {
+            // write header
+            bw.write("parent id\tnode id\trank\tlabel");
+            for (int i : customValueIndices) {
+                bw.write("\t" + tree.getNodeCustomValueDescriptors().get(i));
+            }
+            bw.write("\n");
+            // write tree
+            LinkedList<Node> queue = new LinkedList<>();
+            queue.add(tree.getRoot());
+            while (!queue.isEmpty()) {
+                Node node = queue.poll();
+                if (node.hasParent()) {
+                    bw.write(Integer.toString(node.getParent().getTaxId()));
+                }
+                bw.write("\t" + node.getTaxId() + "\t" + node.getRank() + "\t" + node.getScientificName());
+                for (int i : customValueIndices) {
+                    bw.write("\t" + node.customValues.get(i));
+                }
+                bw.write("\n");
+                queue.addAll(node.getChildren());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not save tree.", e);
+        }
+    }
 
     /**
      * Saves all custom values that are associated with the nodes of the tree to a tsv file.
@@ -32,7 +67,7 @@ public class TreeIO {
             writer.write("\n");
             for (Node node : tree.idMap.values()) {
                 // Skip nodes that do not have a custom value above the threshold
-                if (node.customValues.stream().max(Integer::compareTo).orElse(0) < threshold) {
+                if (node.customValues.stream().max(Long::compareTo).orElse(0L) < threshold) {
                     continue;
                 }
                 if (nodeLabels) {
@@ -40,7 +75,7 @@ public class TreeIO {
                 } else {
                     writer.write(Integer.toString(node.getTaxId()));
                 }
-                for (int value: node.customValues) {
+                for (Long value: node.customValues) {
                     writer.write("\t" + value);
                 }
                 writer.write("\n");
@@ -56,7 +91,7 @@ public class TreeIO {
      */
     @Deprecated
     public static Tree.WeightsPerRank[] getAccumulatedeWeightPerRank(Tree tree, int threshold) {
-        HashMap<String, HashMap<Integer, Integer>> cummulativeWeightPerRank = new HashMap<>();
+        HashMap<String, HashMap<Integer, Long>> cummulativeWeightPerRank = new HashMap<>();
         LinkedList<Node> stack = new LinkedList<>();
         stack.add(tree.getRoot());
         while (!stack.isEmpty()) {
@@ -72,14 +107,14 @@ public class TreeIO {
         }
 
         ArrayList<Tree.WeightsPerRank> result = new ArrayList<>();
-        for (Map.Entry<String, HashMap<Integer, Integer>> entry : cummulativeWeightPerRank.entrySet()) {
+        for (Map.Entry<String, HashMap<Integer, Long>> entry : cummulativeWeightPerRank.entrySet()) {
             String rank = entry.getKey();
-            AtomicInteger totalWeight = new AtomicInteger();
+            AtomicLong totalWeight = new AtomicLong();
             int[][] kmerMatches = entry.getValue().entrySet().stream()
                     .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
                     .map(e -> {
                         totalWeight.addAndGet(e.getValue());
-                        return new int[]{e.getKey(), e.getValue()};
+                        return new long[]{e.getKey(), e.getValue()};
                     })
                     .toArray(int[][]::new);
             result.add(new Tree.WeightsPerRank(rank, totalWeight.get(), kmerMatches));

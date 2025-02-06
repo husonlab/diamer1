@@ -3,6 +3,7 @@ package org.husonlab.diamer2.taxonomy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
+import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 
 public class Tree {
@@ -126,12 +127,16 @@ public class Tree {
      * @param weight the weight to add
      * @return true if the weight was added, false if the node does not exist in the tree
      */
-    public boolean addWeight(int taxId, int weight) {
+    public boolean addWeight(int taxId, long weight) {
         if (!idMap.containsKey(taxId)) {
             return false;
+        } else {
+            Node node = idMap.get(taxId);
+            synchronized (node) {
+                node.addWeight(weight);
+            }
+            return true;
         }
-        idMap.get(taxId).addWeight(weight);
-        return true;
     }
 
     /**
@@ -209,6 +214,13 @@ public class Tree {
         nodeCustomValueDescriptors.add(description);
         for (Node node : idMap.values()) {
             node.customValues.add(node.getAccumulatedWeight());
+        }
+    }
+
+    public void resetCustomValues() {
+        nodeCustomValueDescriptors.clear();
+        for (Node node : idMap.values()) {
+            node.customValues.clear();
         }
     }
 
@@ -355,6 +367,6 @@ public class Tree {
     }
 
     @Deprecated
-    public record WeightsPerRank(String rank, int totalWeight, int[][] taxonWeights) {
+    public record WeightsPerRank(String rank, long totalWeight, int[][] taxonWeights) {
     }
 }

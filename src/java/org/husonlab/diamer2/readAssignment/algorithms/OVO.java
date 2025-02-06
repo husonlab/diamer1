@@ -51,9 +51,9 @@ public class OVO extends AssignmentAlgorithm {
         }
 
         // find child with highest and second-highest weight
-        int highestWeight = 0;
+        Long highestWeight = 0L;
         Node highestNode = node.getChildren().getFirst();
-        int secondHighestWeight = 0;
+        Long secondHighestWeight = 0L;
         for (Node child : node.getChildren()) {
             if (child.getAccumulatedWeight() > highestWeight) {
                 secondHighestWeight = highestWeight;

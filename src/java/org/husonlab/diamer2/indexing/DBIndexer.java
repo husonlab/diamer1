@@ -4,6 +4,7 @@ import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
@@ -135,12 +136,22 @@ public class DBIndexer {
                     bucketSizes.add(new Pair<>(rangeStart + j, bucketMaps[j].size()));
                     int finalJ = j;
                     indexPhaser.register();
-
                     threadPoolExecutor.submit(() -> {
                         try {
                             DBIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ], encoder));
                         } catch (RuntimeException | IOException e) {
                             throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
+                        } finally {
+                            indexPhaser.arriveAndDeregister();
+                        }
+                    });
+
+                    indexPhaser.register();
+                    threadPoolExecutor.submit(() -> {
+                        try {
+                            for (int taxId: bucketMaps[finalJ].values()) {
+                                tree.idMap.get(taxId).addWeight(1);
+                            }
                         } finally {
                             indexPhaser.arriveAndDeregister();
                         }
@@ -166,6 +177,10 @@ public class DBIndexer {
             threadPoolExecutor.shutdownNow();
             throw new RuntimeException("Indexing interrupted.");
         }
+
+        // Export tree with number of kmers that map to each node
+        tree.transferWeightToCustomValue("kmers in database");
+        TreeIO.saveTree(tree, indexDir.resolve("tree.txt"), new int[]{0});
 
         report
                 .append(java.time.LocalDateTime.now()).append("\n")

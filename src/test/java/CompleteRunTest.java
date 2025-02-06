@@ -56,6 +56,7 @@ public class CompleteRunTest {
         // Generate DB index
         DBIndexer indexer = new DBIndexer(dbPreprocessed, dbIndex, tree, new K15Base11(mask, 22), 1, 1, 20, 1024, false, true);
         indexer.index();
+        tree.resetCustomValues();
         indexer = new DBIndexer(dbPreprocessed, dbIndexSpaced, tree, new K15Base11(maskSpaced, 22), 1, 1, 4, 127, false, true);
         indexer.index();
 
@@ -74,7 +75,7 @@ public class CompleteRunTest {
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
         ReadAssignmentIO.writePerTaxonAssignments(assignment, output.resolve("per_taxon_assignments.tsv"), 1, true);
-        ReadAssignmentIO.writeForMEGANImport(assignment, output.resolve("megan.tsv"), 1, 0);
+        ReadAssignmentIO.writeForMEGANImport(assignment, output.resolve("megan.tsv"), 1, 1);
         // spaced
         readAssigner = new ReadAssigner(tree, 1, dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22));
         assignment = readAssigner.assignReads();
@@ -84,7 +85,7 @@ public class CompleteRunTest {
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, outputSpaced.resolve("per_read_assignments.tsv"), false, true);
         ReadAssignmentIO.writePerTaxonAssignments(assignment, outputSpaced.resolve("per_taxon_assignments.tsv"), 1, true);
-        ReadAssignmentIO.writeForMEGANImport(assignment, outputSpaced.resolve("megan.tsv"), 1, 0);
+        ReadAssignmentIO.writeForMEGANImport(assignment, outputSpaced.resolve("megan.tsv"), 1, 1);
 
         // Compare output with expected output
         File expectedOutput = new File("src/test/resources/expected_output");

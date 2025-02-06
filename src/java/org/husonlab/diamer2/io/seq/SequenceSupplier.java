@@ -11,8 +11,6 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import static java.util.Collections.emptyIterator;
-
 /**
  * Class for iterating over sequence files multiple times. After each iteration, the {@link #reset()} method must be
  * called to start from the beginning again.

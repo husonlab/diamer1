@@ -16,8 +16,8 @@ public class Node {
     private final ArrayList<String> labels;
     @Nullable
     private String rank;
-    private int weight;
-    private int accumulatedWeight;
+    private long weight;
+    private long accumulatedWeight;
 
     @Nullable
     private Node parent;
@@ -26,7 +26,7 @@ public class Node {
     /**
      * public ArrayList that can be used to associate custom values with the node.
      */
-    public final ArrayList<Integer> customValues;
+    public final ArrayList<Long> customValues;
 
     /**
      * Construct a new {@link Node} with a taxonomic ID.
@@ -38,7 +38,7 @@ public class Node {
         this.labels = new ArrayList<String>();
         this.weight = 0;
         this.accumulatedWeight = 0;
-        this.customValues = new ArrayList<>();
+        this.customValues = new ArrayList<Long>();
     }
 
     /**
@@ -115,7 +115,7 @@ public class Node {
      */
     @Nullable
     public String getScientificName() {
-        return scientificName;
+        return scientificName != null ? scientificName : "";
     }
 
     /**
@@ -160,7 +160,7 @@ public class Node {
      * <p>Can be used to associate an integer number with the node for any computation.</p>
      * @param weight the weight to set
      */
-    public void setWeight(int weight) {
+    public void setWeight(long weight) {
         this.weight = weight;
     }
 
@@ -168,7 +168,7 @@ public class Node {
      * Add a weight to the node.
      * @param weight the weight to add
      */
-    public void addWeight(int weight) {
+    public void addWeight(long weight) {
         synchronized (this) {
             this.weight += weight;
         }
@@ -178,7 +178,7 @@ public class Node {
      * Get the weight of the node.
      * @return the weight of the node
      */
-    public int getWeight() {
+    public long getWeight() {
         return weight;
     }
 
@@ -187,7 +187,7 @@ public class Node {
      * <p>Is meant to contain the accumulated weight of all nodes of the subtree rooted at this node</p>
      * @param accumulatedWeight the accumulated weight to set
      */
-    public void setAccumulatedWeight(int accumulatedWeight) {
+    public void setAccumulatedWeight(long accumulatedWeight) {
         this.accumulatedWeight = accumulatedWeight;
     }
 
@@ -195,7 +195,7 @@ public class Node {
      * Add a weight to the accumulated weight of the node.
      * @param weight the weight to add
      */
-    public void addAccumulatedWeight(int weight) {
+    public void addAccumulatedWeight(Long weight) {
         synchronized (this) {
             this.accumulatedWeight += weight;
         }
@@ -206,14 +206,14 @@ public class Node {
      * <p>Is meant to contain the accumulated weight of all nodes of the subtree rooted at this node</p>
      * @return the accumulated weight of the node
      */
-    public int getAccumulatedWeight() {
+    public Long getAccumulatedWeight() {
         return accumulatedWeight;
     }
 
     /**
      * @return the list of custom values associated with the node
      */
-    public ArrayList<Integer> getCustomValues() {
+    public ArrayList<Long> getCustomValues() {
         return customValues;
     }
 
