@@ -1,5 +1,5 @@
-2025-02-06T11:43:01.396861300
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa
+2025-02-06T14:51:29.741490200
+input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 processed sequenceRecords: 7
 bucket sizes: 

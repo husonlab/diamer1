@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 
+import static java.util.Collections.emptyIterator;
+
 /**
  * Represents a sequence of symbols of type {@link S} together with a header/id of another type {@link H} e.g. the
  * header string or id of a sequence.

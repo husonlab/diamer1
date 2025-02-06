@@ -170,7 +170,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
+    public static void preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sup) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -183,8 +183,7 @@ public class NCBIReader {
         HashMap<String, Integer> rankMapping = new HashMap<>();
         SequenceRecordContainer<String, Character> container;
 
-        try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
-             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
                      Files.newOutputStream(output))));
              BufferedWriter bwSkipped = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
                      Files.newOutputStream(output.getParent().resolve("skipped_sequences.fsa.gz")))))) {
@@ -234,7 +233,7 @@ public class NCBIReader {
                 \t[DISABLED] skipped sequenceRecords with rank too high (%s) \t %d
                 """.formatted(
                 java.time.LocalDateTime.now(),
-                sequenceSupplier.getFile(),
+                sup.getFile(),
                 output,
                 fastaIndex + 1,
                 fastaIndex - counts.skippedNoTaxId - counts.skippedRank + 1,
@@ -349,7 +348,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
+    public static void preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sup) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -363,8 +362,12 @@ public class NCBIReader {
         HashMap<String, Integer> rankMapping = new HashMap<>();
         SequenceRecordContainer<String, Character> container;
 
-        try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
-             BufferedWriter bw = Files.newBufferedWriter(output);
+        if (!output.toString().endsWith(".gz")) {
+            output = output.resolveSibling(output.getFileName() + ".gz");
+        }
+
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
+                     new FileOutputStream(output.toString())))) ;
              BufferedWriter bwSkipped = Files.newBufferedWriter(output.getParent().resolve("skipped_sequences.fsa"))) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
@@ -451,7 +454,7 @@ public class NCBIReader {
                 \tskipped sequenceRecords with rank too high (%s) \t %d
                 """.formatted(
                 java.time.LocalDateTime.now(),
-                sequenceSupplier.getFile(),
+                sup.getFile(),
                 output,
                 processedFastas,
                 processedFastas - skippedNoTaxId - skippedRank,

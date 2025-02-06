@@ -21,7 +21,7 @@ public class GlobalSettings {
     /**
      * How many sequences to process in a batch in one thread
      */
-    public final int SEQUENCE_BATCH_SIZE = 10000;
+    public final int SEQUENCE_BATCH_SIZE = 1000;
 
     public static final boolean DEBUG = false;
 

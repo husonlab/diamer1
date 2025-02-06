@@ -1,6 +1,6 @@
-	date 	 2025-02-06T11:43:00.522825500
+	date 	 2025-02-06T14:51:28.771370900
 	input file 	 C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa
-	output file 	 C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa
+	output file 	 C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 	processed sequenceRecords 	 7
 	kept sequenceRecords 	 6
 	skipped sequenceRecords without accession 	 1

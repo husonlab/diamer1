@@ -29,7 +29,7 @@ public class CompleteRunTest {
         Path ncbiAccession2Taxid = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid.gz", true);
         Path ncbiAccession2Taxid2 = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid2.gz", true);
         Path db = Utilities.getFile("src/test/resources/database/db.fsa", true);
-        Path dbPreprocessed = Utilities.getFile("src/test/resources/test_output/db_preprocessed/db_preprocessed.fsa", false);
+        Path dbPreprocessed = Utilities.getFile("src/test/resources/test_output/db_preprocessed/db_preprocessed.fsa.gz", false);
         Path reads = Utilities.getFile("src/test/resources/reads/reads.fq", true);
         Path dbIndex = Utilities.getFolder("src/test/resources/test_output/db_index", false);
         Path dbIndexSpaced = Utilities.getFolder("src/test/resources/test_output/db_index_spaced", false);
