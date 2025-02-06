@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.main.encoders.Encoder;
@@ -12,7 +13,7 @@ import java.util.concurrent.Phaser;
 public class FastqDNAProcessor implements Runnable {
 
     private final Phaser phaser;
-    private final SequenceRecord<Integer, Byte>[] batch;
+    private final SequenceRecordContainer<Integer, Byte>[] batch;
     private final Encoder encoder;
     private final KmerExtractor kmerExtractor;
     private final ConcurrentLinkedQueue<Long>[] bucketLists;
@@ -21,7 +22,7 @@ public class FastqDNAProcessor implements Runnable {
 
     public FastqDNAProcessor(
             Phaser phaser,
-            SequenceRecord<Integer, Byte>[] batch,
+            SequenceRecordContainer<Integer, Byte>[] batch,
             Encoder encoder,
             ConcurrentLinkedQueue<Long>[] bucketLists,
             int rangeStart,
@@ -38,17 +39,19 @@ public class FastqDNAProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (SequenceRecord<Integer, Byte> fastq : batch) {
-                if (fastq == null || fastq.sequence().length() < (15*3)) {
-                    continue;
-                }
-                int id = fastq.id();
-                Sequence<Byte> sequence = fastq.sequence();
-                long[] kmers = kmerExtractor.extractKmers(sequence);
-                for (long kmer : kmers) {
-                    int bucketName = encoder.getBucketNameFromKmer(kmer);
-                    if (bucketName >= rangeStart && bucketName < rangeEnd) {
-                        bucketLists[bucketName - rangeStart].add(encoder.getIndex(id, kmer));
+            for (SequenceRecordContainer<Integer, Byte> container : batch) {
+                for (SequenceRecord<Integer, Byte> record: container.getSequenceRecords()) {
+                    if (record == null || record.sequence().length() < (15*3)) {
+                        continue;
+                    }
+                    int id = record.id();
+                    Sequence<Byte> sequence = record.sequence();
+                    long[] kmers = kmerExtractor.extractKmers(sequence);
+                    for (long kmer : kmers) {
+                        int bucketName = encoder.getBucketNameFromKmer(kmer);
+                        if (bucketName >= rangeStart && bucketName < rangeEnd) {
+                            bucketLists[bucketName - rangeStart].add(encoder.getIndex(id, kmer));
+                        }
                     }
                 }
             }

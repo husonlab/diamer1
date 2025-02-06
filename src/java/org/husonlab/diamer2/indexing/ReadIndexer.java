@@ -3,13 +3,14 @@ package org.husonlab.diamer2.indexing;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.FastqIdReader;
+import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 public class ReadIndexer {
@@ -85,11 +86,11 @@ public class ReadIndexer {
                 }
 
                 progressBar.setProgress(0);
-                SequenceRecord<Integer, Byte>[] batch = new SequenceRecord[BATCH_SIZE];
+                SequenceRecordContainer<Integer, Byte>[] batch = new SequenceRecordContainer[BATCH_SIZE];
                 int batchPosition = 0;
-                SequenceRecord<Integer, Byte> seq;
-                while ((seq = sup.next()) != null) {
-                    batch[batchPosition] = seq;
+                SequenceRecordContainer<Integer, Byte> container;
+                while ((container = sup.next()) != null) {
+                    batch[batchPosition] = container;
                     progressBar.setProgress(sup.getBytesRead());
 
                     if (batchPosition == BATCH_SIZE - 1) {
@@ -103,7 +104,7 @@ public class ReadIndexer {
                                         rangeStart,
                                         rangeEnd)
                         );
-                        batch = new SequenceRecord[BATCH_SIZE];
+                        batch = new SequenceRecordContainer[BATCH_SIZE];
                         batchPosition = 0;
                     } else {
                         batchPosition++;
@@ -114,7 +115,7 @@ public class ReadIndexer {
                 threadPoolExecutor.submit(
                         new FastqDNAProcessor(
                                 indexPhaser,
-                                batch,
+                                Arrays.copyOfRange(batch, 0, batchPosition),
                                 encoder,
                                 bucketLists,
                                 rangeStart,
@@ -139,7 +140,7 @@ public class ReadIndexer {
 
                 indexPhaser.arriveAndAwaitAdvance();
 
-                for (int j = 0; j < bucketsPerCycle; j++) {
+                for (int j = 0; j < Math.min(bucketsPerCycle, (maxBuckets - rangeStart)); j++) {
                     int finalJ = j;
                     indexPhaser.register();
                     threadPoolExecutor.submit(() -> {

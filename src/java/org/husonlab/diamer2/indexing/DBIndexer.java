@@ -2,8 +2,8 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.seq.FastaIdReader;
+import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
@@ -12,6 +12,7 @@ import org.husonlab.diamer2.util.logging.*;
 import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.*;
 
 public class DBIndexer {
@@ -109,28 +110,28 @@ public class DBIndexer {
 
                 progressBar.setProgress(0);
                 progressLogger.setProgress(0);
-                SequenceRecord<Integer, Byte>[] batch = new SequenceRecord[BATCH_SIZE];
+                SequenceRecordContainer<Integer, Byte>[] batch = new SequenceRecordContainer[BATCH_SIZE];
                 processedFastas = 0;
-                SequenceRecord<Integer, Byte> seq;
-                while ((seq = sup.next()) != null) {
-                    batch[processedFastas % BATCH_SIZE] = seq;
+                SequenceRecordContainer<Integer, Byte> container;
+                while ((container = sup.next()) != null) {
+                    batch[processedFastas % BATCH_SIZE] = container;
                     progressBar.setProgress(sup.getBytesRead());
                     progressLogger.setProgress(processedFastas);
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
-                        batch = new SequenceRecord[BATCH_SIZE];
+                        batch = new SequenceRecordContainer[BATCH_SIZE];
                     }
                 }
                 indexPhaser.register();
-                threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
+                threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, Arrays.copyOfRange(batch, 0, processedFastas % BATCH_SIZE), encoder, bucketMaps, tree, rangeStart, rangeEnd));
                 progressBar.finish();
 
                 indexPhaser.arriveAndAwaitAdvance();
                 logger.logInfo("Processed " + processedFastas + " sequences");
                 logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
 
-                for (int j = 0; j < bucketsPerCycle; j++) {
+                for (int j = 0; j < Math.min(bucketsPerCycle, (maxBuckets - rangeStart)); j++) {
                     bucketSizes.add(new Pair<>(rangeStart + j, bucketMaps[j].size()));
                     int finalJ = j;
                     indexPhaser.register();
@@ -138,7 +139,6 @@ public class DBIndexer {
                     threadPoolExecutor.submit(() -> {
                         try {
                             DBIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ], encoder));
-
                         } catch (RuntimeException | IOException e) {
                             throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
                         } finally {

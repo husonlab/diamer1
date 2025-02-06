@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.main.encoders.Encoder;
@@ -12,7 +13,7 @@ import java.util.concurrent.Phaser;
 
 public class FastaProteinProcessor implements Runnable {
     private final Phaser phaser;
-    private final SequenceRecord<Integer, Byte>[] sequenceRecords;
+    private final SequenceRecordContainer<Integer, Byte>[] containers;
     private final KmerExtractor kmerExtractor;
     private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
     private final Tree tree;
@@ -22,13 +23,13 @@ public class FastaProteinProcessor implements Runnable {
 
     /**
      * Processes a batch of Sequence sequences and adds the kmers to the corresponding bucket maps.
-     * @param sequenceRecords Array of Sequence sequences to process.
+     * @param containers Array of Sequence sequences to process.
      * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
      * @param tree Tree to find the LCA of two taxIds.
      */
-    public FastaProteinProcessor(Phaser phaser, SequenceRecord<Integer, Byte>[] sequenceRecords, Encoder encoder, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
+    public FastaProteinProcessor(Phaser phaser, SequenceRecordContainer<Integer, Byte>[] containers, Encoder encoder, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
         this.phaser = phaser;
-        this.sequenceRecords = sequenceRecords;
+        this.containers = containers;
         this.kmerExtractor = new KmerExtractor(new KmerEncoder(encoder.getTargetAlphabet().getBase(), encoder.getMask()));
         this.bucketMaps = bucketMaps;
         this.tree = tree;
@@ -40,18 +41,20 @@ public class FastaProteinProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (SequenceRecord<Integer, Byte> fasta : sequenceRecords) {
-                if (fasta == null || fasta.sequence().length() < kmerExtractor.getK()) {
-                    continue;
-                }
-                Sequence<Byte> sequence = fasta.sequence();
-                int taxId = fasta.id();
-                long[] kmers = kmerExtractor.extractKmers(sequence);
-                for (long kmerEnc : kmers) {
-                    int bucketName = encoder.getBucketNameFromKmer(kmerEnc);
-                    if (bucketName >= rangeStart && bucketName < rangeEnd) {
-                        bucketMaps[bucketName - rangeStart].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
-                        bucketMaps[bucketName - rangeStart].computeIfAbsent(kmerEnc, k -> taxId);
+            for (SequenceRecordContainer<Integer, Byte> container : containers) {
+                for (SequenceRecord<Integer, Byte> record: container.getSequenceRecords()) {
+                    if (record == null || record.sequence().length() < kmerExtractor.getK()) {
+                        continue;
+                    }
+                    Sequence<Byte> sequence = record.sequence();
+                    int taxId = record.id();
+                    long[] kmers = kmerExtractor.extractKmers(sequence);
+                    for (long kmerEnc : kmers) {
+                        int bucketName = encoder.getBucketNameFromKmer(kmerEnc);
+                        if (bucketName >= rangeStart && bucketName < rangeEnd) {
+                            bucketMaps[bucketName - rangeStart].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
+                            bucketMaps[bucketName - rangeStart].computeIfAbsent(kmerEnc, k -> taxId);
+                        }
                     }
                 }
             }

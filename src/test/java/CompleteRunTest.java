@@ -50,18 +50,19 @@ public class CompleteRunTest {
         HashMap<String, Integer> neededAccessions = NCBIReader.extractAccessions(supplier);
         AccessionMapping accessionMapping = new NCBIMapping(
                 Arrays.asList(ncbiAccession2Taxid, ncbiAccession2Taxid2),  tree, neededAccessions);
+        supplier.reset();
         NCBIReader.preprocessNR(dbPreprocessed, tree, accessionMapping, supplier);
 
         // Generate DB index
-        DBIndexer indexer = new DBIndexer(dbPreprocessed, dbIndex, tree, new K15Base11(mask, 22), 1, 1, 1, 1024, false, true);
+        DBIndexer indexer = new DBIndexer(dbPreprocessed, dbIndex, tree, new K15Base11(mask, 22), 1, 1, 20, 1024, false, true);
         indexer.index();
-        indexer = new DBIndexer(dbPreprocessed, dbIndexSpaced, tree, new K15Base11(maskSpaced, 22), 1, 1, 1, 1024, false, true);
+        indexer = new DBIndexer(dbPreprocessed, dbIndexSpaced, tree, new K15Base11(maskSpaced, 22), 1, 1, 4, 127, false, true);
         indexer.index();
 
         // Generate read index
-        ReadIndexer readIndexer = new ReadIndexer(reads, readsIndex, new K15Base11(mask, 22), 1024, 1, 1, 1, true);
+        ReadIndexer readIndexer = new ReadIndexer(reads, readsIndex, new K15Base11(mask, 22), 1024, 1, 1, 20, true);
         readIndexer.index();
-        readIndexer = new ReadIndexer(reads, readsIndexSpaced, new K15Base11(maskSpaced, 22), 1024, 1, 1, 1, true);
+        readIndexer = new ReadIndexer(reads, readsIndexSpaced, new K15Base11(maskSpaced, 22), 127, 1, 1, 4, true);
         readIndexer.index();
 
         // Assign reads
@@ -89,8 +90,8 @@ public class CompleteRunTest {
         File expectedOutput = new File("src/test/resources/expected_output");
         File actualOutput = new File("src/test/resources/test_output");
         ArrayList<ExclusionRule> exclusionRules = new ArrayList<>();
-        exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1))));
-        exclusionRules.add(new ExclusionRule("preprocessing_report.txt", new HashSet<>(List.of(1))));
+        exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
+        exclusionRules.add(new ExclusionRule("preprocessing_report.txt", new HashSet<>(List.of(1, 2, 3))));
         assertDirectoriesEqual(expectedOutput, actualOutput, exclusionRules);
     }
 
@@ -103,7 +104,7 @@ public class CompleteRunTest {
         File[] files2 = dir2.listFiles();
 
         if (files1.length != files2.length) {
-            throw new AssertionError("Directories have different number of files. Dir1: " + files1.length + ", Dir2: " + files2.length);
+            throw new AssertionError("Directories %s and %s have different number of files. Dir1: %d, Dir2: %d".formatted(dir1.getPath(), dir2.getPath(), files1.length, files2.length));
         }
 
         for (File file1 : files1) {

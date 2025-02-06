@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
+import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
@@ -147,13 +148,15 @@ public class NCBIReader {
                 .addElement(new RunningTime())
                 .addElement(progressBar)
                 .addElement(progressLogger);
-        SequenceRecord<String, Character> seq;
+        SequenceRecordContainer<String, Character> container;
         sequenceSupplier.reset();
-        while ((seq = sequenceSupplier.next()) != null) {
+        while ((container = sequenceSupplier.next()) != null) {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
             progressLogger.incrementProgress();
-            for (String accession : extractAccessionsFromHeader(seq.id())) {
-                neededAccessions.put(accession, -1);
+            for (SequenceRecord<String, Character> record: container.getSequenceRecords()) {
+                for (String accession : extractAccessionsFromHeader(record.id())) {
+                    neededAccessions.put(accession, -1);
+                }
             }
         }
         progressBar.finish();
@@ -178,7 +181,7 @@ public class NCBIReader {
         int fastaIndex = 0;
         Counts counts = new Counts();
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        SequenceRecord<String, Character> fasta;
+        SequenceRecordContainer<String, Character> container;
 
         try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
              BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
@@ -197,20 +200,22 @@ public class NCBIReader {
             Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer = new Pair[bufferSize];
             ArrayList<String> accessionBuffer = new ArrayList<>();
 
-            while ((fasta = sup.next()) != null) {
+            while ((container = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
                 progressLogger.setProgress(fastaIndex + 1);
 
-                // Extract taxIds and compute LCA taxId
-                String header = fasta.id();
-                ArrayList<String> accessions = extractAccessionsFromHeader(header);
-                sequenceBuffer[fastaIndex % bufferSize] = new Pair<>(fasta, accessions.size());
-                accessionBuffer.addAll(accessions);
+                for (SequenceRecord<String, Character> record: container.getSequenceRecords()) {
+                    // Extract taxIds and compute LCA taxId
+                    String header = record.id();
+                    ArrayList<String> accessions = extractAccessionsFromHeader(header);
+                    sequenceBuffer[fastaIndex % bufferSize] = new Pair<>(record, accessions.size());
+                    accessionBuffer.addAll(accessions);
 
-                if (fastaIndex > 0 && (fastaIndex + 1) % bufferSize == 0) {
-                    ArrayList<Integer> taxIdBuffer = accessionMapping.getTaxIds(accessionBuffer);
-                    emptyBuffer(bufferSize, sequenceBuffer, accessionBuffer, taxIdBuffer, bw, bwSkipped, tree,
-                            highRanks, rankMapping, counts);
+                    if (fastaIndex > 0 && (fastaIndex + 1) % bufferSize == 0) {
+                        ArrayList<Integer> taxIdBuffer = accessionMapping.getTaxIds(accessionBuffer);
+                        emptyBuffer(bufferSize, sequenceBuffer, accessionBuffer, taxIdBuffer, bw, bwSkipped, tree,
+                                highRanks, rankMapping, counts);
+                    }
                 }
                 fastaIndex++;
             }
@@ -356,7 +361,7 @@ public class NCBIReader {
         int skippedNoTaxId = 0;
         int skippedRank = 0;
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        SequenceRecord<String, Character> fasta;
+        SequenceRecordContainer<String, Character> container;
 
         try (SequenceSupplier<String, Character> sup = sequenceSupplier.open();
              BufferedWriter bw = Files.newBufferedWriter(output);
@@ -369,45 +374,46 @@ public class NCBIReader {
                     .addElement(progressBar)
                     .addElement(progressLogger);
 
-            while ((fasta = sup.next()) != null) {
+            while ((container = sup.next()) != null) {
                 processedFastas++;
                 progressBar.setProgress(sup.getBytesRead());
                 progressLogger.setProgress(processedFastas);
 
-                // Extract taxIds and compute LCA taxId
-                String header = fasta.id();
-                ArrayList<Integer> taxIds = new ArrayList<>();
-                for (String id: extractAccessionsFromHeader(header)) {
-                    int taxId = accessionMapping.getTaxId(id);
-                    if (taxId != -1) {
-                        taxIds.add(taxId);
+                for (SequenceRecord<String, Character> record: container.getSequenceRecords()) {
+                    // Extract taxIds and compute LCA taxId
+                    String header = record.id();
+                    ArrayList<Integer> taxIds = new ArrayList<>();
+                    for (String id: extractAccessionsFromHeader(header)) {
+                        int taxId = accessionMapping.getTaxId(id);
+                        if (taxId != -1) {
+                            taxIds.add(taxId);
+                        }
                     }
-                }
-                int taxId;
-                if (!taxIds.isEmpty()) {
-                    taxId = taxIds.getFirst();
-                    for (int i = 1; i < taxIds.size(); i++) {
-                        taxId = tree.findLCA(taxId, taxIds.get(i));
+                    int taxId;
+                    if (!taxIds.isEmpty()) {
+                        taxId = taxIds.getFirst();
+                        for (int i = 1; i < taxIds.size(); i++) {
+                            taxId = tree.findLCA(taxId, taxIds.get(i));
+                        }
+                    } else {
+                        skippedNoTaxId++;
+                        bwSkipped.write(header + " (Accession(s) not found in mapping)");
+                        bwSkipped.newLine();
+                        bwSkipped.write(record.getSequenceString());
+                        bwSkipped.newLine();
+                        continue;
                     }
-                } else {
-                    skippedNoTaxId++;
-                    bwSkipped.write(header + " (Accession(s) not found in mapping)");
-                    bwSkipped.newLine();
-                    bwSkipped.write(fasta.getSequenceString());
-                    bwSkipped.newLine();
-                    continue;
-                }
-                if (!tree.idMap.containsKey(taxId)) {
-                    skippedNoTaxId++;
-                    bwSkipped.write(header + " (taxId not found in taxonomy %d)".formatted(taxId));
-                    bwSkipped.newLine();
-                    bwSkipped.write(fasta.getSequenceString());
-                    bwSkipped.newLine();
-                    continue;
-                }
-                String rank = tree.idMap.get(taxId).getRank();
-                rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
-                rankMapping.putIfAbsent(rank, 1);
+                    if (!tree.idMap.containsKey(taxId)) {
+                        skippedNoTaxId++;
+                        bwSkipped.write(header + " (taxId not found in taxonomy %d)".formatted(taxId));
+                        bwSkipped.newLine();
+                        bwSkipped.write(record.getSequenceString());
+                        bwSkipped.newLine();
+                        continue;
+                    }
+                    String rank = tree.idMap.get(taxId).getRank();
+                    rankMapping.computeIfPresent(rank, (k, v) -> v + 1);
+                    rankMapping.putIfAbsent(rank, 1);
 //                if (highRanks.contains(rank)) {
 //                    skippedRank++;
 //                    bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
@@ -416,20 +422,21 @@ public class NCBIReader {
 //                    bwSkipped.newLine();
 //                    continue;
 //                }
-                header = ">%d".formatted(taxId);
+                    header = ">%d".formatted(taxId);
 
-                // Split the sequence by stop codons
-                ArrayList<SequenceRecord<String, Character>> fastas = new ArrayList<>();
-                for (String sequence : fasta.getSequenceString().split("\\*")) {
-                    fastas.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
-                }
+                    // Split the sequence by stop codons
+                    ArrayList<SequenceRecord<String, Character>> fastas = new ArrayList<>();
+                    for (String sequence : record.getSequenceString().split("\\*")) {
+                        fastas.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
+                    }
 
-                // Write the sequenceRecords to the output file
-                for (SequenceRecord<String, Character> fasta2 : fastas) {
-                    bw.write(fasta2.id());
-                    bw.newLine();
-                    bw.write(fasta2.getSequenceString());
-                    bw.newLine();
+                    // Write the sequenceRecords to the output file
+                    for (SequenceRecord<String, Character> fasta2 : fastas) {
+                        bw.write(fasta2.id());
+                        bw.newLine();
+                        bw.write(fasta2.getSequenceString());
+                        bw.newLine();
+                    }
                 }
             }
             progressBar.finish();
