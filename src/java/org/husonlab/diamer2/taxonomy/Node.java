@@ -17,16 +17,18 @@ public class Node {
     @Nullable
     private String rank;
     private long weight;
-    private long accumulatedWeight;
+    /**
+     * ArrayList to store properties of type long. A description of the values can be stored in the containing tree.
+     */
+    protected final ArrayList<Long> longProperties;
+    /**
+     * ArrayList to store properties of type double. A description of the values can be stored in the containing tree.
+     */
+    protected final ArrayList<Double> doubleProperties;
 
     @Nullable
     private Node parent;
     private final ArrayList<Node> children;
-
-    /**
-     * public ArrayList that can be used to associate custom values with the node.
-     */
-    public final ArrayList<Long> customValues;
 
     /**
      * Construct a new {@link Node} with a taxonomic ID.
@@ -37,8 +39,8 @@ public class Node {
         this.children = new ArrayList<Node>();
         this.labels = new ArrayList<String>();
         this.weight = 0;
-        this.accumulatedWeight = 0;
-        this.customValues = new ArrayList<Long>();
+        this.longProperties = new ArrayList<Long>();
+        this.doubleProperties = new ArrayList<Double>();
     }
 
     /**
@@ -183,39 +185,19 @@ public class Node {
     }
 
     /**
-     * Set the accumulated weight of the node.
-     * <p>Is meant to contain the accumulated weight of all nodes of the subtree rooted at this node</p>
-     * @param accumulatedWeight the accumulated weight to set
+     * @return the properties of type long
      */
-    public void setAccumulatedWeight(long accumulatedWeight) {
-        this.accumulatedWeight = accumulatedWeight;
+    public ArrayList<Long> getLongProperties() {
+        return longProperties;
     }
 
     /**
-     * Add a weight to the accumulated weight of the node.
-     * @param weight the weight to add
+     * @return the properties of type double
      */
-    public void addAccumulatedWeight(Long weight) {
-        synchronized (this) {
-            this.accumulatedWeight += weight;
-        }
+    public ArrayList<Double> getDoubleProperties() {
+        return doubleProperties;
     }
 
-    /**
-     * Get the accumulated weight of the node.
-     * <p>Is meant to contain the accumulated weight of all nodes of the subtree rooted at this node</p>
-     * @return the accumulated weight of the node
-     */
-    public Long getAccumulatedWeight() {
-        return accumulatedWeight;
-    }
-
-    /**
-     * @return the list of custom values associated with the node
-     */
-    public ArrayList<Long> getCustomValues() {
-        return customValues;
-    }
 
     /**
      * Set the parent of the node.
@@ -307,11 +289,11 @@ public class Node {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Node node = (Node) o;
-        return taxId == node.taxId && weight == node.weight && accumulatedWeight == node.accumulatedWeight && Objects.equals(scientificName, node.scientificName) && Objects.equals(labels, node.labels) && Objects.equals(rank, node.rank);
+        return taxId == node.taxId && weight == node.weight && Objects.equals(scientificName, node.scientificName) && Objects.equals(labels, node.labels) && Objects.equals(rank, node.rank);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(taxId, scientificName, labels, rank, weight, accumulatedWeight);
+        return Objects.hash(taxId, scientificName, labels, rank, weight);
     }
 }

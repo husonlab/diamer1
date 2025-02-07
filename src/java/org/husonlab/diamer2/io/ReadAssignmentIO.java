@@ -201,8 +201,8 @@ public class ReadAssignmentIO {
                 long maxAssignment = 0;
                 StringBuilder sb = new StringBuilder(taxonNames ? node.toString() : Integer.toString(node.getTaxId()));
                 for (int i = 0; i < nrOfAssignments; i++) {
-                    maxAssignment = Math.max(maxAssignment, node.customValues.get(i));
-                    sb.append("\t").append(node.customValues.get(i));
+                    maxAssignment = Math.max(maxAssignment, node.longProperties.get(i));
+                    sb.append("\t").append(node.longProperties.get(i));
                 }
                 if (maxAssignment >= threshold) {
                     bw.write(sb.toString());
@@ -226,8 +226,8 @@ public class ReadAssignmentIO {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file.toString()))) {
             bw.write("taxid\t" + tree.getNodeCustomValueDescriptors().get(customValueIndex) + "\n");
             for (Node node: tree.idMap.values()) {
-                if (node.customValues.get(customValueIndex) >= threshold) {
-                    bw.write(node.getTaxId() + "\t" + node.customValues.get(customValueIndex) + "\n");
+                if (node.longProperties.get(customValueIndex) >= threshold) {
+                    bw.write(node.getTaxId() + "\t" + node.longProperties.get(customValueIndex) + "\n");
                 }
             }
         } catch (IOException e) {

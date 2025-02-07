@@ -180,7 +180,7 @@ public class DBIndexer {
 
         // Export tree with number of kmers that map to each node
         tree.transferWeightToCustomValue("kmers in database");
-        TreeIO.saveTree(tree, indexDir.resolve("tree.txt"), new int[]{0});
+        TreeIO.saveTree(tree, indexDir.resolve("tree.txt"));
 
         report
                 .append(java.time.LocalDateTime.now()).append("\n")

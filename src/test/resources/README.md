@@ -1,14 +1,22 @@
 # db.fsa
 * 1,423 amino acids total
+0) 2 kmers
+   * one from tax1/tax2 -> 0 and one from tax3/4/5
 1) 168 kmers
-2) 299 kmers
+   * one also occures in taxon 2 (-> 167 unique kmers map to taxon1)
+2) 285 kmers
+   * -> 284 (one occures in taxon1)
 3) 93 kmers
-4) 207 kmers
+   * -> 92 (one maps to tax0)
+4) 207 kmers + 243 kmers -> 450
+   * -> 449 (one maps to tax0)
 5) 329 kmers
+   * -> 328 (one maps to tax0)
 6) 243 kmers
+   * does not occure in taxonomy
 * total kmers 1,339
-* ``YEITVYQLSADDLRS`` 2 times (tax1, tax2)
-* ``LEDNIRRVIADIRPQ`` 3 times (tax3, 4, 5)
+* ``YEITVYQLSADDLRS`` 2 times (tax1, tax2) -> tax0
+* ``LEDNIRRVIADIRPQ`` 3 times (tax3, 4, 5) -> tax0
 * different kmers: 1336
 
 # readAssignment.fq

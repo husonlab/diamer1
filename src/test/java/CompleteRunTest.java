@@ -56,7 +56,7 @@ public class CompleteRunTest {
         // Generate DB index
         DBIndexer indexer = new DBIndexer(dbPreprocessed, dbIndex, tree, new K15Base11(mask, 22), 1, 1, 20, 1024, false, true);
         indexer.index();
-        tree.resetCustomValues();
+        tree.resetNodeProperties();
         indexer = new DBIndexer(dbPreprocessed, dbIndexSpaced, tree, new K15Base11(maskSpaced, 22), 1, 1, 4, 127, false, true);
         indexer.index();
 

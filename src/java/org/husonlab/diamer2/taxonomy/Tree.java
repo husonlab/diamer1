@@ -3,7 +3,6 @@ package org.husonlab.diamer2.taxonomy;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.concurrent.ThreadSafe;
 import java.util.*;
 
 public class Tree {
@@ -19,18 +18,20 @@ public class Tree {
     public final HashMap<Integer, Node> idMap;
     @Nullable
     private Node root;
+
     /**
-     * List that describes the custom values associated with the nodes.
+     * Map description -> index to map descriptions to long node properties.
      */
-    private final ArrayList<String> nodeCustomValueDescriptors;
+    private final HashMap<String, Integer> longPropertyDescriptions;
+    /**
+     * Map description -> index to map descriptions to double node properties.
+     */
+    private final HashMap<String, Integer> doublePropertyDescriptions;
 
     public Tree() {
         this.idMap = new HashMap<>();
-        this.nodeCustomValueDescriptors = new ArrayList<>();
-    }
-
-    public ArrayList<String> getNodeCustomValueDescriptors() {
-        return nodeCustomValueDescriptors;
+        longPropertyDescriptions = new HashMap<>();
+        doublePropertyDescriptions = new HashMap<>();
     }
 
     public Node getRoot() {
@@ -122,71 +123,197 @@ public class Tree {
     }
 
     /**
-     * Add weight to a node in the tree.
+     * Set a property of type double for a node in the tree.
      * @param taxId the taxonomic ID of the node
-     * @param weight the weight to add
-     * @return true if the weight was added, false if the node does not exist in the tree
+     * @param label the label of the property
+     * @param value the value of the property
      */
-    public boolean addWeight(int taxId, long weight) {
+    public void setNodeProperty(int taxId, String label, long value) {
+        Node node = ensureLongProperty(taxId, label);
+        node.longProperties.set(longPropertyDescriptions.get(label), value);
+    }
+
+    /**
+     * Set a property of type double for a node in the tree.
+     * @param taxId the taxonomic ID of the node
+     * @param label the label of the property
+     * @param value the value of the property
+     */
+    public void setNodeProperty(int taxId, String label, double value) {
+        Node node = ensureDoubleProperty(taxId, label);
+        node.doubleProperties.set(doublePropertyDescriptions.get(label), value);
+    }
+
+    /**
+     * Add a value to a property of type long for a node in the tree.
+     * @param taxId the taxonomic ID of the node
+     * @param label the label of the property
+     * @param value the value to add
+     */
+    public void addToNodeProperty(int taxId, String label, long value) {
+        Node node = ensureLongProperty(taxId, label);
+        int index = longPropertyDescriptions.get(label);
+        node.longProperties.set(index, node.longProperties.get(index) + value);
+    }
+
+    /**
+     * Add a value to a property of type double for a node in the tree.
+     * @param taxId the taxonomic ID of the node
+     * @param label the label of the property
+     * @param value the value to add
+     */
+    public void addToNodeProperty(int taxId, String label, double value) {
+        Node node = ensureDoubleProperty(taxId, label);
+        int index = doublePropertyDescriptions.get(label);
+        node.doubleProperties.set(index, node.doubleProperties.get(index) + value);
+    }
+
+    /**
+     * Ensures that a property of type long exists for a node in the tree.
+     * @param taxId the taxonomic ID of the node
+     * @param label the label of the property
+     * @return the node corresponding to the taxonomic ID
+     */
+    private Node ensureLongProperty(int taxId, String label) {
         if (!idMap.containsKey(taxId)) {
-            return false;
-        } else {
-            Node node = idMap.get(taxId);
-            synchronized (node) {
-                node.addWeight(weight);
-            }
-            return true;
+            throw new RuntimeException("Tried to set property of non-existing node: " + taxId);
         }
+        Node node = idMap.get(taxId);
+        if (!longPropertyDescriptions.containsKey(label)) {
+            longPropertyDescriptions.put(label, longPropertyDescriptions.size());
+        }
+        while (node.longProperties.size() <= longPropertyDescriptions.get(label)) {
+            node.longProperties.add(0L);
+        }
+        return node;
     }
 
     /**
-     * Adds weights to the nodes in the tree.
-     * @param nodesAndWeights an array of arrays of arrays (size 2) of node IDs and weights
-     *                        [[[nodeId1, weight1], [nodeId2, weight2], ...], ...]
+     * Ensures that a property of type double exists for a node in the tree.
+     * @param taxId the taxonomic ID of the node
+     * @param label the label of the property
+     * @return the node corresponding to the taxonomic ID
      */
-    public void addWeights(ArrayList<int[]>[] nodesAndWeights) {
-        for (ArrayList<int[]> nodesAndWeight : nodesAndWeights) {
-            addWeights(nodesAndWeight);
+    private Node ensureDoubleProperty(int taxId, String label) {
+        if (!idMap.containsKey(taxId)) {
+            throw new RuntimeException("Tried to set property of non-existing node: " + taxId);
         }
+        Node node = idMap.get(taxId);
+        if (!doublePropertyDescriptions.containsKey(label)) {
+            doublePropertyDescriptions.put(label, doublePropertyDescriptions.size());
+        }
+        while (node.doubleProperties.size() <= doublePropertyDescriptions.get(label)) {
+            node.doubleProperties.add(0.0);
+        }
+        return node;
+    }
+
+    public Set<String> getNodeLongPropertyLabels() {
+        return longPropertyDescriptions.keySet();
+    }
+
+    public Set<String> getNodeDoublePropertyLabels() {
+        return doublePropertyDescriptions.keySet();
     }
 
     /**
-     * Adds weights to the nodes in the tree.
-     * @param nodesAndWeights an array of arrays of node IDs and weights [[nodeId1, weight1], [nodeId2, weight2], ...]
+     * Get a property of type long for a node in the tree.
+     * @param taxId the taxonomic ID of the node
+     * @param label the label of the property
+     * @return the value of the property
      */
-    public void addWeights(ArrayList<int[]> nodesAndWeights) {
-        for (int[] nodeAndWeight : nodesAndWeights) {
-            addWeight(nodeAndWeight[0], nodeAndWeight[1]);
+    public long getNodeLongProperty(int taxId, String label) {
+        if (!idMap.containsKey(taxId)) {
+            throw new RuntimeException("Tried to get property of non-existing node: " + taxId);
         }
+        Node node = idMap.get(taxId);
+        if (!longPropertyDescriptions.containsKey(label)) {
+            throw new RuntimeException("Tried to access non-existing property: " + label);
+        }
+        return node.longProperties.get(longPropertyDescriptions.get(label));
     }
 
     /**
-     * Resets the weights and accumulated weights of all nodes in the tree to 0.
+     * Get a property of type double for a node in the tree.
+     * @param taxId the taxonomic ID of the node
+     * @param label the label of the property
+     * @return the value of the property
      */
-    public void resetWeights() {
+    public double getNodeDoubleProperty(int taxId, String label) {
+        if (!idMap.containsKey(taxId)) {
+            throw new RuntimeException("Tried to get property of non-existing node: " + taxId);
+        }
+        Node node = idMap.get(taxId);
+        if (!doublePropertyDescriptions.containsKey(label)) {
+            throw new RuntimeException("Tried to access non-existing property: " + label);
+        }
+        return node.doubleProperties.get(doublePropertyDescriptions.get(label));
+    }
+
+    /**
+     * Resets the numeric properties of all nodes
+     */
+    public void resetNodeProperties() {
+        longPropertyDescriptions.clear();
+        doublePropertyDescriptions.clear();
         for (Node node : idMap.values()) {
-            node.setWeight(0);
-            node.setAccumulatedWeight(0);
+            node.longProperties.clear();
+            node.doubleProperties.clear();
+        }
+    }
+
+    public void accumulateNodePropertiy(String label, String targetLabel) {
+        if (!longPropertyDescriptions.containsKey(label) && !doublePropertyDescriptions.containsKey(label)) {
+            throw new RuntimeException("Tried to access non-existing property: " + label);
+        }
+        if (!longPropertyDescriptions.containsKey(label)) {
+            accumulateNodeLongProperty(label, targetLabel, getRoot());
+        }
+        if (!doublePropertyDescriptions.containsKey(label)) {
+            accumulateNodeDoubleProperty(label, targetLabel, getRoot());
+        }
+    }
+
+    private void accumulateNodeLongProperty(String label, String targetLabel, Node root) {
+        if (root.isLeaf()) {
+            setNodeProperty(root.getTaxId(), targetLabel, getNodeLongProperty(root.getTaxId(), label));
+        } else {
+            for (Node child : root.getChildren()) {
+                accumulateNodeLongProperty(label, targetLabel, child);
+                addToNodeProperty(root.getTaxId(), targetLabel, getNodeLongProperty(child.getTaxId(), targetLabel));
+            }
+        }
+    }
+
+    private void accumulateNodeDoubleProperty(String label, String targetLabel, Node root) {
+        if (root.isLeaf()) {
+            setNodeProperty(root.getTaxId(), targetLabel, getNodeDoubleProperty(root.getTaxId(), label));
+        } else {
+            for (Node child : root.getChildren()) {
+                accumulateNodeDoubleProperty(label, targetLabel, child);
+                addToNodeProperty(root.getTaxId(), targetLabel, getNodeDoubleProperty(child.getTaxId(), targetLabel));
+            }
         }
     }
 
     /**
      * recursively accumulates the weights of all nodes in the tree starting from the root.
      */
+    @Deprecated
     private void accumulateWeights(Node root) {
-        root.setAccumulatedWeight(root.getWeight());
         if (root.isLeaf()) {
             return;
         }
         for (Node child : root.getChildren()) {
             accumulateWeights(child);
-            root.setAccumulatedWeight(root.getAccumulatedWeight() + child.getAccumulatedWeight());
+            root.addWeight(child.getWeight());
         }
     }
 
     /**
      * Accumulates the weights of all nodes in the tree.
      */
+    @Deprecated
     public void accumulateWeights() {
         if (root != null) {
             accumulateWeights(root);
@@ -199,28 +326,10 @@ public class Tree {
      * Adds the weight of each node to the nodes custom values.
      * @param description the description of the custom value that is added
      */
+    @Deprecated
     public void transferWeightToCustomValue(String description) {
-        nodeCustomValueDescriptors.add(description);
         for (Node node : idMap.values()) {
-            node.customValues.add(node.getWeight());
-        }
-    }
-
-    /**
-     * Adds the accumulated weight of each node to the nodes custom values.
-     * @param description the description of the custom value that is added
-     */
-    public void transferAccumulatedWeightToCustomValue(String description) {
-        nodeCustomValueDescriptors.add(description);
-        for (Node node : idMap.values()) {
-            node.customValues.add(node.getAccumulatedWeight());
-        }
-    }
-
-    public void resetCustomValues() {
-        nodeCustomValueDescriptors.clear();
-        for (Node node : idMap.values()) {
-            node.customValues.clear();
+            setNodeProperty(node.getTaxId(), description, node.getWeight());
         }
     }
 
@@ -326,7 +435,6 @@ public class Tree {
                 }
                 // add weights and children to the standard-rank parent
                 parent.addWeight(node.getWeight());
-                parent.addAccumulatedWeight(node.getAccumulatedWeight());
                 node.getParent().getChildren().remove(node);
                 for (Node child : node.getChildren()) {
                     parent.addChild(child);
