@@ -8,6 +8,7 @@ import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
@@ -22,6 +23,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import static org.husonlab.diamer2.io.Utilities.getFile;
 import static org.husonlab.diamer2.io.Utilities.getFolder;
@@ -298,8 +300,8 @@ public class Main {
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.9f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
-        ReadAssignmentIO.writePerTaxonAssignments(assignment, output.resolve("per_taxon_assignments.tsv"), 1, true);
-        ReadAssignmentIO.writeForMEGANImport(assignment, output.resolve("megan.tsv"), 1, 0);
+        TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
+        TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
     }
 
     /**

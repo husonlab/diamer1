@@ -1,7 +1,7 @@
-Taxon	kmers in database	kmer count	OVO (ratio: 0.200000)	OVO (ratio: 0.800000)	kmer count	OVO (ratio: 0.200000)	OVO (ratio: 0.800000)
-(no rank) root (0)	2	105	4	4	86	2	2
-(1 from root) rank1 (1)	329	24	2	2	13	1	1
-(1 from root) rank2 (2)	557	79	1	1	73	1	1
-(2 from root) organism1 (3)	179	0	0	0	0	0	0
-(2 from root) organism2 (4)	887	0	0	0	0	0	0
-(2 from root) organism3 (5)	651	1	1	1	0	0	0
+node id	rank	label	kmer count	kmer count (accumulated)	OVO (ratio: 0.200000) read count	OVO (ratio: 0.200000) read count (accumulated)	OVO (ratio: 0.800000) read count	OVO (ratio: 0.800000) read count (accumulated)
+0	no rank	root	0	86	0	2	0	2
+1	1 from root		13	13	1	1	1	1
+2	1 from root		73	73	1	1	1	1
+4	2 from root		0	0	0	0	0	0
+5	2 from root		0	0	0	0	0	0
+3	2 from root	organism1	0	0	0	0	0	0

@@ -12,19 +12,32 @@ import java.util.*;
 public class TreeIO {
 
     /**
-     * Save the tree as connection table.
+     * Save the tree as a configurable connection table.
      * <p>
      *     The table is ordered from root to leaves so that it is possible to parse it in one iteration.
      * </p>
+     * @param tree the tree to save
+     * @param file the file to save the tree to
+     * @param writeParent whether to write the parent id or not (no connection table anymore)
+     * @param writeTaxId whether to write the node id or not
+     * @param writeRank whether to write the rank or not
+     * @param writeLabel whether to write the node labels or not
+     * @param longProperties the long properties to write
+     * @param doubleProperties the double properties to write
      */
-    public static void saveTree(Tree tree, Path file) {
+    public static void saveTree(Tree tree, Path file, boolean writeParent, boolean writeTaxId, boolean writeRank, boolean writeLabel, Iterable<String> longProperties, Iterable<String> doubleProperties) {
         try (BufferedWriter bw = java.nio.file.Files.newBufferedWriter(file)) {
             // write header
-            bw.write("parent id\tnode id\trank\tlabel");
-            for (String label: tree.getNodeLongPropertyLabels()) {
+            String header =
+                    (writeParent ? "parent id\t" : "") +
+                    (writeTaxId ? "node id\t" : "") +
+                    (writeRank ? "rank\t" : "") +
+                    (writeLabel ? "label\t" : "");
+            bw.write(header.substring(0, header.length() - 1));
+            for (String label: longProperties) {
                 bw.write("\t" + label);
             }
-            for (String label: tree.getNodeDoublePropertyLabels()) {
+            for (String label: doubleProperties) {
                 bw.write("\t" + label);
             }
             bw.write("\n");
@@ -33,15 +46,17 @@ public class TreeIO {
             queue.add(tree.getRoot());
             while (!queue.isEmpty()) {
                 Node node = queue.poll();
-                if (node.hasParent()) {
-                    bw.write(Integer.toString(node.getParent().getTaxId()));
+                String line =
+                        (node.hasParent() && writeParent ? node.getParent().getTaxId() + "\t" : (writeParent ? "\t" : "")) +
+                        (writeTaxId ? node.getTaxId() + "\t" : "") +
+                        (writeRank ? node.getRank() + "\t" : "") +
+                        (writeLabel ? node.getScientificName() + "\t" : "");
+                bw.write(line.substring(0, line.length() - 1));
+                for (String longPerpoerty : longProperties) {
+                    bw.write("\t" + tree.getNodeLongProperty(node.getTaxId(), longPerpoerty));
                 }
-                bw.write("\t" + node.getTaxId() + "\t" + node.getRank() + "\t" + node.getScientificName());
-                for (long longPerpoerty : node.getLongProperties()) {
-                    bw.write("\t" + longPerpoerty);
-                }
-                for (double doubleProperty : node.getDoubleProperties()) {
-                    bw.write("\t" + doubleProperty);
+                for (String doubleProperty : doubleProperties) {
+                    bw.write("\t" + tree.getNodeDoubleProperty(node.getTaxId(), doubleProperty));
                 }
                 bw.write("\n");
                 queue.addAll(node.getChildren());
@@ -49,6 +64,36 @@ public class TreeIO {
         } catch (Exception e) {
             throw new RuntimeException("Could not save tree.", e);
         }
+    }
+
+    /**
+     * Save the tree as connection table.
+     * <p>
+     *     The table is ordered from root to leaves so that it is possible to parse it in one iteration.
+     * </p>
+     */
+    public static void saveTree(Tree tree, Path file) {
+        saveTree(tree, file, true, true, true, true, tree.getNodeLongPropertyLabels(), tree.getNodeDoublePropertyLabels());
+    }
+
+    /**
+     * Write only taxon labels and properties
+     * @param tree the tree to save
+     * @param file the file to save the tree to
+     */
+    public static void savePerTaxonAssignment(Tree tree, Path file) {
+        saveTree(tree, file, false, true, true, true, tree.getNodeLongPropertyLabels(), tree.getNodeDoublePropertyLabels());
+    }
+
+    /**
+     * Write only taxon ids and selected properties for the import in MEGAN.
+     * @param tree the tree to save
+     * @param file the file to save the tree to
+     * @param longProperties the long properties to write
+     * @param doubleProperties the double properties to write
+     */
+    public static void saveForMegan(Tree tree, Path file, Iterable<String> longProperties, Iterable<String> doubleProperties) {
+        saveTree(tree, file, false, true, false, false, longProperties, doubleProperties);
     }
 
     // todo: implement double property parsing
@@ -60,6 +105,9 @@ public class TreeIO {
         try (BufferedReader br = new BufferedReader(new FileReader(file.toString()))) {
             // parse header
             String[] header = br.readLine().split("\t");
+            for (int i = 4; i < header.length; i++) {
+                tree.addNodeLongProperty(header[i], 0L);
+            }
             // parse content
             String line;
             while ((line = br.readLine()) != null) {

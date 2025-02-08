@@ -7,6 +7,7 @@ import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.encoders.K15Base11;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -74,8 +75,8 @@ public class CompleteRunTest {
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
-        ReadAssignmentIO.writePerTaxonAssignments(assignment, output.resolve("per_taxon_assignments.tsv"), 1, true);
-        ReadAssignmentIO.writeForMEGANImport(assignment, output.resolve("megan.tsv"), 1, 1);
+        TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
+        TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
         // spaced
         readAssigner = new ReadAssigner(tree, 1, dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22));
         assignment = readAssigner.assignReads();
@@ -84,8 +85,8 @@ public class CompleteRunTest {
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, outputSpaced.resolve("per_read_assignments.tsv"), false, true);
-        ReadAssignmentIO.writePerTaxonAssignments(assignment, outputSpaced.resolve("per_taxon_assignments.tsv"), 1, true);
-        ReadAssignmentIO.writeForMEGANImport(assignment, outputSpaced.resolve("megan.tsv"), 1, 1);
+        TreeIO.savePerTaxonAssignment(assignment.getTree(), outputSpaced.resolve("per_taxon_assignments.tsv"));
+        TreeIO.saveForMegan(assignment.getTree(), outputSpaced.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
 
         // Compare output with expected output
         File expectedOutput = new File("src/test/resources/expected_output");

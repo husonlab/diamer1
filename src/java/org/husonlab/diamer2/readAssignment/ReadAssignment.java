@@ -107,13 +107,14 @@ public class ReadAssignment {
     public void addKmerCounts() {
         logger.logInfo("Adding kmer counts to the tree ...");
         tree.resetNodeProperties();
+        tree.addNodeLongProperty("kmer count", 0L);
         for (int i = 0; i < size; i++) {
             for (int[] kmerMatch : kmerMatches[i]) {
                 tree.addToNodeProperty(kmerMatch[0], "kmer count", kmerMatch[1]);
             }
         }
         logger.logInfo("Accumulating and saving weights on the tree ...");
-        tree.accumulateNodePropertiy("kmer count", "kmer count (accumulated)");
+        tree.accumulateNodeLongProperty("kmer count", "kmer count (accumulated)");
     }
 
     /**
@@ -126,7 +127,7 @@ public class ReadAssignment {
         ProgressBar progressBar = new ProgressBar(size, 20);
         new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
         assignmentAlgorithms.add(algorithm);
-        tree.resetNodeProperties();
+        tree.addNodeLongProperty(algorithm.getName() + " read count", 0L);
         for (int i = 0; i < size; i++) {
             progressBar.incrementProgress();
             int taxId = algorithm.assignRead(kmerMatches[i]);
@@ -137,7 +138,7 @@ public class ReadAssignment {
         }
         progressBar.finish();
         logger.logInfo("Accumulating and saving weights on the tree ...");
-        tree.accumulateNodePropertiy(algorithm.getName() + " read count", algorithm.getName() + " read count (accumulated)");
+        tree.accumulateNodeLongProperty(algorithm.getName() + " read count", algorithm.getName() + " read count (accumulated)");
     }
 
     /**
