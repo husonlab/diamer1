@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.taxonomy;
 
+import org.husonlab.diamer2.util.Pair;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,15 +25,19 @@ public class Tree {
      * Map description -> index to map descriptions to long node properties.
      */
     private final HashMap<String, Integer> longPropertyDescriptions;
+    private final ArrayList<Long> defaultLongProperties;
     /**
      * Map description -> index to map descriptions to double node properties.
      */
     private final HashMap<String, Integer> doublePropertyDescriptions;
+    private final ArrayList<Double> defaultDoubleProperties;
 
     public Tree() {
         this.idMap = new HashMap<>();
         longPropertyDescriptions = new HashMap<>();
+        defaultLongProperties = new ArrayList<>();
         doublePropertyDescriptions = new HashMap<>();
+        defaultDoubleProperties = new ArrayList<>();
     }
 
     public Node getRoot() {
@@ -137,6 +142,7 @@ public class Tree {
             }
         } else {
             longPropertyDescriptions.put(label, longPropertyDescriptions.size());
+            defaultLongProperties.add(initial);
             for (Node node: idMap.values()) {
                 node.longProperties.add(initial);
             }
@@ -157,6 +163,7 @@ public class Tree {
             }
         } else {
             doublePropertyDescriptions.put(label, doublePropertyDescriptions.size());
+            defaultDoubleProperties.add(initial);
             for (Node node: idMap.values()) {
                 node.doubleProperties.add(initial);
             }
@@ -172,7 +179,9 @@ public class Tree {
     public void setNodeProperty(int taxId, String label, long value) {
         Node node = ensureNodeExist(taxId);
         int index = ensureLongPropertyExist(label);
-        node.longProperties.set(index, value);
+        synchronized (node) {
+            node.longProperties.set(index, value);
+        }
     }
 
     /**
@@ -184,7 +193,9 @@ public class Tree {
     public void setNodeProperty(int taxId, String label, double value) {
         Node node = ensureNodeExist(taxId);
         int index = ensureDoublePropertyExist(label);
-        node.doubleProperties.set(index, value);
+        synchronized (node) {
+            node.doubleProperties.set(index, value);
+        }
     }
 
     /**
@@ -196,7 +207,9 @@ public class Tree {
     public void addToNodeProperty(int taxId, String label, long value) {
         Node node = ensureNodeExist(taxId);
         int index = ensureLongPropertyExist(label);
-        node.longProperties.set(index, node.longProperties.get(index) + value);
+        synchronized (node) {
+            node.longProperties.set(index, node.longProperties.get(index) + value);
+        }
     }
 
     /**
@@ -208,7 +221,9 @@ public class Tree {
     public void addToNodeProperty(int taxId, String label, double value) {
         Node node = ensureNodeExist(taxId);
         int index = ensureDoublePropertyExist(label);
-        node.doubleProperties.set(index, node.doubleProperties.get(index) + value);
+        synchronized (node) {
+            node.doubleProperties.set(index, node.doubleProperties.get(index) + value);
+        }
     }
 
     /**
@@ -365,44 +380,6 @@ public class Tree {
     }
 
     /**
-     * recursively accumulates the weights of all nodes in the tree starting from the root.
-     */
-    @Deprecated
-    private void accumulateWeights(Node root) {
-        if (root.isLeaf()) {
-            return;
-        }
-        for (Node child : root.getChildren()) {
-            accumulateWeights(child);
-            root.addWeight(child.getWeight());
-        }
-    }
-
-    /**
-     * Accumulates the weights of all nodes in the tree.
-     */
-    @Deprecated
-    public void accumulateWeights() {
-        if (root != null) {
-            accumulateWeights(root);
-        } else if (autoFindRoot() != null) {
-            accumulateWeights(root);
-        }
-    }
-
-    /**
-     * Adds the weight of each node to the nodes custom values.
-     * @param description the description of the custom value that is added
-     */
-    @Deprecated
-    public void transferWeightToCustomValue(String description) {
-        addNodeLongProperty(description, 0L);
-        for (Node node : idMap.values()) {
-            setNodeProperty(node.getTaxId(), description, node.getWeight());
-        }
-    }
-
-    /**
      * Searches for the node with the given rank in the path from the given node to the root.
      * @param node the node to start from
      * @param rank the rank to search for
@@ -427,11 +404,13 @@ public class Tree {
      * <p>The subtree will contain the root of the original tree and all nodes that lie on the paths from each input
      * node to the root. The accumulated weights will not be set.</p>
      * @param nodesAndWeights an array of arrays of node IDs and weights [[nodeId1, weight1], [nodeId2, weight2], ...]
+     * @param targetLabel the label of the property to store the weights in
      * @return a new tree with the nodes and weights given in the array
      */
-    public Tree getWeightedSubTree(List<int[]> nodesAndWeights) {
+    public Tree getWeightedSubTreeLong(List<int[]> nodesAndWeights, String targetLabel) {
 
         Tree subTree = new Tree();
+        subTree.addNodeLongProperty(targetLabel, 0L);
 
         for (int[] nodeAndWeight : nodesAndWeights) {
             int nodeId = nodeAndWeight[0];
@@ -446,19 +425,18 @@ public class Tree {
             nodeId = idMap.get(nodeId).getTaxId();
 
             // In case the node is already in the new tree, only the weight is updated
-            if (subTree.idMap.containsKey(nodeId)) {
-                subTree.idMap.get(nodeId).addWeight(weight);
+            if (subTree.hasNode(nodeId)) {
+                subTree.addToNodeProperty(nodeId, targetLabel, weight);
                 continue;
             }
 
             // copy node to new tree
             Node node = idMap.get(nodeId);
             Node nodeCopy = node.copy();
-            nodeCopy.setWeight(weight);
-
+            int originalId = nodeId;
             // Add all nodes on the path to the root to the new tree (if they are not already in the new tree)
             while (node.hasParent()) {
-                subTree.idMap.put(nodeId, nodeCopy);
+                subTree.addNode(nodeId, nodeCopy);
                 Node parent = node.getParent();
                 if (subTree.idMap.containsKey(parent.getTaxId())) {
                     subTree.idMap.get(parent.getTaxId()).addChild(nodeCopy);
@@ -474,7 +452,68 @@ public class Tree {
             }
 
             // Add the root node to the new tree
-            subTree.idMap.put(nodeId, nodeCopy);
+            subTree.addNode(nodeId, nodeCopy);
+            subTree.addToNodeProperty(originalId, targetLabel, weight);
+        }
+        subTree.autoFindRoot();
+        return subTree;
+    }
+
+    /**
+     * Creates a new subtree with the nodes and weights given in the list.
+     * <p>The subtree will contain the root of the original tree and all nodes that lie on the paths from each input
+     * node to the root. The accumulated weights will not be set.</p>
+     * @param nodesAndWeights a list of pairs of node IDs and weights [[nodeId1, weight1], [nodeId2, weight2], ...]
+     * @param targetLabel the label of the property to store the weights in
+     * @return a new tree with the nodes and weights given in the array as node double properties
+     */
+    public Tree getWeightedSubTreeDouble(List<Pair<Integer, Double>> nodesAndWeights, String targetLabel) {
+
+        Tree subTree = new Tree();
+        subTree.addNodeDoubleProperty(targetLabel, 0L);
+
+        for (Pair<Integer, Double> nodeAndWeight : nodesAndWeights) {
+            int nodeId = nodeAndWeight.first();
+            double weight = nodeAndWeight.last();
+
+            // Skip nodes that are not in the tree
+            if (!idMap.containsKey(nodeId)) {
+                continue;
+            }
+            // Get the taxonomic ID of the node the id is mapped to.
+            // This can happen if the tree was reduced to the standard ranks before.
+            nodeId = idMap.get(nodeId).getTaxId();
+
+            // In case the node is already in the new tree, only the weight is updated
+            if (subTree.hasNode(nodeId)) {
+                subTree.addToNodeProperty(nodeId, targetLabel, weight);
+                continue;
+            }
+
+            // copy node to new tree
+            Node node = idMap.get(nodeId);
+            Node nodeCopy = node.copy();
+            int originalId = nodeId;
+            // Add all nodes on the path to the root to the new tree (if they are not already in the new tree)
+            while (node.hasParent()) {
+                subTree.addNode(nodeId, nodeCopy);
+                Node parent = node.getParent();
+                if (subTree.hasNode(parent.getTaxId())) {
+                    subTree.getNode(parent.getTaxId()).addChild(nodeCopy);
+                    nodeCopy.setParent(subTree.getNode(parent.getTaxId()));
+                    break;
+                }
+                Node parentCopy = parent.copy();
+                parentCopy.addChild(nodeCopy);
+                nodeCopy.setParent(parentCopy);
+                node = parent;
+                nodeCopy = parentCopy;
+                nodeId = parent.getTaxId();
+            }
+
+            // Add the root node to the new tree
+            subTree.addNode(nodeId, nodeCopy);
+            subTree.addToNodeProperty(originalId, targetLabel, weight);
         }
         subTree.autoFindRoot();
         return subTree;
@@ -502,8 +541,8 @@ public class Tree {
                 while (parent.hasParent() && !standardRanks.contains(parent.getRank())) {
                     parent = parent.getParent();
                 }
-                // add weights and children to the standard-rank parent
-                parent.addWeight(node.getWeight());
+                // add children to the standard-rank parent
+                // todo: transfer properties
                 node.getParent().getChildren().remove(node);
                 for (Node child : node.getChildren()) {
                     parent.addChild(child);
@@ -529,6 +568,35 @@ public class Tree {
             nodesPerRank.get(rank).add(node);
         }
         return nodesPerRank;
+    }
+
+    /**
+     * @param taxId Taxonomic ID of a node
+     * @return {@code true} if the tree contains the specified node
+     */
+    public boolean hasNode(int taxId) {
+        return idMap.containsKey(taxId);
+    }
+
+    /**
+     * Adds a node to the tree.
+     * @param taxId Taxonomic ID of the node
+     * @param node the node to add
+     */
+    public void addNode(int taxId, Node node) {
+        node.longProperties.addAll(defaultLongProperties);
+        node.doubleProperties.addAll(defaultDoubleProperties);
+        synchronized (idMap) {
+            idMap.put(taxId, node);
+        }
+    }
+
+    /**
+     * @param taxId Taxonomic ID
+     * @return Node with the input taxonomic ID
+     */
+    public Node getNode(int taxId) {
+        return idMap.get(taxId);
     }
 
     @Override

@@ -68,20 +68,22 @@ public class CompleteRunTest {
         readIndexer.index();
 
         // Assign reads
-        ReadAssigner readAssigner = new ReadAssigner(tree, 1, dbIndex, readsIndex, new K15Base11(mask, 22));
+        ReadAssigner readAssigner = new ReadAssigner(1, dbIndex, readsIndex, new K15Base11(mask, 22));
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
-        assignment.addKmerCounts();
+        assignment.addKmerCountsToTree();
+        assignment.normalizeKmerMatches();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
         TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
         TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
         // spaced
-        readAssigner = new ReadAssigner(tree, 1, dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22));
+        readAssigner = new ReadAssigner(1, dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22));
         assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, outputSpaced.resolve("raw_assignments.tsv"));
-        assignment.addKmerCounts();
+        assignment.addKmerCountsToTree();
+        assignment.normalizeKmerMatches();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, outputSpaced.resolve("per_read_assignments.tsv"), false, true);

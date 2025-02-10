@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.readAssignment;
 
+import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
 import org.husonlab.diamer2.util.logging.ProgressBar;
@@ -26,6 +27,10 @@ public class ReadAssignment {
      */
     private final ArrayList<int[]>[] kmerMatches;
     /**
+     * Normalized kmer matches for each read. Each entry is an array of taxon id and the normalized number of kmer matches.
+     */
+    private final ArrayList<Pair<Integer, Double>>[] normalizedKmerMatches;
+    /**
      * List of all assignment algorithms that have been run.
      */
     private final ArrayList<AssignmentAlgorithm> assignmentAlgorithms;
@@ -45,6 +50,7 @@ public class ReadAssignment {
         this.tree = tree;
         this.readHeaderMapping = readHeaderMapping;
         kmerMatches = new ArrayList[size];
+        normalizedKmerMatches = new ArrayList[size];
         assignmentAlgorithms = new ArrayList<>();
         taxonAssignments = new ArrayList[size];
         for (int i = 0; i < size; i++) {
@@ -102,11 +108,32 @@ public class ReadAssignment {
     }
 
     /**
+     * Sort the normalized kmer matches for each read by the number of kmer matches per taxon.
+     */
+    public void sortNormalizedKmerMatches() {
+        for (int i = 0; i < size; i++) {
+            normalizedKmerMatches[i].sort(Comparator.comparingDouble(pair -> ((Pair<Integer, Double>) pair).last()).reversed());
+        }
+    }
+
+    /**
+     * Normalize the kmer matches for each read by the number of kmers in the database for each taxon.
+     */
+    public void normalizeKmerMatches() {
+        for (int i = 0; i < size; i++) {
+            normalizedKmerMatches[i] = new ArrayList<>();
+            for (int[] kmerMatch : kmerMatches[i]) {
+                double normalizedKmerMatch = (double) kmerMatch[1] / tree.getNodeLongProperty(kmerMatch[0], "kmers in database");
+                normalizedKmerMatches[i].add(new Pair<>(kmerMatch[0], normalizedKmerMatch));
+            }
+        }
+    }
+
+    /**
      * Assigns the kmer matches to the tree, accumulates and saves them.
      */
-    public void addKmerCounts() {
+    public void addKmerCountsToTree() {
         logger.logInfo("Adding kmer counts to the tree ...");
-        tree.resetNodeProperties();
         tree.addNodeLongProperty("kmer count", 0L);
         for (int i = 0; i < size; i++) {
             for (int[] kmerMatch : kmerMatches[i]) {
@@ -127,18 +154,26 @@ public class ReadAssignment {
         ProgressBar progressBar = new ProgressBar(size, 20);
         new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
         assignmentAlgorithms.add(algorithm);
-        tree.addNodeLongProperty(algorithm.getName() + " read count", 0L);
+        assignmentAlgorithms.add(algorithm);
+        tree.addNodeLongProperty(algorithm.getName() + " read count", 0);
+        tree.addNodeLongProperty(algorithm.getName() + " read count normalized", 0);
         for (int i = 0; i < size; i++) {
             progressBar.incrementProgress();
-            int taxId = algorithm.assignRead(kmerMatches[i]);
+            int taxId = algorithm.assignRawReadKmerMatches(kmerMatches[i]);
+            int taxIdNormalized = algorithm.assignNormalizedReadKmerMatches(normalizedKmerMatches[i]);
             if (taxId != -1) {
                 tree.addToNodeProperty(taxId, algorithm.getName() + " read count", 1);
             }
+            if (taxIdNormalized != -1) {
+                tree.addToNodeProperty(taxIdNormalized, algorithm.getName() + " read count normalized", 1);
+            }
             taxonAssignments[i].add(taxId);
+            taxonAssignments[i].add(taxIdNormalized);
         }
         progressBar.finish();
         logger.logInfo("Accumulating and saving weights on the tree ...");
         tree.accumulateNodeLongProperty(algorithm.getName() + " read count", algorithm.getName() + " read count (accumulated)");
+        tree.accumulateNodeLongProperty(algorithm.getName() + " read count normalized", algorithm.getName() + " read count normalized (accumulated)");
     }
 
     /**

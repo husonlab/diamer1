@@ -1,27 +1,26 @@
 package org.husonlab.diamer2.io.indexing;
 
+import org.husonlab.diamer2.io.Utilities;
+
 import java.io.*;
 import java.nio.file.Path;
 import java.util.List;
 
-public class ReadIndexIO extends DBIndexIO {
+public class ReadIndexIO extends IndexIO {
 
-    private final File readHeaderMappingFile;
+    private final Path readHeaderMappingFile;
 
     /**
-     * Create a new DBIndexIO object.
+     * Create a new IndexIO object.
      * @param indexFolder path to the index folder
      */
     public ReadIndexIO(Path indexFolder) {
         super(indexFolder);
-        readHeaderMappingFile = indexFolder.resolve("header_index.txt").toFile();
+        readHeaderMappingFile = indexFolder.resolve("header_index.txt");
     }
 
-    /**
-     * Checks if the read header mapping file is available.
-     */
-    public boolean existsReadHeaderMapping() {
-        return readHeaderMappingFile.exists();
+    public boolean readHeaderMappingExists() {
+        return readHeaderMappingFile.toFile().exists();
     }
 
     public String[] getReadHeaderMapping() {
@@ -44,7 +43,7 @@ public class ReadIndexIO extends DBIndexIO {
 
     public void writeReadHeaderMapping(List<String> readHeaderMapping) {
         try {
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(readHeaderMappingFile))) {
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(readHeaderMappingFile.toString()))) {
                 writer.write(readHeaderMapping.size() + "\n");
                 int id = 0;
                 for (String header : readHeaderMapping) {

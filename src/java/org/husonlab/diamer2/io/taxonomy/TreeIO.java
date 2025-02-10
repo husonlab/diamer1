@@ -50,7 +50,7 @@ public class TreeIO {
                         (node.hasParent() && writeParent ? node.getParent().getTaxId() + "\t" : (writeParent ? "\t" : "")) +
                         (writeTaxId ? node.getTaxId() + "\t" : "") +
                         (writeRank ? node.getRank() + "\t" : "") +
-                        (writeLabel ? node.getScientificName() + "\t" : "");
+                        (writeLabel ? node.getScientificNameOrFirstLabel() + "\t" : "");
                 bw.write(line.substring(0, line.length() - 1));
                 for (String longPerpoerty : longProperties) {
                     bw.write("\t" + tree.getNodeLongProperty(node.getTaxId(), longPerpoerty));
@@ -117,7 +117,7 @@ public class TreeIO {
                 String rank = values[2];
                 String label = values[3];
                 Node node = new Node(taxId, parent, rank, label);
-                tree.idMap.put(taxId, node);
+                tree.addNode(taxId, node);
                 for (int i = 4; i < values.length; i++) {
                     tree.setNodeProperty(taxId, header[i], Long.parseLong(values[i]));
                 }

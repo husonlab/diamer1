@@ -23,26 +23,29 @@ public class ReadAssigner {
     private final String[] readHeaderMapping;
 
     /**
-     * @param tree taxonomic tree with all nodes that occure in the database index
      * @param MAX_THREADS maximum number of threads to use for the threadpool. MAX_THREADS + 1 (main thread) equals the
      *                    number of buckets that are processed in parallel.
      * @param dbIndexPath path to the folder with database index files (buckets)
      * @param readsIndexPath path to the folder with reads index files (buckets)
      * @param encoder encoder with the settings used for encoding the kmers
      */
-    public ReadAssigner(Tree tree, int MAX_THREADS, Path dbIndexPath, Path readsIndexPath, Encoder encoder) {
+    public ReadAssigner(int MAX_THREADS, Path dbIndexPath, Path readsIndexPath, Encoder encoder) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
-        this.tree = tree;
         this.dbIndex = new DBIndexIO(dbIndexPath);
         this.readsIndex = new ReadIndexIO(readsIndexPath);
         this.encoder = encoder;
         this.MAX_THREADS = MAX_THREADS;
-        if(readsIndex.existsReadHeaderMapping()) {
+        if (readsIndex.readHeaderMappingExists()) {
             this.readHeaderMapping = this.readsIndex.getReadHeaderMapping();
         } else {
             throw new RuntimeException("Read header mapping file is missing from the reads index folder.");
         }
-        if(dbIndex.bucketMissing() || readsIndex.bucketMissing()) {
+        if (dbIndex.treeExists()) {
+            tree = dbIndex.getTree();
+        } else {
+            throw new RuntimeException("Taxonomic tree file is missing from the database index folder.");
+        }
+        if (dbIndex.bucketMissing() || readsIndex.bucketMissing()) {
             logger.logWarning("At least one index file is missing, proceeding with available buckets.");
         }
     }

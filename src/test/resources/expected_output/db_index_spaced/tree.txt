@@ -1,7 +1,7 @@
 parent id	node id	rank	label	kmers in database
-	0	no rank	root	2
-0	1	1 from root		329
-0	2	1 from root		557
-1	4	2 from root		887
-1	5	2 from root		651
-2	3	2 from root	organism1	179
+	0	no rank	root	0
+0	1	1 from root	rank1	162
+0	2	1 from root	rank2	273
+1	4	2 from root	organism2	438
+1	5	2 from root	organism3	323
+2	3	2 from root	organism1	87

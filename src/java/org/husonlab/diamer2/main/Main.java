@@ -84,7 +84,7 @@ public class Main {
                         .desc("""
                                 Assign reads.\
                                 
-                                Required options: -no -na <input> <output>\
+                                Required options: <input> <output>\
                                 
                                 <input>: database index folder and reads index folder\
                                 
@@ -97,7 +97,7 @@ public class Main {
                         .longOpt("threads")
                         .argName("number")
                         .desc("Number of threads")
-                        .hasArgs()
+                        .hasArg()
                         .type(Integer.class)
                         .converter((Converter<Integer, NumberFormatException>) Integer::parseInt)
                         .build()
@@ -107,7 +107,7 @@ public class Main {
                         .longOpt("memory")
                         .argName("number")
                         .desc("Memory in GB")
-                        .hasArgs()
+                        .hasArg()
                         .type(Integer.class)
                         .converter((Converter<Integer, NumberFormatException>) Integer::parseInt)
                         .build()
@@ -280,20 +280,19 @@ public class Main {
     }
 
     private static void assignreads(GlobalSettings globalSettings, CommandLine cli) {
-        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
         checkNumberOfPositionalArguments(cli, 3);
         boolean[] mask = getMask(cli);
         Path dbIndex = getFolder(cli.getArgs()[0], true);
         Path readsIndex = getFolder(cli.getArgs()[1], true);
         Path output = getFolder(cli.getArgs()[2], false);
 
-        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
-//              tree.reduceToStandardRanks();
         ReadAssigner readAssigner = new ReadAssigner(
-                tree, globalSettings.MAX_THREADS, dbIndex, readsIndex, new K15Base11(mask, 22));
+                globalSettings.MAX_THREADS, dbIndex, readsIndex, new K15Base11(mask, 22));
         ReadAssignment assignment = readAssigner.assignReads();
+        Tree tree = assignment.getTree();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
-        assignment.addKmerCounts();
+        assignment.addKmerCountsToTree();
+        assignment.normalizeKmerMatches();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));

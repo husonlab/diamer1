@@ -2,6 +2,7 @@ package org.husonlab.diamer2.readAssignment.algorithms;
 
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.util.Pair;
 
 import java.util.List;
 
@@ -21,13 +22,23 @@ public class OVO extends AssignmentAlgorithm {
     }
 
     @Override
-    public int assignRead(List<int[]> kmerMatches) {
+    public int assignRawReadKmerMatches(List<int[]> kmerMatches) {
         if (kmerMatches.isEmpty()){
             return -1;
         }
-        Tree subTree = tree.getWeightedSubTree(kmerMatches);
-        subTree.accumulateWeights();
-        return OVORecursive(subTree.getRoot(), ratio);
+        Tree subTree = tree.getWeightedSubTreeLong(kmerMatches, "weight");
+        subTree.accumulateNodeLongProperty("weight", "weight (accumulated)");
+        return OVORecursiveLong(subTree, subTree.getRoot(), ratio);
+    }
+
+    @Override
+    public int assignNormalizedReadKmerMatches(List<Pair<Integer, Double>> normalizedKmerMatches) {
+        if (normalizedKmerMatches.isEmpty()){
+            return -1;
+        }
+        Tree subTree = tree.getWeightedSubTreeDouble(normalizedKmerMatches, "weight");
+        subTree.accumulateNodeDoubleProperty("weight", "weight (accumulated)");
+        return OVORecursiveDouble(subTree, subTree.getRoot(), ratio);
     }
 
     @Override
@@ -41,13 +52,13 @@ public class OVO extends AssignmentAlgorithm {
      * @param ratio ratio between highest and second-highest weight
      * @return assigned taxon
      */
-    private int OVORecursive(Node node, float ratio){
+    private int OVORecursiveLong(Tree subTree, Node node, float ratio){
         if (node.isLeaf()){
             return node.getTaxId();
 
         // Directly jump to child if it is the only one
         } else if (node.getChildren().size() == 1) {
-            return OVORecursive(node.getChildren().getFirst(), ratio);
+            return OVORecursiveLong(subTree, node.getChildren().getFirst(), ratio);
         }
 
         // find child with highest and second-highest weight
@@ -55,18 +66,51 @@ public class OVO extends AssignmentAlgorithm {
         Node highestNode = node.getChildren().getFirst();
         long secondHighestWeight = 0L;
         for (Node child : node.getChildren()) {
-            if (child.getWeight() > highestWeight) {
+            long weightChild = subTree.getNodeLongProperty(child.getTaxId(), "weight (accumulated)");
+            if (weightChild > highestWeight) {
                 secondHighestWeight = highestWeight;
-                highestWeight = child.getWeight();
+                highestWeight = weightChild;
                 highestNode = child;
-            } else if (child.getWeight() > secondHighestWeight) {
-                secondHighestWeight = child.getWeight();
+            } else if (weightChild > secondHighestWeight) {
+                secondHighestWeight = weightChild;
             }
         }
 
         // if the highest weight is not much higher (dependent on the ratio), the current node is returned
         if (highestWeight * ratio > secondHighestWeight) {
-            return OVORecursive(highestNode, ratio);
+            return OVORecursiveLong(subTree, highestNode, ratio);
+        } else {
+            return node.getTaxId();
+        }
+    }
+
+    private int OVORecursiveDouble(Tree subTree, Node node, float ratio) {
+        if (node.isLeaf()){
+            return node.getTaxId();
+
+        // Directly jump to child if it is the only one
+        } else if (node.getChildren().size() == 1) {
+            return OVORecursiveDouble(subTree, node.getChildren().getFirst(), ratio);
+        }
+
+        // find child with highest and second-highest weight
+        double highestWeight = 0.0;
+        Node highestNode = node.getChildren().getFirst();
+        double secondHighestWeight = 0.0;
+        for (Node child : node.getChildren()) {
+            double weightChild = subTree.getNodeDoubleProperty(child.getTaxId(), "weight (accumulated)");
+            if (weightChild > highestWeight) {
+                secondHighestWeight = highestWeight;
+                highestWeight = weightChild;
+                highestNode = child;
+            } else if (weightChild > secondHighestWeight) {
+                secondHighestWeight = weightChild;
+            }
+        }
+
+        // if the highest weight is not much higher (dependent on the ratio), the current node is returned
+        if (highestWeight * ratio > secondHighestWeight) {
+            return OVORecursiveDouble(subTree, highestNode, ratio);
         } else {
             return node.getTaxId();
         }

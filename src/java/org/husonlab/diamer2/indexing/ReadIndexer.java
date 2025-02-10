@@ -1,6 +1,5 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
@@ -48,7 +47,7 @@ public class ReadIndexer {
      * Indexes a FASTQ file of sequencing reads.
      * @throws IOException If an error occurs during reading the file or writing the buckets.
      */
-    public DBIndexIO index() throws IOException {
+    public ReadIndexIO index() throws IOException {
         logger.logInfo("Indexing " + fastqFile + " to " + readIndexIO.getIndexFolder());
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(

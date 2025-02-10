@@ -1,7 +1,7 @@
-node id	rank	label	kmer count	kmer count (accumulated)	OVO (ratio: 0.200000) read count	OVO (ratio: 0.200000) read count (accumulated)	OVO (ratio: 0.800000) read count	OVO (ratio: 0.800000) read count (accumulated)
-0	no rank	root	2	105	1	4	1	4
-1	1 from root		23	24	1	2	1	2
-2	1 from root		79	79	1	1	1	1
-4	2 from root		0	0	0	0	0	0
-5	2 from root		1	1	1	1	1	1
-3	2 from root	organism1	0	0	0	0	0	0
+node id	rank	label	kmers in database	kmer count	kmer count (accumulated)	OVO (ratio: 0.200000) read count	OVO (ratio: 0.200000) read count normalized	OVO (ratio: 0.200000) read count (accumulated)	OVO (ratio: 0.200000) read count normalized (accumulated)	OVO (ratio: 0.800000) read count	OVO (ratio: 0.800000) read count normalized	OVO (ratio: 0.800000) read count (accumulated)	OVO (ratio: 0.800000) read count normalized (accumulated)
+0	no rank	root	2	2	105	1	1	4	4	1	1	4	4
+1	1 from root	rank1	167	23	24	1	1	2	2	1	1	2	2
+2	1 from root	rank2	284	79	79	1	1	1	1	1	1	1	1
+4	2 from root	organism2	449	0	0	0	0	0	0	0	0	0	0
+5	2 from root	organism3	328	1	1	1	1	1	1	1	1	1	1
+3	2 from root	organism1	92	0	0	0	0	0	0	0	0	0	0

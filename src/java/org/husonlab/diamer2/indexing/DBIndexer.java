@@ -21,7 +21,7 @@ public class DBIndexer {
     private final Logger logger;
     private final Path fastaFile;
     private final Path indexDir;
-    private final DBIndexIO DBIndexIO;
+    private final DBIndexIO IndexIO;
     private final Tree tree;
     private final Encoder encoder;
     private final int MAX_THREADS;
@@ -48,7 +48,7 @@ public class DBIndexer {
         this.fastaFile = fastaFile;
         this.encoder = encoder;
         this.indexDir = indexDir;
-        this.DBIndexIO = new DBIndexIO(indexDir);
+        this.IndexIO = new DBIndexIO(indexDir);
         this.tree = tree;
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
@@ -61,11 +61,12 @@ public class DBIndexer {
     }
 
     /**
-     * DBIndexIO a Sequence database and write the indexed buckets to files.
+     * IndexIO a Sequence database and write the indexed buckets to files.
      * @throws IOException If an error occurs during reading the database or writing the buckets.
      */
     public DBIndexIO index() throws IOException {
         logger.logInfo("Indexing " + fastaFile + " to " + indexDir);
+        tree.addNodeLongProperty("kmers in database", 0);
 
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 MAX_THREADS,
@@ -138,7 +139,7 @@ public class DBIndexer {
                     indexPhaser.register();
                     threadPoolExecutor.submit(() -> {
                         try {
-                            DBIndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ], encoder));
+                            IndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ], encoder));
                         } catch (RuntimeException | IOException e) {
                             throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
                         } finally {
@@ -150,7 +151,7 @@ public class DBIndexer {
                     threadPoolExecutor.submit(() -> {
                         try {
                             for (int taxId: bucketMaps[finalJ].values()) {
-                                tree.idMap.get(taxId).addWeight(1);
+                                tree.addToNodeProperty(taxId, "kmers in database", 1);
                             }
                         } finally {
                             indexPhaser.arriveAndDeregister();
@@ -179,7 +180,6 @@ public class DBIndexer {
         }
 
         // Export tree with number of kmers that map to each node
-        tree.transferWeightToCustomValue("kmers in database");
         TreeIO.saveTree(tree, indexDir.resolve("tree.txt"));
 
         report
@@ -197,6 +197,6 @@ public class DBIndexer {
             writer.write(report.toString());
         }
 
-        return DBIndexIO;
+        return IndexIO;
     }
 }

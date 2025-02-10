@@ -16,7 +16,6 @@ public class Node {
     private final ArrayList<String> labels;
     @Nullable
     private String rank;
-    private long weight;
     /**
      * ArrayList to store properties of type long. A description of the values can be stored in the containing tree.
      */
@@ -38,7 +37,6 @@ public class Node {
         this.taxId = taxId;
         this.children = new ArrayList<Node>();
         this.labels = new ArrayList<String>();
-        this.weight = 0;
         this.longProperties = new ArrayList<Long>();
         this.doubleProperties = new ArrayList<Double>();
     }
@@ -115,9 +113,12 @@ public class Node {
      * <p>This name is meant to reflect NCBIs scientific name and should be unique.</p>
      * @return the scientific name of the node
      */
-    @Nullable
     public String getScientificName() {
         return scientificName != null ? scientificName : "";
+    }
+
+    public String getScientificNameOrFirstLabel() {
+        return scientificName != null ? scientificName : labels.isEmpty() ? "" : labels.get(0);
     }
 
     /**
@@ -155,33 +156,6 @@ public class Node {
     @Nullable
     public String getRank() {
         return rank;
-    }
-
-    /**
-     * Set the weight of the node.
-     * <p>Can be used to associate an integer number with the node for any computation.</p>
-     * @param weight the weight to set
-     */
-    public void setWeight(long weight) {
-        this.weight = weight;
-    }
-
-    /**
-     * Add a weight to the node.
-     * @param weight the weight to add
-     */
-    public void addWeight(long weight) {
-        synchronized (this) {
-            this.weight += weight;
-        }
-    }
-
-    /**
-     * Get the weight of the node.
-     * @return the weight of the node
-     */
-    public long getWeight() {
-        return weight;
     }
 
     /**
@@ -289,11 +263,11 @@ public class Node {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Node node = (Node) o;
-        return taxId == node.taxId && weight == node.weight && Objects.equals(scientificName, node.scientificName) && Objects.equals(labels, node.labels) && Objects.equals(rank, node.rank);
+        return taxId == node.taxId && Objects.equals(scientificName, node.scientificName) && Objects.equals(labels, node.labels) && Objects.equals(rank, node.rank) && Objects.equals(longProperties, node.longProperties) && Objects.equals(doubleProperties, node.doubleProperties);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(taxId, scientificName, labels, rank, weight);
+        return Objects.hash(taxId, scientificName, labels, rank, longProperties, doubleProperties);
     }
 }
