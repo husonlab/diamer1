@@ -289,10 +289,10 @@ public class Main {
         ReadAssigner readAssigner = new ReadAssigner(
                 globalSettings.MAX_THREADS, dbIndex, readsIndex, new K15Base11(mask, 22));
         ReadAssignment assignment = readAssigner.assignReads();
-        Tree tree = assignment.getTree();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
-        assignment.normalizeKmerMatches();
+        assignment.normalizeKmerMatchesAndAddToTree();
+        Tree tree = assignment.getTree();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));

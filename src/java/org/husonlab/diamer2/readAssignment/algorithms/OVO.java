@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.readAssignment.algorithms;
 
+import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
@@ -22,17 +23,17 @@ public class OVO extends AssignmentAlgorithm {
     }
 
     @Override
-    public int assignRawReadKmerMatches(List<int[]> kmerMatches) {
+    public int assignRawReadKmerMatches(List<ReadAssignment.KmerMatch<Integer>> kmerMatches) {
         if (kmerMatches.isEmpty()){
             return -1;
         }
-        Tree subTree = tree.getWeightedSubTreeLong(kmerMatches, "weight");
+        Tree subTree = tree.getWeightedSubTreeInt(kmerMatches, "weight");
         subTree.accumulateNodeLongProperty("weight", "weight (accumulated)");
         return OVORecursiveLong(subTree, subTree.getRoot(), ratio);
     }
 
     @Override
-    public int assignNormalizedReadKmerMatches(List<Pair<Integer, Double>> normalizedKmerMatches) {
+    public int assignNormalizedReadKmerMatches(List<ReadAssignment.KmerMatch<Double>> normalizedKmerMatches) {
         if (normalizedKmerMatches.isEmpty()){
             return -1;
         }

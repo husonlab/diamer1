@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.readAssignment.algorithms;
 
+import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
 
@@ -25,14 +26,14 @@ public abstract class AssignmentAlgorithm {
      *                    element is the number of kmers that match the taxon. [[taxonId, kmerCount], ...]
      * @return the taxon id the read is assigned to
      */
-    public abstract int assignRawReadKmerMatches(List<int[]> kmerMatches);
+    public abstract int assignRawReadKmerMatches(List<ReadAssignment.KmerMatch<Integer>> kmerMatches);
 
     /**
      * Assigns a read to a taxon based on the normalized kmer matches of the read.
      * @param kmerMatches List of pairs of taxon id and the normalized number of kmers that match the taxon.
      * @return the taxon id the read is assigned to
      */
-    public abstract int assignNormalizedReadKmerMatches(List<Pair<Integer, Double>> kmerMatches);
+    public abstract int assignNormalizedReadKmerMatches(List<ReadAssignment.KmerMatch<Double>> kmerMatches);
 
     public abstract String getName();
 }

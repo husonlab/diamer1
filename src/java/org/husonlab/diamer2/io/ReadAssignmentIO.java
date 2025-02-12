@@ -27,7 +27,7 @@ public class ReadAssignmentIO {
         logger.addElement(new Time());
         logger.logInfo("Reading read assignments from " + readAssignmentFile);
         String[] readHeaderMapping;
-        ArrayList<int[]>[] kmerMatches;
+        ArrayList<ReadAssignment.KmerMatch<Integer>>[] kmerMatches;
         try (BufferedReader reader = new BufferedReader(new FileReader(readAssignmentFile.toString()))) {
             int size;
             try {
@@ -55,7 +55,7 @@ public class ReadAssignmentIO {
                         String[] assignmentParts = assignmentString.split(":");
                         int taxId = Integer.parseInt(assignmentParts[0]);
                         int count = Integer.parseInt(assignmentParts[1]);
-                        kmerMatches[lineNumber].add(new int[]{taxId, count});
+                        kmerMatches[lineNumber].add(new ReadAssignment.KmerMatch<>(taxId, count));
                     }
                 }
                 readHeaderMapping[lineNumber] = read[0];
@@ -87,8 +87,8 @@ public class ReadAssignmentIO {
             for (int i = 0; i < readAssignment.size(); i++) {
                 progressBar.incrementProgress();
                 bw.write(readAssignment.getReadHeader(i) + "\t");
-                for (int[] assignment : readAssignment.getKmerMatches(i)) {
-                    bw.write(assignment[0] + ":" + assignment[1] + " ");
+                for (ReadAssignment.KmerMatch<Integer> kmerMatch : readAssignment.getKmerMatches(i)) {
+                    bw.write(kmerMatch.getTaxId() + ":" + kmerMatch.getCount() + " ");
                 }
                 bw.newLine();
             }

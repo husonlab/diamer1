@@ -97,7 +97,12 @@ public class ReadAssigner {
         if (bucketsSkipped > 0) {
             logger.logWarning("Skipped %d buckets.".formatted(bucketsSkipped));
         }
-        progressBarLogger.logInfo("Finished matching kmers.");
+
+        logger.logInfo("Sorting, normalizing and saving kmer matches ...");
+        readAssignment.sortKmerMatches();
+        readAssignment.addKmerCountsToTree();
+        readAssignment.normalizeKmerMatchesAndAddToTree();
+
         return readAssignment;
     }
 }

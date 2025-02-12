@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.taxonomy;
 
+import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.util.Pair;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -415,26 +416,24 @@ public class Tree {
      * @param targetLabel the label of the property to store the weights in
      * @return a new tree with the nodes and weights given in the array
      */
-    public Tree getWeightedSubTreeLong(List<int[]> nodesAndWeights, String targetLabel) {
+    public Tree getWeightedSubTreeInt(List<ReadAssignment.KmerMatch<Integer>> nodesAndWeights, String targetLabel) {
 
         Tree subTree = new Tree();
         subTree.addNodeLongProperty(targetLabel, 0L);
 
-        for (int[] nodeAndWeight : nodesAndWeights) {
-            int nodeId = nodeAndWeight[0];
-            int weight = nodeAndWeight[1];
+        for (ReadAssignment.KmerMatch<Integer> kmerMatch : nodesAndWeights) {
 
             // Skip nodes that are not in the tree
-            if (!idMap.containsKey(nodeId)) {
+            if (!idMap.containsKey(kmerMatch.getTaxId())) {
                 continue;
             }
             // Get the taxonomic ID of the node the id is mapped to.
             // This can happen if the tree was reduced to the standard ranks before.
-            nodeId = idMap.get(nodeId).getTaxId();
+            int nodeId = idMap.get(kmerMatch.getTaxId()).getTaxId();
 
             // In case the node is already in the new tree, only the weight is updated
             if (subTree.hasNode(nodeId)) {
-                subTree.addToNodeProperty(nodeId, targetLabel, weight);
+                subTree.addToNodeProperty(nodeId, targetLabel, kmerMatch.getCount());
                 continue;
             }
 
@@ -461,7 +460,7 @@ public class Tree {
 
             // Add the root node to the new tree
             subTree.addNode(nodeId, nodeCopy);
-            subTree.addToNodeProperty(originalId, targetLabel, weight);
+            subTree.addToNodeProperty(originalId, targetLabel, kmerMatch.getCount());
         }
         subTree.autoFindRoot();
         return subTree;
@@ -475,26 +474,23 @@ public class Tree {
      * @param targetLabel the label of the property to store the weights in
      * @return a new tree with the nodes and weights given in the array as node double properties
      */
-    public Tree getWeightedSubTreeDouble(List<Pair<Integer, Double>> nodesAndWeights, String targetLabel) {
+    public Tree getWeightedSubTreeDouble(List<ReadAssignment.KmerMatch<Double>> nodesAndWeights, String targetLabel) {
 
         Tree subTree = new Tree();
         subTree.addNodeDoubleProperty(targetLabel, 0L);
 
-        for (Pair<Integer, Double> nodeAndWeight : nodesAndWeights) {
-            int nodeId = nodeAndWeight.first();
-            double weight = nodeAndWeight.last();
-
+        for (ReadAssignment.KmerMatch<Double> kmerMatch : nodesAndWeights) {
             // Skip nodes that are not in the tree
-            if (!idMap.containsKey(nodeId)) {
+            if (!idMap.containsKey(kmerMatch.getTaxId())) {
                 continue;
             }
             // Get the taxonomic ID of the node the id is mapped to.
             // This can happen if the tree was reduced to the standard ranks before.
-            nodeId = idMap.get(nodeId).getTaxId();
+            int nodeId = idMap.get(kmerMatch.getTaxId()).getTaxId();
 
             // In case the node is already in the new tree, only the weight is updated
             if (subTree.hasNode(nodeId)) {
-                subTree.addToNodeProperty(nodeId, targetLabel, weight);
+                subTree.addToNodeProperty(nodeId, targetLabel, kmerMatch.getCount());
                 continue;
             }
 
@@ -521,7 +517,7 @@ public class Tree {
 
             // Add the root node to the new tree
             subTree.addNode(nodeId, nodeCopy);
-            subTree.addToNodeProperty(originalId, targetLabel, weight);
+            subTree.addToNodeProperty(originalId, targetLabel, kmerMatch.getCount());
         }
         subTree.autoFindRoot();
         return subTree;

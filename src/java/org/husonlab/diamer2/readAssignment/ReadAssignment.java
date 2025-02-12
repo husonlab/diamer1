@@ -1,6 +1,5 @@
 package org.husonlab.diamer2.readAssignment;
 
-import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
 import org.husonlab.diamer2.util.logging.ProgressBar;
@@ -25,11 +24,11 @@ public class ReadAssignment {
     /**
      * Raw kmer matches for each read. Each entry is an array of taxon id and the number of kmer matches.
      */
-    private final ArrayList<int[]>[] kmerMatches;
+    private final ArrayList<KmerMatch<Integer>>[] kmerMatches;
     /**
      * Normalized kmer matches for each read. Each entry is an array of taxon id and the normalized number of kmer matches.
      */
-    private final ArrayList<Pair<Integer, Double>>[] normalizedKmerMatches;
+    private final ArrayList<KmerMatch<Double>>[] normalizedKmerMatches;
     /**
      * List of all assignment algorithms that have been run.
      */
@@ -65,10 +64,10 @@ public class ReadAssignment {
      * @param readHeaderMapping Array of all read headers. The position of the header in the array is the read id.
      * @param kmerMatches Array of kmer matches for each read. Each entry is an array of taxon id and the number of kmer matches.
      */
-    public ReadAssignment(Tree tree, String[] readHeaderMapping, ArrayList<int[]>[] kmerMatches) {
+    public ReadAssignment(Tree tree, String[] readHeaderMapping, ArrayList<KmerMatch<Integer>>[] kmerMatches) {
         this(tree, readHeaderMapping);
         for (int i = 0; i < size; i++) {
-            for (int[] kmerMatch : kmerMatches[i]) {
+            for (KmerMatch<Integer> kmerMatch : kmerMatches[i]) {
                 this.kmerMatches[i].add(kmerMatch);
             }
         }
@@ -88,13 +87,13 @@ public class ReadAssignment {
      */
     public void addReadAssignment(int readId, int taxId) {
         synchronized (kmerMatches[readId]) {
-            for (int[] kmerMatch : kmerMatches[readId]) {
-                if (kmerMatch[0] == taxId) {
-                    kmerMatch[1]++;
+            for (KmerMatch<Integer> kmerMatch : kmerMatches[readId]) {
+                if (kmerMatch.getTaxId() == taxId) {
+                    kmerMatch.count++;
                     return;
                 }
             }
-            kmerMatches[readId].add(new int[]{taxId, 1});
+            kmerMatches[readId].add(new KmerMatch<>(taxId, 1));
         }
     }
 
@@ -103,8 +102,27 @@ public class ReadAssignment {
      */
     public void sortKmerMatches() {
         for (int i = 0; i < size; i++) {
-            kmerMatches[i].sort(Comparator.comparingInt(a -> ((int[])a)[1]).reversed());
+            kmerMatches[i].sort(Comparator.comparingInt(kmerMatch -> ((KmerMatch<Integer>)kmerMatch).count).reversed());
         }
+    }
+
+    /**
+     * Normalize the kmer matches for each read by the number of kmers in the database for each taxon.
+     * <p>
+     *     The normalized kmer matches will be also added to the tree.
+     * </p>
+     */
+    public void normalizeKmerMatchesAndAddToTree() {
+        tree.addNodeDoubleProperty("kmer count normalized", 0);
+        for (int i = 0; i < size; i++) {
+            normalizedKmerMatches[i] = new ArrayList<>();
+            for (KmerMatch<Integer> kmerMatch : kmerMatches[i]) {
+                double normalizedKmerMatch = (double) kmerMatch.getCount() / tree.getNodeLongProperty(kmerMatch.getTaxId(), "kmers in database");
+                tree.addToNodeProperty(kmerMatch.getTaxId(), "kmer count normalized", normalizedKmerMatch);
+                normalizedKmerMatches[i].add(new KmerMatch<Double>(kmerMatch.taxonId, normalizedKmerMatch));
+            }
+        }
+        sortNormalizedKmerMatches();
     }
 
     /**
@@ -112,22 +130,7 @@ public class ReadAssignment {
      */
     public void sortNormalizedKmerMatches() {
         for (int i = 0; i < size; i++) {
-            normalizedKmerMatches[i].sort(Comparator.comparingDouble(pair -> ((Pair<Integer, Double>) pair).last()).reversed());
-        }
-    }
-
-    /**
-     * Normalize the kmer matches for each read by the number of kmers in the database for each taxon.
-     */
-    public void normalizeKmerMatches() {
-        tree.addNodeDoubleProperty("kmer count normalized", 0);
-        for (int i = 0; i < size; i++) {
-            normalizedKmerMatches[i] = new ArrayList<>();
-            for (int[] kmerMatch : kmerMatches[i]) {
-                double normalizedKmerMatch = (double) kmerMatch[1] / tree.getNodeLongProperty(kmerMatch[0], "kmers in database");
-                tree.addToNodeProperty(kmerMatch[0], "kmer count normalized", normalizedKmerMatch);
-                normalizedKmerMatches[i].add(new Pair<>(kmerMatch[0], normalizedKmerMatch));
-            }
+            normalizedKmerMatches[i].sort(Comparator.comparingDouble(kmerMatch -> ((KmerMatch<Double>) kmerMatch).count).reversed());
         }
     }
 
@@ -138,8 +141,8 @@ public class ReadAssignment {
         logger.logInfo("Adding kmer counts to the tree ...");
         tree.addNodeLongProperty("kmer count", 0L);
         for (int i = 0; i < size; i++) {
-            for (int[] kmerMatch : kmerMatches[i]) {
-                tree.addToNodeProperty(kmerMatch[0], "kmer count", kmerMatch[1]);
+            for (KmerMatch<Integer> kmerMatch : kmerMatches[i]) {
+                tree.addToNodeProperty(kmerMatch.getTaxId(), "kmer count", kmerMatch.getCount());
             }
         }
         logger.logInfo("Accumulating and saving weights on the tree ...");
@@ -197,7 +200,7 @@ public class ReadAssignment {
      * @param readId The id of the read
      * @return The taxon assignments for the input read id in the form [[taxon id, number of kmer matches], ...]
      */
-    public ArrayList<int[]> getKmerMatches(int readId) {
+    public ArrayList<KmerMatch<Integer>> getKmerMatches(int readId) {
         return kmerMatches[readId];
     }
 
@@ -214,5 +217,27 @@ public class ReadAssignment {
      */
     public ArrayList<Integer> getTaxonAssignments(int readId) {
         return taxonAssignments[readId];
+    }
+
+    public static class KmerMatch<T extends Number> {
+        private final int taxonId;
+        protected T count;
+
+        public KmerMatch(int taxonId, T count) {
+            this.taxonId = taxonId;
+            this.count = count;
+        }
+
+        protected void setCount(T count) {
+            this.count = count;
+        }
+
+        public int getTaxId() {
+            return taxonId;
+        }
+
+        public T getCount() {
+            return count;
+        }
     }
 }

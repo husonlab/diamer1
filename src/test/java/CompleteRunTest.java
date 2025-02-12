@@ -72,7 +72,7 @@ public class CompleteRunTest {
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
-        assignment.normalizeKmerMatches();
+        assignment.normalizeKmerMatchesAndAddToTree();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
@@ -83,7 +83,7 @@ public class CompleteRunTest {
         assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, outputSpaced.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
-        assignment.normalizeKmerMatches();
+        assignment.normalizeKmerMatchesAndAddToTree();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         ReadAssignmentIO.writePerReadAssignments(assignment, outputSpaced.resolve("per_read_assignments.tsv"), false, true);
