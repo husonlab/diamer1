@@ -1,4 +1,4 @@
-	date 	 2025-02-10T16:05:23.184328200
+	date 	 2025-02-12T14:00:43.907040800
 	input file 	 C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa
 	output file 	 C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 	processed sequenceRecords 	 7

@@ -295,7 +295,6 @@ public class Main {
         assignment.normalizeKmerMatches();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-        assignment.runAssignmentAlgorithm(new OVO(tree, 0.7f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.9f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);

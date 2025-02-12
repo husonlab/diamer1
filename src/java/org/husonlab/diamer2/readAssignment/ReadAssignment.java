@@ -120,10 +120,12 @@ public class ReadAssignment {
      * Normalize the kmer matches for each read by the number of kmers in the database for each taxon.
      */
     public void normalizeKmerMatches() {
+        tree.addNodeDoubleProperty("kmer count normalized", 0);
         for (int i = 0; i < size; i++) {
             normalizedKmerMatches[i] = new ArrayList<>();
             for (int[] kmerMatch : kmerMatches[i]) {
                 double normalizedKmerMatch = (double) kmerMatch[1] / tree.getNodeLongProperty(kmerMatch[0], "kmers in database");
+                tree.addToNodeProperty(kmerMatch[0], "kmer count normalized", normalizedKmerMatch);
                 normalizedKmerMatches[i].add(new Pair<>(kmerMatch[0], normalizedKmerMatch));
             }
         }

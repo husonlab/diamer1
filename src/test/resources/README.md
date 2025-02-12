@@ -44,37 +44,51 @@
 * read4
   * tax1
     * ECPLREENLHSLRKLYQYGARVCYLMRSSIECD
-    * reverse complement: ATCGCATTCAATGCTGCTGCGCATCAGATAGCACACGCGCGCGCCATACTGATACAGTTTGCGCAGGCTATGCAGGTTTTCTTCGCGCAGCGGGCATTC
+    * reverse translated: GAATGCCCGCTGCGCGAAGAAAACCTGCATAGCCTGCGCAAACTGTATCAGTATGGCGCGCGCGTGTGCTATCTGATGCGCAGCAGCATTGAATGCGAT
+    * reverse complement (in read): ATCGCATTCAATGCTGCTGCGCATCAGATAGCACACGCGCGCGCCATACTGATACAGTTTGCGCAGGCTATGCAGGTTTTCTTCGCGCAGCGGGCATTC
+    * stop codon TAG in position 30 of reverse translate (reading frame 3, irrelevant)
     * 19 kmer
     * NVFIAKVLKTI
     * AACGTGTTTATTGCGAAAGTGCTGAAAACCATT
     * 0 kmer
     * NVFIAKVLKTINNSAC
     * AACGTGTTTATTGCGAAAGTGCTGAAAACCATTAACAACAGCGCGTGC
-    * 2 kmer
+    * stop codon TAA in position 33 - 35
+    * stop codon TGA in position 55 (not in reading frame 1)
+    * 2 -> 0 kmer because of stop codon
     * total 21
   * tax5
     * DAGGQLVVIDEIHTP
     * GATGCGGGCGGCCAGCTGGTGGTGATTGATGAAATTCATACCCCG
+    * 3 occurrences of stop codon TGA, but none in reading frame 1
     * 1 kmer
 * read1
   * tax2
     * ISDDDTAALGGGKSKQARSDRGPEDFSSVVKNRLQSYSRTGQACDRCKVRKIRCDALAEGCSHCINLNLECYVTDRVTGRTERRGYLQQLERE
     * ATTAGCGATGATGATACCGCGGCGCTGGGCGGCGGCAAAAGCAAACAGGCGCGCAGCGATCGCGGCCCGGAAGATTTTAGCAGCGTGGTGAAAAACCGCCTGCAGAGCTATAGCCGCACCGGCCAGGCGTGCGATCGCTGCAAAGTGCGCAAAATTCGCTGCGATGCGCTGGCGGAAGGCTGCAGCCATTGCATTAACCTGAACCTGGAATGCTATGTGACCGATCGCGTGACCGGCCGCACCGAACGCCGCGGCTATCTGCAGCAGCTGGAACGCGAA
+    * stop codon TAA in position 195 - 197 (reading frame 3, irrelevant
+    * stop codon TAG in position 3, 78 and 111 (none in reading frame 1, irrelevant)
+    * stop codon TGA in position 9, 12, 89, 200, 218, 230 (none in reading frame 1)
     * 79 kmer
 * read3
   * tax1/tax2 -> node0
     * YEITVYQLSADDLRS
-    * reverse complement: GCTGCGCAGATCATCCGCGCTCAGCTGATACACGGTAATTTCATA
+    * reverse translated: TATGAAATTACCGTGTATCAGCTGAGCGCGGATGATCTGCGCAGC
+    * reverse complement (in reads): GCTGCGCAGATCATCCGCGCTCAGCTGATACACGGTAATTTCATA
+    * stop codon TGA in position 3, 23, 33 (not in reading frame 1)
     * 1 kmer each
   * tax1 -> node1
     * RKYEITVYQLSADDLR
-    * reverse complement: GCGCAGATCATCCGCGCTCAGCTGATACACGGTAATTTCATATCAGCG (second last codon is stop codon (as reverse complement))
-    * 2 kmer
+    * reverse translated: CGCAAATATGAAATTACCGTGTATCAGCTGAGCGCGGATGATCTGCGC
+    * reverse complement (in reads): GCGCAGATCATCCGCGCTCAGCTGATACACGGTAATTTCATATCAGCG (second last codon is stop codon (as reverse complement))
+    * stop codon TGA in position 9, 28, 39 (28 in reading frame 1!)
+    * 2 -> 0 kmer because of stop codon
 * read5
   * tax3/4/5 -> node0
     * LEDNIRRVIADIRPQ
     * CTGGAAGATAACATTCGCCGCGTGATTGCGGATATTCGCCCGCAG
+    * stop codon TAA in position 9 - 11 (reading frame 3, irrelevant)
+    * stop codon TGA in position 23 (not in reading frame 1)
     * 1 kmer each
 
 

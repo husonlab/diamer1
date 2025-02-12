@@ -28,6 +28,20 @@ public class Compressed4BitSequence extends Sequence<Byte> {
         }
     }
 
+    public Compressed4BitSequence(Alphabet<Byte> alphabet, Byte[] sequence) {
+        super(alphabet);
+        int longArrayLength = (sequence.length + 15) / 16;
+        this.sequence = new long[longArrayLength];
+        this.length = sequence.length;
+
+        // compresses the first 4 bits of each byte into a long array
+        for (int i = 0; i < sequence.length; i++) {
+            int longIndex = i / 16;
+            int byteIndex = i % 16;
+            this.sequence[longIndex] |= ((long) (sequence[i] & 0x0F)) << (byteIndex * 4);
+        }
+    }
+
     @NotNull
     @Override
     public Iterator<Byte> iterator() {
