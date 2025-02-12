@@ -32,6 +32,9 @@ public class Tree {
     private final HashMap<String, Integer> doublePropertyDescriptions;
     private final ArrayList<Double> defaultDoubleProperties;
 
+    /**
+     * Construct an empty tree.
+     */
     public Tree() {
         this.idMap = new HashMap<>();
         longPropertyDescriptions = new HashMap<>();
@@ -81,7 +84,7 @@ public class Tree {
     }
 
     /**
-     * Funds the lowest common ancestor of two nodes.
+     * Finds the lowest common ancestor of two nodes.
      * @param node1 the first node
      * @param node2 the second node
      * @return the lowest common ancestor of the two nodes or null if the nodes are null or not in the same tree.
@@ -129,8 +132,10 @@ public class Tree {
     }
 
     /**
-     * Add a long property to each node.
-     *
+     * Add a new long property to each node.
+     * <p>
+     *     If there already is a long property with the same label, it will be overwritten.
+     * </p>
      * @param label   the label of the property
      * @param initial the initial value of the property
      */
@@ -150,8 +155,10 @@ public class Tree {
     }
 
     /**
-     * Add a double property to each node and initialize it with 0.
-     *
+     * Add a new double property to each node.
+     * <p>
+     *     If there already is a double property with the same label, it will be overwritten.
+     * </p>
      * @param label   the label of the property
      * @param initial the initial value of the property
      */
@@ -171,7 +178,7 @@ public class Tree {
     }
 
     /**
-     * Set a property of type double for a node in the tree.
+     * Set the value of an <strong>existing</strong> long property of a specific node.
      * @param taxId the taxonomic ID of the node
      * @param label the label of the property
      * @param value the value of the property
@@ -185,7 +192,7 @@ public class Tree {
     }
 
     /**
-     * Set a property of type double for a node in the tree.
+     * Set the value of an <strong>existing</strong> double property of a specific node.
      * @param taxId the taxonomic ID of the node
      * @param label the label of the property
      * @param value the value of the property
@@ -199,7 +206,7 @@ public class Tree {
     }
 
     /**
-     * Add a value to a property of type long for a node in the tree.
+     * Add a value to an <strong>existing</strong> long property of a specific node.
      * @param taxId the taxonomic ID of the node
      * @param label the label of the property
      * @param value the value to add
@@ -213,7 +220,7 @@ public class Tree {
     }
 
     /**
-     * Add a value to a property of type double for a node in the tree.
+     * Add a value to an <strong>existing</strong> property of type double for a node in the tree.
      * @param taxId the taxonomic ID of the node
      * @param label the label of the property
      * @param value the value to add
@@ -227,7 +234,7 @@ public class Tree {
     }
 
     /**
-     * Ensures that a property of type long exist in the tree.
+     * Throws a {@link RuntimeException} if no long property with the given label exists.
      * @param label the label of the property
      * @return the node corresponding to the taxonomic ID
      */
@@ -239,7 +246,7 @@ public class Tree {
     }
 
     /**
-     * Ensures that a property of type double exist in the tree.
+     * Throws a {@link RuntimeException} if no double property with the given label exists.
      * @param label the label of the property
      * @return the node corresponding to the taxonomic ID
      */
@@ -251,8 +258,9 @@ public class Tree {
     }
 
     /**
-     * Ensures that a node given by its taxonomic ID exists in the tree.
+     * Throws a {@link RuntimeException} if the node with the given taxonomic ID does not exist.
      * @param taxId the taxonomic ID of the node
+     * @return the node corresponding to the taxonomic ID
      */
     private Node ensureNodeExist(int taxId) {
         if (!idMap.containsKey(taxId)) {
