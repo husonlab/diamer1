@@ -158,6 +158,12 @@ public class Main {
         );
         options.addOption(
                 Option.builder()
+                        .longOpt("nucleotide")
+                        .desc("Set if you want to index / use a nucleotide database to ignore stop codons.")
+                        .build()
+        );
+        options.addOption(
+                Option.builder()
                         .longOpt("debug")
                         .desc("Run in debug mode")
                         .build()
@@ -260,25 +266,8 @@ public class Main {
         Path output = getFolder(cli.getArgs()[1], false);
 
         Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
-        Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
-        DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, bucketsPerCycle, globalSettings);
-        try {
-            dbIndexer.index();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void indexdbNuc(GlobalSettings globalSettings, CommandLine cli) {
-        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
-        checkNumberOfPositionalArguments(cli, 2);
-        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : globalSettings.MAX_THREADS;
-        boolean[] mask = getMask(cli);
-        Path database = getFile(cli.getArgs()[0], true);
-        Path output = getFolder(cli.getArgs()[1], false);
-
-        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
-        Encoder encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);
+        Encoder encoder = cli.hasOption("nucleotide") ?
+                new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS) : new K15Base11(mask, globalSettings.BITS_FOR_IDS);
         DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, bucketsPerCycle, globalSettings);
         try {
             dbIndexer.index();
@@ -293,7 +282,8 @@ public class Main {
         boolean[] mask = getMask(cli);
         Path reads = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
-        Encoder encoder = new K15Base11(mask, 22);
+        Encoder encoder = cli.hasOption("nucleotide") ?
+                new K15Base11(mask, globalSettings.BITS_FOR_IDS) : new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);
         ReadIndexer readIndexer = new ReadIndexer(
                 reads, output, encoder, bucketsPerCycle, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
                 globalSettings.SEQUENCE_BATCH_SIZE, globalSettings.KEEP_IN_MEMORY);

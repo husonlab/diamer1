@@ -3,6 +3,7 @@ package org.husonlab.diamer2.main.encoders;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.Converter;
 import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
+import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11RF1NoStop;
 
 /**
  * {@link Encoder} that uses the base 11 alphabet to encode kmers.
@@ -10,6 +11,7 @@ import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
 public class K15Base11Nuc extends Encoder {
 
     private static final DNAtoBase11 dnaEncoder = new DNAtoBase11();
+    private static final DNAtoBase11RF1NoStop dnaEncoderRF1NoStop = new DNAtoBase11RF1NoStop();
     /**
      * number of bits in the bucket that are used to encode the kmer
      */
@@ -34,7 +36,7 @@ public class K15Base11Nuc extends Encoder {
 
     @Override
     public Converter<Character, Byte> getReadConverter() {
-        return dnaEncoder;
+        return dnaEncoderRF1NoStop;
     }
 
     @Override
