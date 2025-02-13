@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.io;
 
+import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.util.logging.Logger;
@@ -22,7 +23,7 @@ public class ReadAssignmentIO {
      * @param readAssignmentFile The file to read the assignment from
      * @return A {@link ReadAssignment} object
      */
-    public static ReadAssignment readRawAssignment(Tree tree, Path readAssignmentFile) {
+    public static ReadAssignment readRawAssignment(Tree tree, Path readAssignmentFile, GlobalSettings settings) {
         Logger logger = new Logger("ReadAssignmentIO");
         logger.addElement(new Time());
         logger.logInfo("Reading read assignments from " + readAssignmentFile);
@@ -65,7 +66,7 @@ public class ReadAssignmentIO {
         } catch (IOException e) {
             throw new RuntimeException("Error parsing read assignment file: " + readAssignmentFile, e);
         }
-        return new ReadAssignment(tree, readHeaderMapping, kmerMatches);
+        return new ReadAssignment(tree, readHeaderMapping, kmerMatches, settings);
     }
 
     /**

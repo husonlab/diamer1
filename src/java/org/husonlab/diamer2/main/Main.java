@@ -286,8 +286,7 @@ public class Main {
         Path readsIndex = getFolder(cli.getArgs()[1], true);
         Path output = getFolder(cli.getArgs()[2], false);
 
-        ReadAssigner readAssigner = new ReadAssigner(
-                globalSettings.MAX_THREADS, dbIndex, readsIndex, new K15Base11(mask, 22));
+        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), globalSettings);
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
@@ -295,6 +294,7 @@ public class Main {
         Tree tree = assignment.getTree();
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
+        assignment.runAssignmentAlgorithm(new OVO(tree, 0.6f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.9f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);

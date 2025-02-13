@@ -1,5 +1,7 @@
 package org.husonlab.diamer2.readAssignment;
 
+import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
+import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
 import org.husonlab.diamer2.util.logging.ProgressBar;
@@ -8,6 +10,10 @@ import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Phaser;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class to store and handle the taxon assignments of all reads.
@@ -38,11 +44,13 @@ public class ReadAssignment {
      */
     private final ArrayList<Integer>[] taxonAssignments;
 
+    private final GlobalSettings settings;
+
     /**
      * @param tree Taxonomic tree
      * @param readHeaderMapping Array of all read headers. The position of the header in the array is the read id.
      */
-    public ReadAssignment(Tree tree, String[] readHeaderMapping) {
+    public ReadAssignment(Tree tree, String[] readHeaderMapping, GlobalSettings settings) {
         logger = new Logger("ReadAssignment");
         logger.addElement(new Time());
         size = readHeaderMapping.length;
@@ -56,6 +64,7 @@ public class ReadAssignment {
             this.kmerMatches[i] = new ArrayList<>();
             this.taxonAssignments[i] = new ArrayList<>();
         }
+        this.settings = settings;
     }
 
     /**
@@ -64,8 +73,8 @@ public class ReadAssignment {
      * @param readHeaderMapping Array of all read headers. The position of the header in the array is the read id.
      * @param kmerMatches Array of kmer matches for each read. Each entry is an array of taxon id and the number of kmer matches.
      */
-    public ReadAssignment(Tree tree, String[] readHeaderMapping, ArrayList<KmerMatch<Integer>>[] kmerMatches) {
-        this(tree, readHeaderMapping);
+    public ReadAssignment(Tree tree, String[] readHeaderMapping, ArrayList<KmerMatch<Integer>>[] kmerMatches, GlobalSettings settings) {
+        this(tree, readHeaderMapping, settings);
         for (int i = 0; i < size; i++) {
             for (KmerMatch<Integer> kmerMatch : kmerMatches[i]) {
                 this.kmerMatches[i].add(kmerMatch);
@@ -155,27 +164,54 @@ public class ReadAssignment {
      * @param algorithm Assignment algorithm to run
      */
     public void runAssignmentAlgorithm(AssignmentAlgorithm algorithm) {
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
+                settings.MAX_THREADS,
+                settings.MAX_THREADS,
+                500L,
+                TimeUnit.MILLISECONDS,
+                new ArrayBlockingQueue<>(500),
+                new ThreadPoolExecutor.CallerRunsPolicy());
+
         logger.logInfo("Running assignment algorithm: " + algorithm.getName());
         ProgressBar progressBar = new ProgressBar(size, 20);
         new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
+
         assignmentAlgorithms.add(algorithm);
         assignmentAlgorithms.add(algorithm);
         tree.addNodeLongProperty(algorithm.getName() + " read count", 0);
         tree.addNodeLongProperty(algorithm.getName() + " read count normalized", 0);
         for (int i = 0; i < size; i++) {
-            progressBar.incrementProgress();
-            int taxId = algorithm.assignRawReadKmerMatches(kmerMatches[i]);
-            int taxIdNormalized = algorithm.assignNormalizedReadKmerMatches(normalizedKmerMatches[i]);
-            if (taxId != -1) {
-                tree.addToNodeProperty(taxId, algorithm.getName() + " read count", 1);
-            }
-            if (taxIdNormalized != -1) {
-                tree.addToNodeProperty(taxIdNormalized, algorithm.getName() + " read count normalized", 1);
-            }
-            taxonAssignments[i].add(taxId);
-            taxonAssignments[i].add(taxIdNormalized);
+            int finalI = i;
+            threadPoolExecutor.submit(() -> {
+                progressBar.incrementProgress();
+                int taxId = algorithm.assignRawReadKmerMatches(kmerMatches[finalI]);
+                int taxIdNormalized = algorithm.assignNormalizedReadKmerMatches(normalizedKmerMatches[finalI]);
+                if (taxId != -1) {
+                    tree.addToNodeProperty(taxId, algorithm.getName() + " read count", 1);
+                }
+                if (taxIdNormalized != -1) {
+                    tree.addToNodeProperty(taxIdNormalized, algorithm.getName() + " read count normalized", 1);
+                }
+                taxonAssignments[finalI].add(taxId);
+                taxonAssignments[finalI].add(taxIdNormalized);
+            });
         }
-        progressBar.finish();
+
+        threadPoolExecutor.shutdown();
+        try {
+            if (threadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES)) {
+                progressBar.finish();
+                logger.logInfo("Assignment complete.");
+            } else {
+                logger.logError("Assignment timed out.");
+                threadPoolExecutor.shutdownNow();
+                throw new RuntimeException("Assignment timed out.");
+            }
+        } catch (InterruptedException e) {
+            logger.logError("Assignment interrupted.");
+            threadPoolExecutor.shutdownNow();
+            throw new RuntimeException("Assignment interrupted.");
+        }
         logger.logInfo("Accumulating and saving weights on the tree ...");
         tree.accumulateNodeLongProperty(algorithm.getName() + " read count", algorithm.getName() + " read count (accumulated)");
         tree.accumulateNodeLongProperty(algorithm.getName() + " read count normalized", algorithm.getName() + " read count normalized (accumulated)");

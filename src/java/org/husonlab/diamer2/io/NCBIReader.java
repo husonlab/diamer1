@@ -83,25 +83,6 @@ public class NCBIReader {
     }
 
     /**
-     * Extracts the sequence accessions from the header of a fasta file.
-     * <p>
-     *     Each accession has to start with ">".
-     * </p>
-     * @param header the header of a fasta file
-     * @return a list of accessions
-     */
-    public static ArrayList<String> extractAccessionsFromHeader(String header) {
-        String[] values = header.split(" ");
-        ArrayList<String> ids = new ArrayList<>();
-        for (String value : values) {
-            if (value.startsWith(">")) {
-                ids.add(AccessionMapping.removeVersion(value.substring(1)));
-            }
-        }
-        return ids;
-    }
-
-    /**
      * ReadAssignment the NCBI names.dmp file and adds the names to the corresponding Node objects.
      * @param namesDumpfile: path to the file
      * @param tree: Tree with idMap of tax_id -> Node objects
@@ -128,6 +109,25 @@ public class NCBIReader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Extracts the sequence accessions from the header of a fasta file.
+     * <p>
+     *     Each accession has to start with ">".
+     * </p>
+     * @param header the header of a fasta file
+     * @return a list of accessions
+     */
+    public static ArrayList<String> extractAccessionsFromHeader(String header) {
+        String[] values = header.split(" ");
+        ArrayList<String> ids = new ArrayList<>();
+        for (String value : values) {
+            if (value.startsWith(">")) {
+                ids.add(AccessionMapping.removeVersion(value.substring(1)));
+            }
+        }
+        return ids;
     }
 
     /**
@@ -171,7 +171,6 @@ public class NCBIReader {
      * @param tree: NCBI taxonomy tree
      */
     public static void preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sup) throws IOException {
-
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
 

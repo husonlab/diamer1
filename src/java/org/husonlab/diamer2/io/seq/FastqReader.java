@@ -7,7 +7,7 @@ import java.io.*;
 import java.nio.file.Path;
 
 /**
- * Class to read {@link SequenceRecord}s containing the header and the sequence (not the quality) from a FASTQ file.
+ * Class to read the header and the sequence (not the quality) as {@link SequenceRecord}s from a FASTQ file.
  */
 public class FastqReader extends SequenceReader<String> {
 

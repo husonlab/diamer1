@@ -3,6 +3,7 @@ package org.husonlab.diamer2.readAssignment;
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
+import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
@@ -19,22 +20,20 @@ public class ReadAssigner {
     private final DBIndexIO dbIndex;
     private final ReadIndexIO readsIndex;
     private final Encoder encoder;
-    private final int MAX_THREADS;
     private final String[] readHeaderMapping;
+    private final GlobalSettings settings;
 
     /**
-     * @param MAX_THREADS maximum number of threads to use for the threadpool. MAX_THREADS + 1 (main thread) equals the
-     *                    number of buckets that are processed in parallel.
      * @param dbIndexPath path to the folder with database index files (buckets)
      * @param readsIndexPath path to the folder with reads index files (buckets)
      * @param encoder encoder with the settings used for encoding the kmers
      */
-    public ReadAssigner(int MAX_THREADS, Path dbIndexPath, Path readsIndexPath, Encoder encoder) {
+    public ReadAssigner(Path dbIndexPath, Path readsIndexPath, Encoder encoder, GlobalSettings settings) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         this.dbIndex = new DBIndexIO(dbIndexPath);
         this.readsIndex = new ReadIndexIO(readsIndexPath);
         this.encoder = encoder;
-        this.MAX_THREADS = MAX_THREADS;
+        this.settings = settings;
         if (readsIndex.readHeaderMappingExists()) {
             this.readHeaderMapping = this.readsIndex.getReadHeaderMapping();
         } else {
@@ -63,10 +62,10 @@ public class ReadAssigner {
                 .addElement(new RunningTime())
                 .addElement(progressBar);
 
-        final ReadAssignment readAssignment = new ReadAssignment(tree, readHeaderMapping);
+        final ReadAssignment readAssignment = new ReadAssignment(tree, readHeaderMapping, settings);
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
-                MAX_THREADS,
-                MAX_THREADS,
+                settings.MAX_THREADS,
+                settings.MAX_THREADS,
                 500L,
                 TimeUnit.MILLISECONDS,
                 new ArrayBlockingQueue<>(1024),

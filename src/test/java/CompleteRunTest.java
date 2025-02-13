@@ -8,6 +8,7 @@ import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
+import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.K15Base11;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -68,7 +69,7 @@ public class CompleteRunTest {
         readIndexer.index();
 
         // Assign reads
-        ReadAssigner readAssigner = new ReadAssigner(1, dbIndex, readsIndex, new K15Base11(mask, 22));
+        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), new GlobalSettings(1, 12, false));
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
@@ -79,7 +80,7 @@ public class CompleteRunTest {
         TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
         TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
         // spaced
-        readAssigner = new ReadAssigner(1, dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22));
+        readAssigner = new ReadAssigner(dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22), new GlobalSettings(1, 12, false));
         assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, outputSpaced.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();

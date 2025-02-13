@@ -43,7 +43,9 @@ public class ProgressBar extends LoggerElement {
      * Increment the progress by one step.
      */
     public void incrementProgress() {
-        progress = Math.min(progress + 1, total);
+        synchronized (this) {
+            progress = Math.min(progress + 1, total);
+        }
         logger.notifyUpdate();
     }
 

@@ -128,46 +128,4 @@ public class TreeIO {
         tree.autoFindRoot();
         return tree;
     }
-
-    /**
-     * Saves all custom values that are associated with the nodes of the tree to a tsv file.
-     *
-     * @param tree       the tree to save the values from
-     * @param file       the file to save the values to
-     * @param nodeLabels if true the node labels are saved instead of only taxIds
-     */
-    @Deprecated
-    public static void saveCustomValues(Tree tree, Path file, boolean nodeLabels) {
-        try (BufferedWriter bw = java.nio.file.Files.newBufferedWriter(file)) {
-            bw.write(tree.idMap.size() + "\n");
-            if (nodeLabels) {
-                bw.write("name");
-            } else {
-                bw.write("taxId");
-            }
-            for (String label: tree.getNodeLongPropertyLabels()) {
-                bw.write("\t" + label);
-            }
-            for (String label: tree.getNodeDoublePropertyLabels()) {
-                bw.write("\t" + label);
-            }
-            bw.write("\n");
-            for (Node node : tree.idMap.values()) {
-                if (nodeLabels) {
-                    bw.write(node.toString());
-                } else {
-                    bw.write(Integer.toString(node.getTaxId()));
-                }
-                for (long longPerpoerty : node.getLongProperties()) {
-                    bw.write("\t" + longPerpoerty);
-                }
-                for (double doubleProperty : node.getDoubleProperties()) {
-                    bw.write("\t" + doubleProperty);
-                }
-                bw.write("\n");
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Could not save custom values of the tree.", e);
-        }
-    }
 }
