@@ -33,9 +33,8 @@ public class FastqIdReader extends SequenceReader<Integer> {
 
     @Override
     public SequenceRecord<Integer, Character> next() throws IOException {
-        sequencesRead++;
         if (line != null && line.startsWith("@")) {
-            id = headers.size();
+            id = sequencesRead++;
             headers.add(line);
             sequence = new StringBuilder(br.readLine());
             br.readLine();

@@ -60,7 +60,7 @@ public class ReadIndexer {
         Phaser indexPhaser = new Phaser(1);
 
         try (FastqIdReader fastqIdReader = new FastqIdReader(fastqFile);
-             SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(fastqIdReader, encoder.getDNAConverter(), KEEP_IN_MEMORY)) {
+             SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(fastqIdReader, encoder.getReadConverter(), KEEP_IN_MEMORY)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");

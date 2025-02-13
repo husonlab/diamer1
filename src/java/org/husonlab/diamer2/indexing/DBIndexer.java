@@ -5,6 +5,7 @@ import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
+import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
@@ -37,12 +38,8 @@ public class DBIndexer {
                      Path indexDir,
                      Tree tree,
                      Encoder encoder,
-                     int MAX_THREADS,
-                     int MAX_QUEUE_SIZE,
-                     int BATCH_SIZE,
                      int bucketsPerCycle,
-                     boolean KEEP_IN_MEMORY,
-                     boolean debug) {
+                     GlobalSettings settings) {
         this.logger = new Logger("DBIndexer");
         logger.addElement(new Time());
         this.fastaFile = fastaFile;
@@ -50,12 +47,12 @@ public class DBIndexer {
         this.indexDir = indexDir;
         this.IndexIO = new DBIndexIO(indexDir);
         this.tree = tree;
-        this.MAX_THREADS = MAX_THREADS;
-        this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
-        this.BATCH_SIZE = BATCH_SIZE;
         this.bucketsPerCycle = bucketsPerCycle;
-        this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
-        this.debug = debug;
+        this.MAX_THREADS = settings.MAX_THREADS;
+        this.MAX_QUEUE_SIZE = settings.MAX_THREADS * 2;
+        this.BATCH_SIZE = settings.SEQUENCE_BATCH_SIZE;
+        this.KEEP_IN_MEMORY = settings.KEEP_IN_MEMORY;
+        this.debug = settings.DEBUG;
         this.bucketSizes = new ArrayList<>();
         report = new StringBuilder();
     }
@@ -80,7 +77,7 @@ public class DBIndexer {
 
         int processedFastas = 0;
 
-        try (SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getAAConverter(), KEEP_IN_MEMORY)) {
+        try (SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getDBConverter(), KEEP_IN_MEMORY)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("sequences");

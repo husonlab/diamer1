@@ -3,8 +3,6 @@ package org.husonlab.diamer2.main.encoders;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.converter.Converter;
 
-import java.util.Arrays;
-
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
  */
@@ -50,11 +48,11 @@ public abstract class Encoder {
     /**
      * @return converter to convert amino acid sequences to base 11 sequences
      */
-    public abstract Converter<Character, Byte> getAAConverter();
+    public abstract Converter<Character, Byte> getDBConverter();
     /**
      * @return converter to convert DNA sequences to base 11 sequences
      */
-    public abstract Converter<Character, Byte> getDNAConverter();
+    public abstract Converter<Character, Byte> getReadConverter();
 
     /**
      * @return the alphabet used to encode the kmers

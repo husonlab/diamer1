@@ -1,16 +1,14 @@
 package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.alphabet.converter.Converter;
 import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
 
 /**
  * {@link Encoder} that uses the base 11 alphabet to encode kmers.
  */
-public class K15Base11 extends Encoder {
+public class K15Base11Nuc extends Encoder {
 
-    private static final AAtoBase11 aaEncoder = new AAtoBase11();
     private static final DNAtoBase11 dnaEncoder = new DNAtoBase11();
     /**
      * number of bits in the bucket that are used to encode the kmer
@@ -22,7 +20,7 @@ public class K15Base11 extends Encoder {
     private final int bitsOfBucketNames;
     private final int numberOfBuckets;
 
-    public K15Base11(boolean[] mask, int bitsIds) {
+    public K15Base11Nuc(boolean[] mask, int bitsIds) {
         super(new Base11Alphabet(), mask, bitsIds);
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
@@ -31,7 +29,7 @@ public class K15Base11 extends Encoder {
 
     @Override
     public Converter<Character, Byte> getDBConverter() {
-        return aaEncoder;
+        return dnaEncoder;
     }
 
     @Override

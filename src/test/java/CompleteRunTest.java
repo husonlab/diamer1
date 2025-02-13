@@ -9,6 +9,7 @@ import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
+import org.husonlab.diamer2.main.Main;
 import org.husonlab.diamer2.main.encoders.K15Base11;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -32,11 +33,16 @@ public class CompleteRunTest {
         Path ncbiAccession2Taxid2 = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid2.gz", true);
         Path db = Utilities.getFile("src/test/resources/database/db.fsa", true);
         Path dbPreprocessed = Utilities.getFile("src/test/resources/test_output/db_preprocessed/db_preprocessed.fsa.gz", false);
+        Path dbPreprocessedExpected = Utilities.getFile("src/test/resources/expected_output/db_preprocessed/db_preprocessed.fsa.gz", true);
         Path reads = Utilities.getFile("src/test/resources/reads/reads.fq", true);
         Path dbIndex = Utilities.getFolder("src/test/resources/test_output/db_index", false);
+        Path dbIndexExpected = Utilities.getFolder("src/test/resources/expected_output/db_index", true);
         Path dbIndexSpaced = Utilities.getFolder("src/test/resources/test_output/db_index_spaced", false);
+        Path dbIndexSpacedExpected = Utilities.getFolder("src/test/resources/expected_output/db_index_spaced", true);
         Path readsIndex = Utilities.getFolder("src/test/resources/test_output/reads_index", false);
+        Path readsIndexExpected = Utilities.getFolder("src/test/resources/expected_output/reads_index", true);
         Path readsIndexSpaced = Utilities.getFolder("src/test/resources/test_output/reads_index_spaced", false);
+        Path readsIndexSpacedExpected = Utilities.getFolder("src/test/resources/expected_output/reads_index_spaced", true);
         Path output = Utilities.getFolder("src/test/resources/test_output/assignment", false);
         Path outputSpaced = Utilities.getFolder("src/test/resources/test_output/assignment_spaced", false);
         boolean[] mask = new boolean[]{
@@ -47,29 +53,46 @@ public class CompleteRunTest {
         };
 
         // Preprocess DB
+        Main.main(new String[]{"--preprocess", "-t", "12", "--debug",
+                "-no", nodesDmp.toString(), "-na", namesDmp.toString(), db.toString(), dbPreprocessed.toString(),
+                ncbiAccession2Taxid.toString(), ncbiAccession2Taxid2.toString()});
         Tree tree = NCBIReader.readTaxonomy(nodesDmp, namesDmp);
-        SequenceSupplier<String, Character> supplier = new SequenceSupplier<>(new FastaReader(db), null, true);
-        HashMap<String, Integer> neededAccessions = NCBIReader.extractAccessions(supplier);
-        AccessionMapping accessionMapping = new NCBIMapping(
-                Arrays.asList(ncbiAccession2Taxid, ncbiAccession2Taxid2),  tree, neededAccessions);
-        supplier.reset();
-        NCBIReader.preprocessNR(dbPreprocessed, tree, accessionMapping, supplier);
+
+        ArrayList<ExclusionRule> exclusionRules = new ArrayList<>();
+        exclusionRules.add(new ExclusionRule("preprocessing_report.txt", new HashSet<>(List.of(1, 2, 3))));
+        assertDirectoriesEqual(dbPreprocessedExpected.getParent().toFile(), dbPreprocessed.getParent().toFile(), exclusionRules);
 
         // Generate DB index
-        DBIndexer indexer = new DBIndexer(dbPreprocessed, dbIndex, tree, new K15Base11(mask, 22), 1, 1, 20, 1024, false, true);
-        indexer.index();
-        tree.resetNodeProperties();
-        indexer = new DBIndexer(dbPreprocessed, dbIndexSpaced, tree, new K15Base11(maskSpaced, 22), 1, 1, 4, 127, false, true);
-        indexer.index();
+        Main.main(new String[]{
+                "--indexdb", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug",
+                "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
+                dbPreprocessed.toString(), dbIndex.toString()});
+
+        exclusionRules = new ArrayList<>();
+        exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
+        assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
+
+        Main.main(new String[]{
+                "--indexdb", "-t", "12", "-b", "127", "--mask", "111111011110011100011", "--debug",
+                "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
+                dbPreprocessed.toString(), dbIndexSpaced.toString()});
+
+        assertDirectoriesEqual(dbIndexSpacedExpected.toFile(), dbIndexSpaced.toFile(), exclusionRules);
 
         // Generate read index
-        ReadIndexer readIndexer = new ReadIndexer(reads, readsIndex, new K15Base11(mask, 22), 1024, 1, 1, 20, true);
-        readIndexer.index();
-        readIndexer = new ReadIndexer(reads, readsIndexSpaced, new K15Base11(maskSpaced, 22), 127, 1, 1, 4, true);
-        readIndexer.index();
+        Main.main(new String[]{
+                "--indexreads", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug",
+                reads.toString(), readsIndex.toString()});
+        exclusionRules = new ArrayList<>();
+        assertDirectoriesEqual(readsIndexExpected.toFile(), readsIndex.toFile(), exclusionRules);
+
+        Main.main(new String[]{
+                "--indexreads", "-t", "1", "-b", "127", "--keep-in-memory", "--mask", "111111011110011100011", "--debug",
+                reads.toString(), readsIndexSpaced.toString()});
+        assertDirectoriesEqual(readsIndexSpacedExpected.toFile(), readsIndexSpaced.toFile(), exclusionRules);
 
         // Assign reads
-        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), new GlobalSettings(1, 12, false));
+        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), new GlobalSettings(1, 12, false, true));
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
@@ -80,7 +103,7 @@ public class CompleteRunTest {
         TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
         TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
         // spaced
-        readAssigner = new ReadAssigner(dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22), new GlobalSettings(1, 12, false));
+        readAssigner = new ReadAssigner(dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22), new GlobalSettings(1, 12, false, true));
         assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, outputSpaced.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
@@ -94,7 +117,7 @@ public class CompleteRunTest {
         // Compare output with expected output
         File expectedOutput = new File("src/test/resources/expected_output");
         File actualOutput = new File("src/test/resources/test_output");
-        ArrayList<ExclusionRule> exclusionRules = new ArrayList<>();
+        exclusionRules = new ArrayList<>();
         exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
         exclusionRules.add(new ExclusionRule("preprocessing_report.txt", new HashSet<>(List.of(1, 2, 3))));
         assertDirectoriesEqual(expectedOutput, actualOutput, exclusionRules);

@@ -23,11 +23,12 @@ public class GlobalSettings {
      */
     public final int SEQUENCE_BATCH_SIZE = 1000;
 
-    public static final boolean DEBUG = false;
+    public final boolean DEBUG;
 
-    public GlobalSettings(int MAX_THREADS, int MAX_MEMORY, boolean KEEP_IN_MEMORY) {
+    public GlobalSettings(int MAX_THREADS, int MAX_MEMORY, boolean KEEP_IN_MEMORY, boolean DEBUG) {
         this.MAX_THREADS = MAX_THREADS;
         this.MAX_MEMORY = MAX_MEMORY;
         this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
+        this.DEBUG = DEBUG;
     }
 }

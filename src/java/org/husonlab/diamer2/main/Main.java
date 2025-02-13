@@ -9,6 +9,7 @@ import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
+import org.husonlab.diamer2.main.encoders.K15Base11Nuc;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
@@ -155,6 +156,12 @@ public class Main {
                         .type(String.class)
                         .build()
         );
+        options.addOption(
+                Option.builder()
+                        .longOpt("debug")
+                        .desc("Run in debug mode")
+                        .build()
+        );
 
         if (args.length == 0 || args[0].equals("-h") || args[0].equals("--help")) {
             printHelp(options);
@@ -192,7 +199,8 @@ public class Main {
             printHelp(options);
             System.exit(1);
         }
-        GlobalSettings globalSettings = new GlobalSettings(maxThreads, maxMemory, cli.hasOption("keep-in-memory"));
+        GlobalSettings globalSettings = new GlobalSettings(
+                maxThreads, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"));
 
         if (cli.hasOption("preprocess")) {
             preprocess(globalSettings, cli);
@@ -235,6 +243,7 @@ public class Main {
                         mappingFiles,
                         tree,
                         accession2Taxid);
+                sequenceSupplier.reset();
                 NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
             }
         } catch (IOException e) {
@@ -252,9 +261,25 @@ public class Main {
 
         Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
         Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
-        DBIndexer dbIndexer = new DBIndexer(
-                database, output, tree, encoder, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
-                globalSettings.SEQUENCE_BATCH_SIZE, bucketsPerCycle, globalSettings.KEEP_IN_MEMORY, globalSettings.DEBUG);
+        DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, bucketsPerCycle, globalSettings);
+        try {
+            dbIndexer.index();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static void indexdbNuc(GlobalSettings globalSettings, CommandLine cli) {
+        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
+        checkNumberOfPositionalArguments(cli, 2);
+        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : globalSettings.MAX_THREADS;
+        boolean[] mask = getMask(cli);
+        Path database = getFile(cli.getArgs()[0], true);
+        Path output = getFolder(cli.getArgs()[1], false);
+
+        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
+        Encoder encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);
+        DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, bucketsPerCycle, globalSettings);
         try {
             dbIndexer.index();
         } catch (IOException e) {
