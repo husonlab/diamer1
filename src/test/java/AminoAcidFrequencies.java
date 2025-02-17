@@ -10,8 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.husonlab.diamer2.seq.alphabet.converter.Utilities.encodeAABase11;
-import static org.husonlab.diamer2.seq.alphabet.converter.Utilities.encodeAABase11Uniform;
+import static org.husonlab.diamer2.seq.converter.Utilities.encodeAABase11Uniform;
 
 public class AminoAcidFrequencies {
     @Test

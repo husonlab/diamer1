@@ -16,6 +16,7 @@ import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.main.encoders.K15Base11;
+import org.husonlab.diamer2.seq.converter.EnforceAA;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -245,8 +246,8 @@ public class Main {
             mappingFiles.add(getFile(cli.getArgs()[i], true));
         }
         try (SequenceSupplier<String, Character> sequenceSupplier = new SequenceSupplier<>(
-                new FastaReader(database), null, globalSettings.KEEP_IN_MEMORY)) {
-            Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
+                new FastaReader(database), new EnforceAA(), globalSettings.KEEP_IN_MEMORY)) {
+            Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
             if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
                 accessionMapping = new MeganMapping(mappingFiles.getFirst());
                 NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
@@ -272,7 +273,7 @@ public class Main {
         Path database = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
 
-        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
+        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
         Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
         if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
         if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}

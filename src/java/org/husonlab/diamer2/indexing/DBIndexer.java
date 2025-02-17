@@ -2,7 +2,7 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.seq.FastaIdReader;
-import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
+import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
@@ -109,9 +109,9 @@ public class DBIndexer {
 
                 progressBar.setProgress(0);
                 progressLogger.setProgress(0);
-                SequenceRecordContainer<Integer, Byte>[] batch = new SequenceRecordContainer[BATCH_SIZE];
+                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[BATCH_SIZE];
                 processedFastas = 0;
-                SequenceRecordContainer<Integer, Byte> container;
+                FutureSequenceRecords<Integer, Byte> container;
                 while ((container = sup.next()) != null) {
                     batch[processedFastas % BATCH_SIZE] = container;
                     progressBar.setProgress(sup.getBytesRead());
@@ -119,7 +119,7 @@ public class DBIndexer {
                     if (++processedFastas % BATCH_SIZE == 0) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
-                        batch = new SequenceRecordContainer[BATCH_SIZE];
+                        batch = new FutureSequenceRecords[BATCH_SIZE];
                     }
                 }
                 indexPhaser.register();

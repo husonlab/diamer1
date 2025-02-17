@@ -2,8 +2,8 @@
 //import org.husonlab.diamer2.seq.CharSequence;
 //import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
 //import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-//import org.husonlab.diamer2.seq.alphabet.converter.Converter;
-//import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
+//import org.husonlab.diamer2.seq.converter.Converter;
+//import org.husonlab.diamer2.seq.converter.DNAtoBase11;
 //import org.husonlab.diamer2.seq.encoder.Encoder;
 //import org.husonlab.diamer2.seq.encoder.K15Base11Encoder;
 //import org.junit.Test;

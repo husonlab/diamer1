@@ -113,12 +113,13 @@ public class Node {
      * <p>This name is meant to reflect NCBIs scientific name and should be unique.</p>
      * @return the scientific name of the node
      */
+    @Nullable
     public String getScientificName() {
-        return scientificName != null ? scientificName : "";
+        return scientificName;
     }
 
     public String getScientificNameOrFirstLabel() {
-        return scientificName != null ? scientificName : labels.isEmpty() ? "" : labels.get(0);
+        return scientificName != null ? scientificName : labels.isEmpty() ? "" : labels.getFirst();
     }
 
     /**

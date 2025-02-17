@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.alphabet.converter.Converter;
+import org.husonlab.diamer2.seq.converter.Converter;
 
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.

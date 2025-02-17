@@ -2,7 +2,7 @@ package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.converter.Converter;
+import org.husonlab.diamer2.seq.converter.Converter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -56,17 +56,17 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     /**
      * Reads the next sequence record from the input file or gets it from the memory.
      * <p>
-     *     The method returns a {@link SequenceRecordContainer} isntead of a single {@link SequenceRecord}, because
+     *     The method returns a {@link FutureSequenceRecords} isntead of a single {@link SequenceRecord}, because
      *     the converters potentially convert a single sequence into multiple sequences. The conversion itself is only
-     *     performed once the {@link SequenceRecordContainer#getSequenceRecords()} method is called. In case the
+     *     performed once the {@link FutureSequenceRecords#getSequenceRecords()} method is called. In case the
      *     sequences should be stored in memory this call also stores the converted sequences in the linked list of
-     *     this class. Consequently, the {@link SequenceRecordContainer#getSequenceRecords()} method must be called to
+     *     this class. Consequently, the {@link FutureSequenceRecords#getSequenceRecords()} method must be called to
      *     store the converted sequences in memory.
      * </p>
-     * @return {@link SequenceRecordContainer} containing potentially multiple {@link SequenceRecord}s depending on the
+     * @return {@link FutureSequenceRecords} containing potentially multiple {@link SequenceRecord}s depending on the
      *         {@link Converter} or {@code null} if one iteration over the sequences is finished.
      */
-    public SequenceRecordContainer<H, S> next() throws IOException {
+    public FutureSequenceRecords<H, S> next() throws IOException {
         if (keepInMemory) {
             if (iterator != null) {
                 if (iterator.hasNext()) {
@@ -74,7 +74,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                     MemoryEntry<H, S> entry = iterator.next();
                     sequencesRead = entry.sequencesRead;
                     bytesRead = entry.bytesRead;
-                    return entry.sequenceRecordContainer;
+                    return entry.futureSequenceRecords;
                 } else {
                     // case: All sequences are already in memory and the iterator is at the end of the list
                     return null;
@@ -116,19 +116,19 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     }
 
     /**
-     * Method to create a {@link SequenceRecordContainer} that contains the input {@link SequenceRecord} and returns the
-     * converted {@link SequenceRecord}(s) when the {@link SequenceRecordContainer#getSequenceRecords()} method is
+     * Method to create a {@link FutureSequenceRecords} that contains the input {@link SequenceRecord} and returns the
+     * converted {@link SequenceRecord}(s) when the {@link FutureSequenceRecords#getSequenceRecords()} method is
      * called.
-     * @param converter Converter to convert the sequences when the {@link SequenceRecordContainer#getSequenceRecords()}
+     * @param converter Converter to convert the sequences when the {@link FutureSequenceRecords#getSequenceRecords()}
      *                  is called. If {@code null}, the input {@link SequenceRecord} is returned.
      * @param sequenceRecord Input {@link SequenceRecord} to be converted
      * @param entry Memory entry to store the converted sequences in memory. If {@code null}, the sequences are not
      *              stored after conversion
-     * @return {@link SequenceRecordContainer} containing the input {@link SequenceRecord}.
+     * @return {@link FutureSequenceRecords} containing the input {@link SequenceRecord}.
      */
-    public SequenceRecordContainer<H, S> getToBeTranslatedContainer(
+    public FutureSequenceRecords<H, S> getToBeTranslatedContainer(
             Converter<Character, S> converter, SequenceRecord<H, Character> sequenceRecord, MemoryEntry<H, S> entry) {
-        return new SequenceRecordContainer<H, S>() {
+        return new FutureSequenceRecords<H, S>() {
             @Override
             public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
                 LinkedList<SequenceRecord<H, S>> sequenceRecords = new LinkedList<>();
@@ -141,7 +141,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                     sequenceRecords.add((SequenceRecord<H, S>) sequenceRecord);
                 }
                 if (entry != null) {
-                    entry.sequenceRecordContainer = new SequenceRecordContainer<H, S>() {
+                    entry.futureSequenceRecords = new FutureSequenceRecords<H, S>() {
                         @Override
                         public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
                             return sequenceRecords;
@@ -213,12 +213,12 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     private static class MemoryEntry<H, S>{
         public final int sequencesRead;
         public final long bytesRead;
-        public SequenceRecordContainer<H, S> sequenceRecordContainer;
+        public FutureSequenceRecords<H, S> futureSequenceRecords;
 
-        public MemoryEntry(int sequencesRead, long bytesRead, SequenceRecordContainer<H, S> sequenceRecordContainer) {
+        public MemoryEntry(int sequencesRead, long bytesRead, FutureSequenceRecords<H, S> futureSequenceRecords) {
             this.sequencesRead = sequencesRead;
             this.bytesRead = bytesRead;
-            this.sequenceRecordContainer = sequenceRecordContainer;
+            this.futureSequenceRecords = futureSequenceRecords;
         }
     }
 }

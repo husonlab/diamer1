@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
+import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.main.encoders.Encoder;
@@ -13,7 +13,7 @@ import java.util.concurrent.Phaser;
 
 public class FastaProteinProcessor implements Runnable {
     private final Phaser phaser;
-    private final SequenceRecordContainer<Integer, Byte>[] containers;
+    private final FutureSequenceRecords<Integer, Byte>[] containers;
     private final KmerExtractor kmerExtractor;
     private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
     private final Tree tree;
@@ -27,7 +27,7 @@ public class FastaProteinProcessor implements Runnable {
      * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
      * @param tree Tree to find the LCA of two taxIds.
      */
-    public FastaProteinProcessor(Phaser phaser, SequenceRecordContainer<Integer, Byte>[] containers, Encoder encoder, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
+    public FastaProteinProcessor(Phaser phaser, FutureSequenceRecords<Integer, Byte>[] containers, Encoder encoder, ConcurrentHashMap<Long, Integer>[] bucketMaps, Tree tree, int rangeStart, int rangeEnd) {
         this.phaser = phaser;
         this.containers = containers;
         this.kmerExtractor = new KmerExtractor(new KmerEncoder(encoder.getTargetAlphabet().getBase(), encoder.getMask()));
@@ -41,7 +41,7 @@ public class FastaProteinProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (SequenceRecordContainer<Integer, Byte> container : containers) {
+            for (FutureSequenceRecords<Integer, Byte> container : containers) {
                 for (SequenceRecord<Integer, Byte> record: container.getSequenceRecords()) {
                     if (record == null || record.sequence().length() < kmerExtractor.getK()) {
                         continue;

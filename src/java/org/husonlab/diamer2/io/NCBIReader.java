@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
-import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
+import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
@@ -21,19 +21,20 @@ import org.husonlab.diamer2.taxonomy.Node;
 public class NCBIReader {
 
     /**
-     * Read the NCBI taxonomy from the nodes and names dumpfile.
+     * Read the NCBI taxonomy from the nodes and names dumpfile. Convenience method that calls
+     * {@link #readNodesDumpfile(Path, Logger)} and {@link #readNamesDumpfile(Path, Tree, boolean)}.
      * <p>Can usually be downloaded under
      * <a href=https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/>https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/</a>.</p>
      * @param nodesDumpfile path to the nodes dumpfile (nodes.dmp)
      * @param namesDumpfile path to the names dumpfile (names.dmp)
      */
     @NotNull
-    public static Tree readTaxonomy(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile){
+    public static Tree readTaxonomy(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile, boolean onlyOneName) {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Reading nodes dumpfile...");
         Tree tree = readNodesDumpfile(nodesDumpfile, logger);
         logger.logInfo("Reading names dumpfile...");
-        readNamesDumpfile(namesDumpfile, tree);
+        readNamesDumpfile(namesDumpfile, tree, onlyOneName);
         logger.logInfo("Finished reading taxonomy. Tree with %d nodes."
                 .formatted(tree.idMap.size()));
         return tree;
@@ -41,6 +42,8 @@ public class NCBIReader {
 
     /**
      * Generates a taxonomic tree from the NCBI nodes dumpfile.
+     * <p><strong>Expected Format:</strong></p>
+     * <p>{@code <taxid>	|	<parent taxid>	|	<rank>	|	...}</p>
      * @param nodesDumpfile: path to the file
      * @return A taxonomic trees with the nodes from the dumpfile
      */
@@ -69,8 +72,11 @@ public class NCBIReader {
             throw new RuntimeException(e);
         }
         logger.logInfo("Connecting nodes...");
+        progressBar.setTotal(parentMap.size());
+        progressBar.setProgress(0);
         // set the parent-child relationships after all nodes have been created
         parentMap.forEach( (nodeId, parentId) -> {
+            progressBar.incrementProgress();
             if (!Objects.equals(nodeId, parentId)) {
                 Node node = tree.idMap.get(nodeId);
                 Node parent = tree.idMap.get(parentId);
@@ -79,15 +85,19 @@ public class NCBIReader {
             }
         });
         tree.autoFindRoot();
+        progressBar.finish();
         return tree;
     }
 
     /**
      * ReadAssignment the NCBI names.dmp file and adds the names to the corresponding Node objects.
+     * <p><strong>Expected Format:</strong></p>
+     * <p>{@code <taxid>	|	<name>	|	<unique name>	|	<name class>	|}</p>
      * @param namesDumpfile: path to the file
      * @param tree: Tree with idMap of tax_id -> Node objects
+     * @param onlyOneName: if true, only one name (preferably the "scientific name") is added to each node
      */
-    public static void readNamesDumpfile(Path namesDumpfile, Tree tree) {
+    public static void readNamesDumpfile(Path namesDumpfile, Tree tree, boolean onlyOneName) {
         ProgressBar progressBar = new ProgressBar(namesDumpfile.toFile().length(), 20);
         new OneLineLogger("NCBIReader", 500)
                 .addElement(progressBar);
@@ -96,18 +106,29 @@ public class NCBIReader {
             String line;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t\\|\t");
+                // remove the last tab and pipe character
+                values[values.length - 1] = values[values.length - 1].substring(0, values[values.length - 1].length() - 2);
                 int taxId = Integer.parseInt(values[0]);
+                if (!tree.hasNode(taxId)) {continue;}
+                Node node = tree.getNode(taxId);
                 String label = values[1];
-                Node node = tree.idMap.get(taxId);
-                node.addLabel(label);
-                if (values.length > 3 && values[3].equals("scientific name\t|")) {
-                    node.setScientificName(label);
+                if (onlyOneName) {
+                    if (node.getScientificName() == null) {
+                        node.setScientificName(label);
+                    } else if (values[3].equals("scientific name")) {
+                        node.setScientificName(label);
+                    }
+                } else {
+                    node.addLabel(label);
+                    if (values[3].equals("scientific name")) {
+                        node.setScientificName(label);
+                    }
                 }
                 progressBar.setProgress(cis.getBytesRead());
             }
             progressBar.finish();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error while parsing names.dmp file.", e);
         }
     }
 
@@ -117,7 +138,7 @@ public class NCBIReader {
      *     Each accession has to start with ">".
      * </p>
      * @param header the header of a fasta file
-     * @return a list of accessions
+     * @return a list with all accessions found in the string. Might be empty.
      */
     public static ArrayList<String> extractAccessionsFromHeader(String header) {
         String[] values = header.split(" ");
@@ -136,7 +157,7 @@ public class NCBIReader {
      * @return a HashMap with the accessions as keys and -1 as values
      */
     public static HashMap<String, Integer> extractAccessions(
-            SequenceSupplier<String, Character> sequenceSupplier) throws IOException {
+            SequenceSupplier<String, ?> sequenceSupplier) throws IOException {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Estimating number of sequenceRecords in database...");
         int numberOfSequencesEst = sequenceSupplier.approximateNumberOfSequences();
@@ -148,12 +169,12 @@ public class NCBIReader {
                 .addElement(new RunningTime())
                 .addElement(progressBar)
                 .addElement(progressLogger);
-        SequenceRecordContainer<String, Character> container;
+        FutureSequenceRecords<String, ?> container;
         sequenceSupplier.reset();
         while ((container = sequenceSupplier.next()) != null) {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
             progressLogger.incrementProgress();
-            for (SequenceRecord<String, Character> record: container.getSequenceRecords()) {
+            for (SequenceRecord<String, ?> record: container.getSequenceRecords()) {
                 for (String accession : extractAccessionsFromHeader(record.id())) {
                     neededAccessions.put(accession, -1);
                 }
@@ -180,7 +201,7 @@ public class NCBIReader {
         int fastaIndex = 0;
         Counts counts = new Counts();
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        SequenceRecordContainer<String, Character> container;
+        FutureSequenceRecords<String, Character> futureSequenceRecords;
 
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
                      Files.newOutputStream(output))));
@@ -198,11 +219,11 @@ public class NCBIReader {
             Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer = new Pair[bufferSize];
             ArrayList<String> accessionBuffer = new ArrayList<>();
 
-            while ((container = sup.next()) != null) {
+            while ((futureSequenceRecords = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
                 progressLogger.setProgress(fastaIndex + 1);
 
-                for (SequenceRecord<String, Character> record: container.getSequenceRecords()) {
+                for (SequenceRecord<String, Character> record: futureSequenceRecords.getSequenceRecords()) {
                     // Extract taxIds and compute LCA taxId
                     String header = record.id();
                     ArrayList<String> accessions = extractAccessionsFromHeader(header);
@@ -322,19 +343,10 @@ public class NCBIReader {
 //            }
             header = ">%d".formatted(taxId);
 
-            // Split the sequence by stop codons
-            ArrayList<SequenceRecord<String, Character>> newRecords = new ArrayList<>();
-            for (String sequencePart : sequence.split("\\*")) {
-                newRecords.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequencePart)));
-            }
-
-            // Write the sequenceRecords to the output file
-            for (SequenceRecord<String, Character> newRecord : newRecords) {
-                bw.write(newRecord.id());
-                bw.newLine();
-                bw.write(newRecord.getSequenceString());
-                bw.newLine();
-            }
+            bw.write(header);
+            bw.newLine();
+            bw.write(sequence);
+            bw.newLine();
         }
         accessionBuffer.clear();
         Arrays.fill(sequenceBuffer, null);
@@ -359,7 +371,7 @@ public class NCBIReader {
         int skippedNoTaxId = 0;
         int skippedRank = 0;
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        SequenceRecordContainer<String, Character> container;
+        FutureSequenceRecords<String, Character> container;
 
         if (!output.toString().endsWith(".gz")) {
             output = output.resolveSibling(output.getFileName() + ".gz");
@@ -426,19 +438,10 @@ public class NCBIReader {
 //                }
                     header = ">%d".formatted(taxId);
 
-                    // Split the sequence by stop codons
-                    ArrayList<SequenceRecord<String, Character>> fastas = new ArrayList<>();
-                    for (String sequence : record.getSequenceString().split("\\*")) {
-                        fastas.add(SequenceRecord.AA(header, Utilities.enforceAlphabet(sequence)));
-                    }
-
-                    // Write the sequenceRecords to the output file
-                    for (SequenceRecord<String, Character> fasta2 : fastas) {
-                        bw.write(fasta2.id());
-                        bw.newLine();
-                        bw.write(fasta2.getSequenceString());
-                        bw.newLine();
-                    }
+                    bw.write(header);
+                    bw.newLine();
+                    bw.write(record.getSequenceString());
+                    bw.newLine();
                 }
             }
             progressBar.finish();

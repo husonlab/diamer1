@@ -1,10 +1,10 @@
-	date 	 2025-02-05T22:08:56.831776800
-	input file 	 C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa
-	output file 	 C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa
+	date 	 2025-02-17T15:21:58.211030200
+	input file 	 C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa
+	output file 	 C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 	processed sequenceRecords 	 7
 	kept sequenceRecords 	 6
 	skipped sequenceRecords without accession 	 1
 	skipped sequenceRecords with rank too high (superkingdom, phylum, family, kingdom, class, order) 	 0
 
 2 from root	4
-1 from root	2
+1 from root	3

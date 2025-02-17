@@ -2,7 +2,7 @@ package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.FastqIdReader;
-import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
+import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.util.logging.*;
@@ -85,9 +85,9 @@ public class ReadIndexer {
                 }
 
                 progressBar.setProgress(0);
-                SequenceRecordContainer<Integer, Byte>[] batch = new SequenceRecordContainer[BATCH_SIZE];
+                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[BATCH_SIZE];
                 int batchPosition = 0;
-                SequenceRecordContainer<Integer, Byte> container;
+                FutureSequenceRecords<Integer, Byte> container;
                 while ((container = sup.next()) != null) {
                     batch[batchPosition] = container;
                     progressBar.setProgress(sup.getBytesRead());
@@ -103,7 +103,7 @@ public class ReadIndexer {
                                         rangeStart,
                                         rangeEnd)
                         );
-                        batch = new SequenceRecordContainer[BATCH_SIZE];
+                        batch = new FutureSequenceRecords[BATCH_SIZE];
                         batchPosition = 0;
                     } else {
                         batchPosition++;

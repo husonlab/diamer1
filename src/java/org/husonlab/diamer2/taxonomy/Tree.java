@@ -597,7 +597,7 @@ public class Tree {
 
     /**
      * @param taxId Taxonomic ID
-     * @return Node with the input taxonomic ID
+     * @return Node with the input taxonomic ID or {@code null} if the tree does not contain the node
      */
     public Node getNode(int taxId) {
         return idMap.get(taxId);

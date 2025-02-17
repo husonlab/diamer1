@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.indexing;
 
-import org.husonlab.diamer2.io.seq.SequenceRecordContainer;
+import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.main.encoders.Encoder;
@@ -13,7 +13,7 @@ import java.util.concurrent.Phaser;
 public class FastqDNAProcessor implements Runnable {
 
     private final Phaser phaser;
-    private final SequenceRecordContainer<Integer, Byte>[] batch;
+    private final FutureSequenceRecords<Integer, Byte>[] batch;
     private final Encoder encoder;
     private final KmerExtractor kmerExtractor;
     private final ConcurrentLinkedQueue<Long>[] bucketLists;
@@ -22,7 +22,7 @@ public class FastqDNAProcessor implements Runnable {
 
     public FastqDNAProcessor(
             Phaser phaser,
-            SequenceRecordContainer<Integer, Byte>[] batch,
+            FutureSequenceRecords<Integer, Byte>[] batch,
             Encoder encoder,
             ConcurrentLinkedQueue<Long>[] bucketLists,
             int rangeStart,
@@ -39,7 +39,7 @@ public class FastqDNAProcessor implements Runnable {
     @Override
     public void run() {
         try {
-            for (SequenceRecordContainer<Integer, Byte> container : batch) {
+            for (FutureSequenceRecords<Integer, Byte> container : batch) {
                 for (SequenceRecord<Integer, Byte> record: container.getSequenceRecords()) {
                     if (record == null || record.sequence().length() < (15*3)) {
                         continue;

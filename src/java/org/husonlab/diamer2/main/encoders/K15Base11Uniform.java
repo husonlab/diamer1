@@ -1,7 +1,9 @@
 package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-import org.husonlab.diamer2.seq.alphabet.converter.*;
+import org.husonlab.diamer2.seq.converter.AAtoBase11Uniform;
+import org.husonlab.diamer2.seq.converter.Converter;
+import org.husonlab.diamer2.seq.converter.DNAtoBase11Uniform;
 
 /**
  * {@link Encoder} that uses a base 11 alphabet that is designed to have about the same likelihood for each of the 11

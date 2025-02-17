@@ -56,7 +56,7 @@ public class CompleteRunTest {
         Main.main(new String[]{"--preprocess", "-t", "12", "--debug",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(), db.toString(), dbPreprocessed.toString(),
                 ncbiAccession2Taxid.toString(), ncbiAccession2Taxid2.toString()});
-        Tree tree = NCBIReader.readTaxonomy(nodesDmp, namesDmp);
+        Tree tree = NCBIReader.readTaxonomy(nodesDmp, namesDmp, true);
 
         ArrayList<ExclusionRule> exclusionRules = new ArrayList<>();
         exclusionRules.add(new ExclusionRule("preprocessing_report.txt", new HashSet<>(List.of(1, 2, 3))));

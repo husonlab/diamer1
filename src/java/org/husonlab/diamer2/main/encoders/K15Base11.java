@@ -1,9 +1,9 @@
 package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-import org.husonlab.diamer2.seq.alphabet.converter.AAtoBase11;
-import org.husonlab.diamer2.seq.alphabet.converter.Converter;
-import org.husonlab.diamer2.seq.alphabet.converter.DNAtoBase11;
+import org.husonlab.diamer2.seq.converter.AAtoBase11;
+import org.husonlab.diamer2.seq.converter.Converter;
+import org.husonlab.diamer2.seq.converter.DNAtoBase11;
 
 /**
  * {@link Encoder} that uses the base 11 alphabet to encode kmers.
