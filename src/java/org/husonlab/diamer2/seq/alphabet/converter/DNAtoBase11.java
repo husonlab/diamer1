@@ -8,7 +8,6 @@ import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -81,7 +80,7 @@ public class DNAtoBase11 implements Converter<Character, Byte> {
             ArrayList<Byte> sequenceArrayList = new ArrayList<>();
             for (byte aa: sequence) {
                 if (aa == -1) {
-                    if (sequenceArrayList.size() > 0) {
+                    if (!sequenceArrayList.isEmpty()) {
                         sequencesArrayList.add(new Compressed4BitSequence(new Base11Alphabet(), sequenceArrayList.toArray(new Byte[0])));
                         sequenceArrayList = new ArrayList<>();
                     }
@@ -89,7 +88,7 @@ public class DNAtoBase11 implements Converter<Character, Byte> {
                     sequenceArrayList.add(aa);
                 }
             }
-            if (sequenceArrayList.size() > 0) {
+            if (!sequenceArrayList.isEmpty()) {
                 sequencesArrayList.add(new Compressed4BitSequence(new Base11Alphabet(), sequenceArrayList.toArray(new Byte[0])));
             }
         }

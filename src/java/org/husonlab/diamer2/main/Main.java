@@ -10,6 +10,7 @@ import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.encoders.K15Base11Nuc;
+import org.husonlab.diamer2.main.encoders.K15Base11Uniform;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
@@ -164,6 +165,12 @@ public class Main {
         );
         options.addOption(
                 Option.builder()
+                        .longOpt("uniform")
+                        .desc("Uses a uniform amino acid alphabet.")
+                        .build()
+        );
+        options.addOption(
+                Option.builder()
                         .longOpt("debug")
                         .desc("Run in debug mode")
                         .build()
@@ -266,8 +273,9 @@ public class Main {
         Path output = getFolder(cli.getArgs()[1], false);
 
         Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last());
-        Encoder encoder = cli.hasOption("nucleotide") ?
-                new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS) : new K15Base11(mask, globalSettings.BITS_FOR_IDS);
+        Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
+        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
+        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
         DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, bucketsPerCycle, globalSettings);
         try {
             dbIndexer.index();
@@ -282,8 +290,9 @@ public class Main {
         boolean[] mask = getMask(cli);
         Path reads = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
-        Encoder encoder = cli.hasOption("nucleotide") ?
-                new K15Base11(mask, globalSettings.BITS_FOR_IDS) : new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);
+        Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
+        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
+        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
         ReadIndexer readIndexer = new ReadIndexer(
                 reads, output, encoder, bucketsPerCycle, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
                 globalSettings.SEQUENCE_BATCH_SIZE, globalSettings.KEEP_IN_MEMORY);

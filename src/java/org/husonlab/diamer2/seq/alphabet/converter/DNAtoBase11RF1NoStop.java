@@ -25,14 +25,13 @@ public class DNAtoBase11RF1NoStop implements Converter<Character, Byte> {
         if (sequence.length() < 3) {
             return new Sequence[0];
         }
-        StringBuilder triplet = new StringBuilder();
         // Setup byte array for each reading frame
         byte[] translation = new byte[Math.floorDiv(sequence.length(), 3)];
 
         for (int i = 2; i < sequence.length(); i += 3) {
             byte[] encoding = encodeDNA(String.valueOf(sequence.get(i - 2)) + sequence.get(i - 1) + sequence.get(i));
             // Forward reading frame
-            translation[i] = encoding[0];
+            translation[(i - 2) / 3] = encoding[0];
         }
         return new Sequence[]{new Compressed4BitSequence(new Base11Alphabet(), translation)};
     }

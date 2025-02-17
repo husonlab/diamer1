@@ -277,6 +277,9 @@ zip -r output.zip input/
   * Z: glutamic acid or glutamine: together with E and Q
   * O: pyrrolysine: together with lysine
 
+# alternative reduced alphabet
+1. L
+2. A
 
 # Benchmarking
 ## kmer - taxon rank mapping
