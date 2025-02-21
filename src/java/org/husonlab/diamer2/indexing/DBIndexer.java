@@ -45,7 +45,7 @@ public class DBIndexer {
         this.fastaFile = fastaFile;
         this.encoder = encoder;
         this.indexDir = indexDir;
-        this.IndexIO = new DBIndexIO(indexDir);
+        this.IndexIO = new DBIndexIO(indexDir, 1024);
         this.tree = tree;
         this.bucketsPerCycle = bucketsPerCycle;
         this.MAX_THREADS = settings.MAX_THREADS;
@@ -77,7 +77,7 @@ public class DBIndexer {
 
         int processedFastas = 0;
 
-        try (SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getDBConverter(), KEEP_IN_MEMORY)) {
+        try (SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getDBConverter(), KEEP_IN_MEMORY)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("sequences");

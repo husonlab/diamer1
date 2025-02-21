@@ -16,7 +16,7 @@ import java.util.LinkedList;
  *     A List of the original headers can be obtained with {@link #getHeaders()}.
  * </p>
  */
-public class FastqIdReader extends SequenceReader<Integer, String> {
+public class FastqIdReader extends SequenceReader<Integer, Character> {
 
     /**
      * List to store the headers of the sequences during reading.

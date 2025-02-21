@@ -11,6 +11,11 @@
   2. options to keep sequenceRecords in memory
   3. keep kmers (feasible?) or 20 letter encoding in memory to safe time
 
+# Spaced Seeds
+* -: 111111111111111
+* longspaced: 11111101101100111000100001
+* [Zhang et al.](https://doi.org/10.1093/bioinformatics/bth037): 11110010101011001101111
+
 # Future:
 * Refactor SequenceSupplier
 * Set up benchmarking framework to test different assignment algorithms 

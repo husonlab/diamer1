@@ -30,8 +30,8 @@ public class ReadAssigner {
      */
     public ReadAssigner(Path dbIndexPath, Path readsIndexPath, Encoder encoder, GlobalSettings settings) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
-        this.dbIndex = new DBIndexIO(dbIndexPath);
-        this.readsIndex = new ReadIndexIO(readsIndexPath);
+        this.dbIndex = new DBIndexIO(dbIndexPath, 1024);
+        this.readsIndex = new ReadIndexIO(readsIndexPath, 1024);
         this.encoder = encoder;
         this.settings = settings;
         if (readsIndex.readHeaderMappingExists()) {
@@ -58,7 +58,7 @@ public class ReadAssigner {
     public ReadAssignment assignReads() {
         logger.logInfo("Searching kmer matches ...");
         ProgressBar progressBar = new ProgressBar(encoder.getNumberOfBuckets(), 20);
-        Logger progressBarLogger = new OneLineLogger("ReadAssigner", 1000)
+        new OneLineLogger("ReadAssigner", 1000)
                 .addElement(new RunningTime())
                 .addElement(progressBar);
 

@@ -3,19 +3,30 @@ package org.husonlab.diamer2.io.indexing;
 import org.husonlab.diamer2.indexing.Bucket;
 
 import java.io.*;
+import java.nio.file.Path;
 
+/**
+ * Class to handle IO operations on bucket files / objects.
+ */
 public class BucketIO {
-    private final File file;
+    private final Path file;
     private final int name;
 
-    public BucketIO(File file, int name) {
+    public BucketIO(Path file, int name) {
         this.file = file;
         this.name = name;
     }
 
+    /**
+     * Reads the content of the bucket from the file.
+     * @return a new {@link Bucket} object with the content of the file
+     */
     public Bucket read() throws IOException {
+        if (!file.toFile().exists()) {
+            throw new FileNotFoundException("Tried to read non-existing bucket file: " + file.toFile().getName());
+        }
         long[] content;
-        try (FileInputStream fis = new FileInputStream(file);
+        try (FileInputStream fis = new FileInputStream(file.toString());
              DataInputStream dis = new DataInputStream(fis)) {
             int length = dis.readInt();
             content = new long[length];
@@ -26,9 +37,13 @@ public class BucketIO {
         return new Bucket(name, content);
     }
 
+    /**
+     * Writes the content of the bucket to the file.
+     * @param bucket the bucket to write
+     */
     public void write(Bucket bucket) throws IOException {
         long[] content = bucket.getContent();
-        try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file)))) {
+        try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file.toString())))) {
             dos.writeInt(content.length);
             for (long l : content) {
                 dos.writeLong(l);
@@ -40,14 +55,23 @@ public class BucketIO {
         return name;
     }
 
+    /**
+     * Checks if the bucket file exists.
+     */
     public boolean exists() {
-        return file.exists();
+        return file.toFile().exists();
     }
 
+    /**
+     * Returns a new {@link BucketReader} object for reading the content of the bucket.
+     */
     public BucketReader getBucketReader() {
         return new BucketReader(file);
     }
 
+    /**
+     * Reader to read a bucket file long by long.
+     */
     public static class BucketReader implements AutoCloseable {
 
         private final FileInputStream fis;
@@ -55,17 +79,17 @@ public class BucketIO {
         private final int length;
         private int position = 0;
 
-        public BucketReader(File file) {
+        public BucketReader(Path file) {
             try {
-                fis = new FileInputStream(file);
+                fis = new FileInputStream(file.toString());
                 dis = new DataInputStream(new BufferedInputStream(fis));
             } catch (Exception e) {
-                throw new RuntimeException("Could not open bucket file " + file.getName(), e);
+                throw new RuntimeException("Could not open bucket file " + file.toFile().getName(), e);
             }
             try {
                 length = dis.readInt();
             } catch (Exception e) {
-                throw new RuntimeException("Could not read length of bucket file " + file.getName(), e);
+                throw new RuntimeException("Could not read length of bucket file " + file.toFile().getName(), e);
             }
         }
 
@@ -73,6 +97,11 @@ public class BucketIO {
             return position < length;
         }
 
+        /**
+         * Reads the next long from the bucket file.
+         * @return the next long
+         * @throws RuntimeException if the end of the bucket is reached
+         */
         public long next() {
             if (position >= length) {
                 throw new RuntimeException("BucketReader: end of bucket reached");
@@ -91,6 +120,9 @@ public class BucketIO {
             fis.close();
         }
 
+        /**
+         * @return the number of longs in the bucket.
+         */
         public int getLength() {
             return length;
         }

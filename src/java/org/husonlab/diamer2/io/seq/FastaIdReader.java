@@ -12,7 +12,7 @@ import java.nio.file.Path;
  *     The headers of the FASTA file must only contain an integer id or an exception will be thrown.
  * </p>
  */
-public class FastaIdReader extends SequenceReader<Integer, String> {
+public class FastaIdReader extends SequenceReader<Integer, Character> {
 
     public FastaIdReader(Path file) {
         super(file);

@@ -11,19 +11,30 @@ public class DBIndexIO extends IndexIO {
 
     /**
      * Create a new IndexIO object.
+     *
      * @param indexFolder path to the index folder
-     *                    is missing
+     * @param nrOfBuckets number of buckets
      */
-    public DBIndexIO(Path indexFolder) {
-        super(indexFolder);
+    public DBIndexIO(Path indexFolder, int nrOfBuckets) {
+        super(indexFolder, nrOfBuckets);
         this.tree = indexFolder.resolve("tree.txt");
     }
 
+    /**
+     * Checks if a file containing the taxonomic tree exists in the index folder.
+     */
     public boolean treeExists() {
         return tree.toFile().exists();
     }
 
+    /**
+     * Reads in the taxonomic tree of the index.
+     * @return the taxonomic tree.
+     */
     public Tree getTree() {
+        if (!treeExists()) {
+            throw new RuntimeException("Tried to read non existing tree file: " + tree);
+        }
         return TreeIO.loadTree(tree);
     }
 }

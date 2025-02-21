@@ -3,6 +3,7 @@ package org.husonlab.diamer2.io.accessionMapping;
 import org.husonlab.diamer2.io.CountingInputStream;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -12,16 +13,37 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
+/**
+ * Class to handle NCBI taxmapping files (accession2taxid).
+ */
 public class NCBIMapping extends AccessionMapping {
 
     private final Logger logger;
+    /**
+     * Whether a neededAccessions HashMap was provided to limit the size of the resulting HashMap.
+     */
+    private final boolean filterAccessions;
     private final HashMap<String, Integer> accessionMap;
     private final Tree tree;
 
-    public NCBIMapping(Iterable<Path> ncbiMappingFiles, Tree tree, HashMap<String, Integer> neededAccessions) {
+    /**
+     * Constructor for NCBIMapping.
+     * @param ncbiMappingFiles List of paths to the gzipped NCBI mapping files.
+     * @param tree A taxonomic tree to check if the taxIDs are in the tree and to find the LCA in the unlikely case that
+     *             the same accession maps to different taxIDs.
+     * @param neededAccessions A HashMap that already contains the accessions that are needed as keys to limit the size
+     *                         of the resulting HashMap (the mapping files can be quite large).
+     */
+    public NCBIMapping(Iterable<Path> ncbiMappingFiles, Tree tree, @Nullable HashMap<String, Integer> neededAccessions) {
         logger = new Logger("NCBIMapping");
         logger.addElement(new Time());
-        accessionMap = neededAccessions;
+        if (neededAccessions == null) {
+            accessionMap = new HashMap<>();
+            filterAccessions = false;
+        } else {
+            accessionMap = neededAccessions;
+            filterAccessions = true;
+        }
         this.tree = tree;
 
         for (Path ncbiMappingFile : ncbiMappingFiles) {
@@ -45,7 +67,14 @@ public class NCBIMapping extends AccessionMapping {
         return taxIds;
     }
 
-    public void readAccessionMap(Path ncbiMappingFile) {
+    /**
+     * Reads the accessions from one gzipped mapping file and adds them to the HashMap.
+     * <p>
+     *     The file must be tab separated and have the following columns: "accession"/"accession.version", "taxid".
+     * </p>
+     * @param ncbiMappingFile Path to the NCBI mapping file.
+     */
+    private void readAccessionMap(Path ncbiMappingFile) {
         ProgressBar progressBar = new ProgressBar(ncbiMappingFile.toFile().length(), 20);
         ProgressLogger progressLogger = new ProgressLogger("Accessions");
         new OneLineLogger("NCBIMapping", 500)
@@ -54,27 +83,30 @@ public class NCBIMapping extends AccessionMapping {
                 .addElement(progressLogger);
 
         try (FileInputStream fis = new FileInputStream(ncbiMappingFile.toFile());
-             GZIPInputStream gis = new GZIPInputStream(fis);
-             CountingInputStream cis = new CountingInputStream(gis);
-             BufferedReader br = new BufferedReader(new InputStreamReader(cis))) {
+             CountingInputStream cis = new CountingInputStream(fis);
+             GZIPInputStream gis = new GZIPInputStream(cis);
+             BufferedReader br = new BufferedReader(new InputStreamReader(gis))) {
             String line = br.readLine();
             ArrayList<String> header = new ArrayList<>(List.of(line.toLowerCase().split("\t")));
             int accessionCol = header.contains("accession") ? header.indexOf("accession") : header.indexOf("accession.version");
             int taxIdCol = header.indexOf("taxid");
+            if (accessionCol == -1 || taxIdCol == -1) {
+                throw new RuntimeException("NCBI mapping file does not contain the necessary columns (accession/accession.version, taxid).");
+            }
             long i = 0;
             while ((line = br.readLine()) != null) {
                 String[] values = line.split("\t");
                 String accession = removeVersion(values[accessionCol]);
                 int taxId = Integer.parseInt(values[taxIdCol]);
-                // only add accessions, if the tax_id is in the tree and the accession is needed
-                if (accessionMap.containsKey(accession) && tree.idMap.containsKey(taxId)) {
-                    if (accessionMap.get(accession) == -1) {
+                // only add accessions if the tax_id is in the tree, and the accession is needed
+                if (tree.idMap.containsKey(taxId) && (!filterAccessions || accessionMap.containsKey(accession))) {
+                    if (!accessionMap.containsKey(accession) || accessionMap.get(accession) == -1) {
                         accessionMap.put(accession, taxId);
                     } else {
                         accessionMap.put(accession, tree.findLCA(taxId, accessionMap.get(accession)));
                     }
                 }
-                progressBar.setProgress((long)(cis.getBytesRead()/6.5));
+                progressBar.setProgress(cis.getBytesRead());
                 progressLogger.setProgress(++i);
             }
             progressBar.finish();

@@ -245,7 +245,7 @@ public class Main {
         for (int i = 2; i < cli.getArgs().length; i++) {
             mappingFiles.add(getFile(cli.getArgs()[i], true));
         }
-        try (SequenceSupplier<String, Character> sequenceSupplier = new SequenceSupplier<>(
+        try (SequenceSupplier<String, Character, Character> sequenceSupplier = new SequenceSupplier<>(
                 new FastaReader(database), new EnforceAA(), globalSettings.KEEP_IN_MEMORY)) {
             Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
             if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
@@ -322,6 +322,7 @@ public class Main {
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.6f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.9f));
+        assignment.runAssignmentAlgorithm(new OVO(tree, 1f));
         ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
         TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
         TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));

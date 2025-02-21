@@ -34,7 +34,7 @@ public class ReadIndexer {
         this.logger = new Logger("ReadIndexer");
         logger.addElement(new Time());
         this.fastqFile = fastqFile;
-        this.readIndexIO = new ReadIndexIO(indexDir);
+        this.readIndexIO = new ReadIndexIO(indexDir, 1024);
         this.encoder = encoder;
         this.bucketsPerCycle = bucketsPerCycle;
         this.MAX_THREADS = MAX_THREADS;
@@ -60,7 +60,7 @@ public class ReadIndexer {
         Phaser indexPhaser = new Phaser(1);
 
         try (FastqIdReader fastqIdReader = new FastqIdReader(fastqFile);
-             SequenceSupplier<Integer, Byte> sup = new SequenceSupplier<>(fastqIdReader, encoder.getReadConverter(), KEEP_IN_MEMORY)) {
+             SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(fastqIdReader, encoder.getReadConverter(), KEEP_IN_MEMORY)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             Message progressMessage = new Message("");

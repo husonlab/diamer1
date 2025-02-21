@@ -44,20 +44,18 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
      * Reads over the file until the next sequence is found and returns it.
      * @return SequenceRecord with the header and the sequence
      */
-    public abstract SequenceRecord<H, Character> next() throws IOException;
-
-    public abstract SequenceRecord<H, S> nextSequence() throws IOException;
+    public abstract SequenceRecord<H, S> next() throws IOException;
 
     /**
      * Reads the next n sequences from the file and returns them.
      * @param n Number of sequences to read
      * @return List of {@link SequenceRecord}s
      */
-    public ArrayList<SequenceRecord<H, Character>> next(int n) throws IOException {
+    public ArrayList<SequenceRecord<H, S>> next(int n) throws IOException {
         sequencesRead += n;
-        ArrayList<SequenceRecord<H, Character>> sequenceRecords = new ArrayList<>();
+        ArrayList<SequenceRecord<H, S>> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            SequenceRecord<H, Character> seq = next();
+            SequenceRecord<H, S> seq = next();
             if (seq == null) {
                 break;
             }
@@ -65,8 +63,6 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
         }
         return sequenceRecords;
     }
-
-    public abstract ArrayList<SequenceRecord<H, S>> nextSequences(int n) throws IOException;
 
     /**
      * (Re)opens the sequence file for reading.

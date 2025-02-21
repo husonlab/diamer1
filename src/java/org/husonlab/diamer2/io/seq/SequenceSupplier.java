@@ -22,19 +22,19 @@ import java.util.LinkedList;
  *     sequences.
  * </p>
  * @param <H> Type of the header of the sequence (determined by the {@link SequenceReader})
- * @param <S> Type of the sequence (determined by the {@link Converter} or the {@link SequenceReader} if no converter is
+ * @param <C> Type of the sequence (determined by the {@link Converter} or the {@link SequenceReader} if no converter is
  *           supplied)
  */
-public class SequenceSupplier<H, S> implements AutoCloseable {
+public class SequenceSupplier<H, S, C> implements AutoCloseable {
     /**
      * List to keep the (future) sequence records in memory.
      */
-    private final LinkedList<MemoryEntry<H, S>> FutureSequenceBuffer;
-    private final SequenceReader<H, String> sequenceReader;
-    private final Converter<Character, S> converter;
+    private final LinkedList<MemoryEntry<H, C>> FutureSequenceBuffer;
+    private final SequenceReader<H, S> sequenceReader;
+    private final Converter<S, C> converter;
     private final boolean keepInMemory;
     private boolean finishedReading;
-    private Iterator<MemoryEntry<H, S>> iterator;
+    private Iterator<MemoryEntry<H, C>> iterator;
     private long bytesRead;
     private int sequencesRead;
 
@@ -43,7 +43,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      * @param converter Converter to convert the sequences to a different alphabet
      * @param keepInMemory Whether to keep the sequences in memory or not
      */
-    public SequenceSupplier(@NotNull SequenceReader<H, String> sequenceReader, @Nullable Converter<Character, S> converter, boolean keepInMemory) {
+    public SequenceSupplier(@NotNull SequenceReader<H, S> sequenceReader, @Nullable Converter<S, C> converter, boolean keepInMemory) {
         this.sequenceReader = sequenceReader;
         this.converter = converter;
         this.keepInMemory = keepInMemory;
@@ -65,12 +65,12 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      * @return {@link FutureSequenceRecords} containing potentially multiple {@link SequenceRecord}s depending on the
      *         {@link Converter} or {@code null} if one iteration over the sequences is finished.
      */
-    public FutureSequenceRecords<H, S> next() throws IOException {
+    public FutureSequenceRecords<H, C> next() throws IOException {
         if (keepInMemory) {
             if (iterator != null) {
                 if (iterator.hasNext()) {
                     // case: All sequences are already in memory
-                    MemoryEntry<H, S> entry = iterator.next();
+                    MemoryEntry<H, C> entry = iterator.next();
                     sequencesRead = entry.sequencesRead;
                     bytesRead = entry.bytesRead;
                     return entry.futureSequenceRecords;
@@ -84,14 +84,14 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                     // but the reset() method has not been called.
                     return null;
                 } else {
-                    SequenceRecord<H, Character> sequenceRecord;
+                    SequenceRecord<H, S> sequenceRecord;
                     if ((sequenceRecord = sequenceReader.next()) != null) {
                         // case: First iteration
                         bytesRead = sequenceReader.getBytesRead();
                         sequencesRead++;
-                        MemoryEntry<H, S> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
+                        MemoryEntry<H, C> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
                         FutureSequenceBuffer.add(entry);
-                        FutureSequenceRecords<H, S> futureSequenceRecords = getToBeTranslatedContainer(converter, sequenceRecord, entry);
+                        FutureSequenceRecords<H, C> futureSequenceRecords = getToBeTranslatedContainer(converter, sequenceRecord, entry);
                         entry.futureSequenceRecords = futureSequenceRecords;
                         return futureSequenceRecords;
                     } else {
@@ -102,7 +102,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                 }
             }
         } else {
-            SequenceRecord<H, Character> sequenceRecord;
+            SequenceRecord<H, S> sequenceRecord;
             if ((sequenceRecord = sequenceReader.next()) == null) {
                 // case: End of file
                 return null;
@@ -127,24 +127,24 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      *              stored after conversion
      * @return {@link FutureSequenceRecords} containing the input {@link SequenceRecord}.
      */
-    public FutureSequenceRecords<H, S> getToBeTranslatedContainer(
-            Converter<Character, S> converter, SequenceRecord<H, Character> sequenceRecord, MemoryEntry<H, S> entry) {
-        return new FutureSequenceRecords<H, S>() {
+    private FutureSequenceRecords<H, C> getToBeTranslatedContainer(
+            Converter<S, C> converter, SequenceRecord<H, S> sequenceRecord, MemoryEntry<H, C> entry) {
+        return new FutureSequenceRecords<H, C>() {
             @Override
-            public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
-                LinkedList<SequenceRecord<H, S>> sequenceRecords = new LinkedList<>();
+            public LinkedList<SequenceRecord<H, C>> getSequenceRecords() {
+                LinkedList<SequenceRecord<H, C>> sequenceRecords = new LinkedList<>();
                 if (converter != null) {
                     H header = sequenceRecord.id();
-                    for (Sequence<S> sequence : converter.convert(sequenceRecord.sequence())) {
+                    for (Sequence<C> sequence : converter.convert(sequenceRecord.sequence())) {
                         sequenceRecords.add(new SequenceRecord<>(header, sequence));
                     }
                 } else {
-                    sequenceRecords.add((SequenceRecord<H, S>) sequenceRecord);
+                    sequenceRecords.add((SequenceRecord<H, C>) sequenceRecord);
                 }
                 if (entry != null) {
-                    entry.futureSequenceRecords = new FutureSequenceRecords<H, S>() {
+                    entry.futureSequenceRecords = new FutureSequenceRecords<H, C>() {
                         @Override
-                        public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
+                        public LinkedList<SequenceRecord<H, C>> getSequenceRecords() {
                             return sequenceRecords;
                         }
                     };

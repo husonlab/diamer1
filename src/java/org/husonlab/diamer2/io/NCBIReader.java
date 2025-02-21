@@ -4,7 +4,6 @@ import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.Utilities;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 import org.jetbrains.annotations.NotNull;
@@ -157,7 +156,7 @@ public class NCBIReader {
      * @return a HashMap with the accessions as keys and -1 as values
      */
     public static HashMap<String, Integer> extractAccessions(
-            SequenceSupplier<String, ?> sequenceSupplier) throws IOException {
+            SequenceSupplier<String, Character, ?> sequenceSupplier) throws IOException {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Estimating number of sequenceRecords in database...");
         int numberOfSequencesEst = sequenceSupplier.approximateNumberOfSequences();
@@ -191,7 +190,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sup) throws IOException {
+    public static void preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
 
@@ -359,7 +358,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character> sup) throws IOException {
+    public static void preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
