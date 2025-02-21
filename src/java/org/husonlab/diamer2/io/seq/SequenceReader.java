@@ -18,7 +18,7 @@ import java.util.zip.GZIPInputStream;
  * </p>
  * @param <H> Type of the header
  */
-public abstract class SequenceReader<H> implements AutoCloseable {
+public abstract class SequenceReader<H, S> implements AutoCloseable {
 
     protected final Path file;
     protected long fileSize;
@@ -46,6 +46,8 @@ public abstract class SequenceReader<H> implements AutoCloseable {
      */
     public abstract SequenceRecord<H, Character> next() throws IOException;
 
+    public abstract SequenceRecord<H, S> nextSequence() throws IOException;
+
     /**
      * Reads the next n sequences from the file and returns them.
      * @param n Number of sequences to read
@@ -63,6 +65,8 @@ public abstract class SequenceReader<H> implements AutoCloseable {
         }
         return sequenceRecords;
     }
+
+    public abstract ArrayList<SequenceRecord<H, S>> nextSequences(int n) throws IOException;
 
     /**
      * (Re)opens the sequence file for reading.

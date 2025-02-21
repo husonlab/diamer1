@@ -27,10 +27,10 @@ import java.util.LinkedList;
  */
 public class SequenceSupplier<H, S> implements AutoCloseable {
     /**
-     * List to keep the sequence records in memory.
+     * List to keep the (future) sequence records in memory.
      */
-    private final LinkedList<MemoryEntry<H, S>> sequenceRecordContainers;
-    private final SequenceReader<H> sequenceReader;
+    private final LinkedList<MemoryEntry<H, S>> FutureSequenceBuffer;
+    private final SequenceReader<H, String> sequenceReader;
     private final Converter<Character, S> converter;
     private final boolean keepInMemory;
     private boolean finishedReading;
@@ -43,25 +43,24 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      * @param converter Converter to convert the sequences to a different alphabet
      * @param keepInMemory Whether to keep the sequences in memory or not
      */
-    public SequenceSupplier(@NotNull SequenceReader<H> sequenceReader, @Nullable Converter<Character, S> converter, boolean keepInMemory) {
+    public SequenceSupplier(@NotNull SequenceReader<H, String> sequenceReader, @Nullable Converter<Character, S> converter, boolean keepInMemory) {
         this.sequenceReader = sequenceReader;
         this.converter = converter;
         this.keepInMemory = keepInMemory;
-        this.sequenceRecordContainers = new LinkedList<>();
+        this.FutureSequenceBuffer = new LinkedList<>();
         this.finishedReading = false;
         this.bytesRead = 0;
         this.sequencesRead = 0;
     }
 
     /**
-     * Reads the next sequence record from the input file or gets it from the memory.
+     * Reads the next sequence record from the input file or gets it from the buffer of this class.
      * <p>
-     *     The method returns a {@link FutureSequenceRecords} isntead of a single {@link SequenceRecord}, because
+     *     The method returns a {@link FutureSequenceRecords} instead of a single {@link SequenceRecord}, because
      *     the converters potentially convert a single sequence into multiple sequences. The conversion itself is only
      *     performed once the {@link FutureSequenceRecords#getSequenceRecords()} method is called. In case the
-     *     sequences should be stored in memory this call also stores the converted sequences in the linked list of
-     *     this class. Consequently, the {@link FutureSequenceRecords#getSequenceRecords()} method must be called to
-     *     store the converted sequences in memory.
+     *     sequences should be stored in memory this call also replaces the FutureSequenceRecord in the buffer with the
+     *     converted sequence record so that conversion is only performed once.
      * </p>
      * @return {@link FutureSequenceRecords} containing potentially multiple {@link SequenceRecord}s depending on the
      *         {@link Converter} or {@code null} if one iteration over the sequences is finished.
@@ -91,8 +90,10 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                         bytesRead = sequenceReader.getBytesRead();
                         sequencesRead++;
                         MemoryEntry<H, S> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
-                        sequenceRecordContainers.add(entry);
-                        return getToBeTranslatedContainer(converter, sequenceRecord, entry);
+                        FutureSequenceBuffer.add(entry);
+                        FutureSequenceRecords<H, S> futureSequenceRecords = getToBeTranslatedContainer(converter, sequenceRecord, entry);
+                        entry.futureSequenceRecords = futureSequenceRecords;
+                        return futureSequenceRecords;
                     } else {
                         // case: First return of null during first iteration
                         finishedReading = true;
@@ -161,9 +162,9 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
         sequencesRead = 0;
         bytesRead = 0;
         if (keepInMemory && finishedReading) {
-            iterator = sequenceRecordContainers.iterator();
+            iterator = FutureSequenceBuffer.iterator();
         } else {
-            sequenceRecordContainers.clear();
+            FutureSequenceBuffer.clear();
             finishedReading = false;
             sequenceReader.reset();
         }

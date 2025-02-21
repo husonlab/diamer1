@@ -1,4 +1,4 @@
-2025-02-17T15:26:37.264704200
+2025-02-20T10:18:26.110590300
 input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index
 processed sequenceRecords: 7

@@ -9,7 +9,7 @@ import java.nio.file.Path;
 /**
  * Class for reading {@link SequenceRecord}s with string headers and sequences from a file in FASTA format.
  */
-public class FastaReader extends SequenceReader<String> {
+public class FastaReader extends SequenceReader<String, String> {
 
     /**
      * @param file Path to the file (gzipped or not) to read from

@@ -67,7 +67,7 @@ public class TreeIO {
     }
 
     /**
-     * Save the tree as connection table.
+     * Save the tree as connection table with all node properties.
      * <p>
      *     The table is ordered from root to leaves so that it is possible to parse it in one iteration.
      * </p>

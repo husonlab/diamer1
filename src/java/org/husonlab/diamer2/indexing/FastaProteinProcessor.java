@@ -43,7 +43,7 @@ public class FastaProteinProcessor implements Runnable {
         try {
             for (FutureSequenceRecords<Integer, Byte> container : containers) {
                 for (SequenceRecord<Integer, Byte> record: container.getSequenceRecords()) {
-                    if (record == null || record.sequence().length() < kmerExtractor.getK()) {
+                    if (record == null || record.sequence().length() < kmerExtractor.getK() || !tree.hasNode(record.id())) {
                         continue;
                     }
                     Sequence<Byte> sequence = record.sequence();
