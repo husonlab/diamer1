@@ -2,10 +2,17 @@ package org.husonlab.diamer2.indexing;
 
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * Class that provides methods for the sorting of kmer encodings within buckets.
+ */
 public class Sorting {
-    // todo: change to be able to adjust the number of bits that are used for sorting flexibly
+
     /**
      * Sorts a long array by its most significant N bits.
+     * <p>
+     *     Actually, N is rounded up to the next multiple of 16, so the array might be sorted by more than only the most
+     *     significant N bits.
+     * </p>
      * @param input Array to sort.
      * @param nBits Number of bits to sort by.
      * @return Array sorted by the most significant N bits.

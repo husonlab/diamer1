@@ -10,8 +10,6 @@ import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
@@ -166,11 +164,8 @@ public class ReadAssignment {
     public void runAssignmentAlgorithm(AssignmentAlgorithm algorithm) {
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 settings.MAX_THREADS,
-                settings.MAX_THREADS,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(500),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+                settings.MAX_THREADS, settings.QUEUE_SIZE,
+                1, logger);
 
         logger.logInfo("Running assignment algorithm: " + algorithm.getName());
         ProgressBar progressBar = new ProgressBar(size, 20);

@@ -1,3 +1,8 @@
+# Major bugfixes, that require to recalculate test results:
+* 24.02.2025:
+  * Fixed error in read length threshold that would prevent translated protein sequences < 45 amino acids from being used
+  * 
+
 # Changes since last meeting:
 * Added spaced seeds
 * Added support for the megan mapping file

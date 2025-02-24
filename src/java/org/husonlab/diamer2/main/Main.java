@@ -7,6 +7,7 @@ import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
 import org.husonlab.diamer2.io.seq.FastaReader;
+import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.encoders.K15Base11Nuc;
@@ -213,8 +214,9 @@ public class Main {
             printHelp(options);
             System.exit(1);
         }
+        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : maxThreads;
         GlobalSettings globalSettings = new GlobalSettings(
-                maxThreads, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"));
+                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"));
 
         if (cli.hasOption("preprocess")) {
             preprocess(globalSettings, cli);
@@ -239,6 +241,8 @@ public class Main {
         if (!output.toString().endsWith(".gz")) {
             output = output.getParent().resolve(output.getFileName() + ".gz");
         }
+        writeLogBegin(globalSettings, output.getParent().resolve("run.log"));
+        String runInfo;
 
         AccessionMapping accessionMapping;
         ArrayList<Path> mappingFiles = new ArrayList<>();
@@ -250,7 +254,7 @@ public class Main {
             Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
             if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
                 accessionMapping = new MeganMapping(mappingFiles.getFirst());
-                NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
+                runInfo = NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
             } else {
                 HashMap<String, Integer> accession2Taxid = NCBIReader.extractAccessions(sequenceSupplier);
                 accessionMapping = new NCBIMapping(
@@ -258,17 +262,18 @@ public class Main {
                         tree,
                         accession2Taxid);
                 sequenceSupplier.reset();
-                NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
+                runInfo = NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
             }
         } catch (IOException e) {
+            writeLogEnd(e.toString(), output.getParent().resolve("run.log"));
             throw new RuntimeException(e);
         }
+        writeLogEnd(runInfo, output.getParent().resolve("run.log"));
     }
 
     private static void indexdb(GlobalSettings globalSettings, CommandLine cli) {
         Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
         checkNumberOfPositionalArguments(cli, 2);
-        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : globalSettings.MAX_THREADS;
         boolean[] mask = getMask(cli);
         Path database = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
@@ -277,27 +282,31 @@ public class Main {
         Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
         if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
         if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
-        DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, bucketsPerCycle, globalSettings);
+
+        writeLogBegin(globalSettings, output.resolve("run.log"));
+        String runInfo;
+
+        DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, globalSettings.BUCKETS_PER_CYCLE, globalSettings);
         try {
-            dbIndexer.index();
+            runInfo = dbIndexer.index();
         } catch (IOException e) {
+            writeLogEnd(e.toString(), output.resolve("run.log"));
             throw new RuntimeException(e);
         }
+        writeLogEnd(runInfo, output.resolve("run.log"));
     }
 
     private static void indexreads(GlobalSettings globalSettings, CommandLine cli) {
         checkNumberOfPositionalArguments(cli, 2);
-        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : globalSettings.MAX_THREADS;
         boolean[] mask = getMask(cli);
         Path reads = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
         Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
         if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
         if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
-        ReadIndexer readIndexer = new ReadIndexer(
-                reads, output, encoder, bucketsPerCycle, globalSettings.MAX_THREADS, 2 * globalSettings.MAX_THREADS,
-                globalSettings.SEQUENCE_BATCH_SIZE, globalSettings.KEEP_IN_MEMORY);
-        try {
+        try (FastqIdReader fastQIdReader = new FastqIdReader(reads);
+             SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(fastQIdReader, encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
+            ReadIndexer readIndexer = new ReadIndexer( sup, fastQIdReader, output, encoder, globalSettings);
             readIndexer.index();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -338,6 +347,32 @@ public class Main {
         helpFormatter.setOptionComparator(null);
         helpFormatter.printHelp("diamer2 {--preprocess | --indexdb | --assignreads | --statistics} " +
                 "[options] <input> <output>", options);
+    }
+
+    /**
+     * Write a logfile with the command line arguments, version and date.
+     */
+    private static void writeLogBegin(GlobalSettings settings, Path out) {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(out.toFile())))) {
+            writer.print(settings.toString());
+            writer.println("Start: " + java.time.LocalDateTime.now());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Append the end time to a logfile.
+     */
+    private static void writeLogEnd(String runInfo, Path out) {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(out.toFile(), true)))) {
+            writer.println("End: " + java.time.LocalDateTime.now());
+            writer.println();
+            writer.print(runInfo);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 
     /**

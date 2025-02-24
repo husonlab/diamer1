@@ -65,11 +65,8 @@ public class ReadAssigner {
         final ReadAssignment readAssignment = new ReadAssignment(tree, readHeaderMapping, settings);
         ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 settings.MAX_THREADS,
-                settings.MAX_THREADS,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(1024),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+                settings.MAX_THREADS, settings.QUEUE_SIZE,
+                1, logger);
 
         int bucketsSkipped = 0;
 

@@ -61,17 +61,12 @@ public class DBIndexer {
      * IndexIO a Sequence database and write the indexed buckets to files.
      * @throws IOException If an error occurs during reading the database or writing the buckets.
      */
-    public DBIndexIO index() throws IOException {
+    public String index() throws IOException {
         logger.logInfo("Indexing " + fastaFile + " to " + indexDir);
         tree.addNodeLongProperty("kmers in database", 0);
 
-        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
-                MAX_THREADS,
-                MAX_THREADS,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
-                new ThreadPoolExecutor.CallerRunsPolicy());
+        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(MAX_THREADS,
+                MAX_THREADS, MAX_QUEUE_SIZE, 1, logger);
 
         Phaser indexPhaser = new Phaser(1);
 
@@ -180,7 +175,6 @@ public class DBIndexer {
         TreeIO.saveTree(tree, indexDir.resolve("tree.txt"));
 
         report
-                .append(java.time.LocalDateTime.now()).append("\n")
                 .append("input file: ").append(fastaFile).append("\n")
                 .append("output directory: ").append(indexDir).append("\n")
                 .append("processed sequenceRecords: ").append(processedFastas).append("\n")
@@ -190,10 +184,6 @@ public class DBIndexer {
             report.append(bucketSize.first()).append("\t").append(bucketSize.last()).append("\n");
         }
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(indexDir.resolve("report.txt").toFile()))) {
-            writer.write(report.toString());
-        }
-
-        return IndexIO;
+        return report.toString();
     }
 }

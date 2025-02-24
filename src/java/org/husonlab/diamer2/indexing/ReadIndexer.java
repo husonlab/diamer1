@@ -1,129 +1,130 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
+import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
-import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
+import org.husonlab.diamer2.io.seq.HeaderToIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
+import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.util.logging.*;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * Class to create an index for sequencing reads.
+ */
 public class ReadIndexer {
 
     private final Logger logger;
-    private final Path fastqFile;
+    private final SequenceSupplier<Integer, Character, Byte> sup;
+    private final HeaderToIdReader fastqIdReader;
     private final ReadIndexIO readIndexIO;
     private final Encoder encoder;
-    private final int bucketsPerCycle;
-    private final int MAX_THREADS;
-    private final int MAX_QUEUE_SIZE;
-    private final int BATCH_SIZE;
-    private final boolean KEEP_IN_MEMORY;
+    private final GlobalSettings globalSettings;
+    private int processedReads;
+    private final AtomicInteger processedTranslations;
+    private final AtomicInteger skippedTranslations;
 
-    public ReadIndexer(Path fastqFile,
+    public ReadIndexer(SequenceSupplier<Integer, Character, Byte> sup,
+                       HeaderToIdReader fastqIdReader,
                        Path indexDir,
                        Encoder encoder,
-                       int bucketsPerCycle, int MAX_THREADS,
-                       int MAX_QUEUE_SIZE,
-                       int BATCH_SIZE,
-                       boolean KEEP_IN_MEMORY) {
+                       GlobalSettings globalSettings) {
         this.logger = new Logger("ReadIndexer");
         logger.addElement(new Time());
-        this.fastqFile = fastqFile;
-        this.readIndexIO = new ReadIndexIO(indexDir, 1024);
+
+        this.sup = sup;
+        this.fastqIdReader = fastqIdReader;
+        this.readIndexIO = new ReadIndexIO(indexDir, encoder.getNumberOfBuckets());
         this.encoder = encoder;
-        this.bucketsPerCycle = bucketsPerCycle;
-        this.MAX_THREADS = MAX_THREADS;
-        this.MAX_QUEUE_SIZE = MAX_QUEUE_SIZE;
-        this.BATCH_SIZE = BATCH_SIZE;
-        this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
+        this.globalSettings = globalSettings;
+        this.processedTranslations = new AtomicInteger(0);
+        this.skippedTranslations = new AtomicInteger(0);
     }
 
     /**
-     * Indexes a FASTQ file of sequencing reads.
+     * Indexes a file of sequencing reads.
      * @throws IOException If an error occurs during reading the file or writing the buckets.
      */
     public ReadIndexIO index() throws IOException {
-        logger.logInfo("Indexing " + fastqFile + " to " + readIndexIO.getIndexFolder());
+        logger.logInfo("Indexing " + sup.getFile() + " to " + readIndexIO.getIndexFolder());
 
-        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
-                MAX_THREADS,
-                MAX_THREADS,
-                500L,
-                TimeUnit.MILLISECONDS,
-                new ArrayBlockingQueue<>(MAX_QUEUE_SIZE),
-                new ThreadPoolExecutor.CallerRunsPolicy());
-        Phaser indexPhaser = new Phaser(1);
-
-        try (FastqIdReader fastqIdReader = new FastqIdReader(fastqFile);
-             SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(fastqIdReader, encoder.getReadConverter(), KEEP_IN_MEMORY)) {
+        try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
+                        globalSettings.MAX_THREADS, globalSettings.MAX_THREADS, globalSettings.QUEUE_SIZE, 1, logger)) {
+            Phaser indexPhaser = new Phaser(1);
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
-            Message progressMessage = new Message("");
+            ProgressLogger progressLogger = new ProgressLogger("reads");
             new OneLineLogger("ReadIndexer", 1000)
                     .addElement(new RunningTime())
                     .addElement(progressBar)
-                    .addElement(progressMessage);
+                    .addElement(progressLogger);
 
             // Initialize Concurrent LinkedQueue to store index entries of each bucket
-            final ConcurrentLinkedQueue<Long>[] bucketLists = new ConcurrentLinkedQueue[bucketsPerCycle];
+            final ConcurrentLinkedQueue<Long>[] bucketLists = new ConcurrentLinkedQueue[globalSettings.BUCKETS_PER_CYCLE];
 
-            final int maxBuckets = (int) Math.pow(2, encoder.getBitsOfBucketNames());
-            for (int i = 0; i < maxBuckets; i += bucketsPerCycle) {
+            final int maxBuckets = encoder.getNumberOfBuckets();
+            for (int i = 0; i < maxBuckets; i += globalSettings.BUCKETS_PER_CYCLE) {
+                processedReads = 0;
+                skippedTranslations.set(0);
+                processedTranslations.set(0);
                 int rangeStart = i;
-                int rangeEnd = Math.min(i + bucketsPerCycle, maxBuckets);
-                int readId = 0;
+                int rangeEnd = Math.min(i + globalSettings.BUCKETS_PER_CYCLE, maxBuckets);
+                logger.logInfo("Indexing buckets " + rangeStart + " - " + rangeEnd);
+                progressBar.setProgress(0);
 
-                progressMessage.setMessage(" Indexing buckets " + rangeStart + " - " + rangeEnd);
-
-                for (int j = 0; j < bucketsPerCycle; j++) {
+                // Initialize a list for each bucket that is processed in this iteration
+                for (int j = 0; j < globalSettings.BUCKETS_PER_CYCLE; j++) {
                     bucketLists[j] = new ConcurrentLinkedQueue<>();
                 }
 
-                progressBar.setProgress(0);
-                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[BATCH_SIZE];
-                int batchPosition = 0;
-                FutureSequenceRecords<Integer, Byte> container;
-                while ((container = sup.next()) != null) {
-                    batch[batchPosition] = container;
-                    progressBar.setProgress(sup.getBytesRead());
+                // initialize batch of FutureSequenceRecords
+                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[globalSettings.SEQUENCE_BATCH_SIZE];
+                int batchIndex = 0;
 
-                    if (batchPosition == BATCH_SIZE - 1) {
+                FutureSequenceRecords<Integer, Byte> futureSequenceRecords;
+                while ((futureSequenceRecords = sup.next()) != null) {
+                    processedReads ++;
+                    batch[batchIndex] = futureSequenceRecords;
+                    progressBar.setProgress(sup.getBytesRead());
+                    progressLogger.incrementProgress();
+
+                    // submit full batch of FutureSequenceRecords to thread pool
+                    if (batchIndex > globalSettings.SEQUENCE_BATCH_SIZE - 2) {
                         indexPhaser.register();
                         threadPoolExecutor.submit(
-                                new FastqDNAProcessor(
-                                        indexPhaser,
-                                        batch,
-                                        encoder,
-                                        bucketLists,
-                                        rangeStart,
-                                        rangeEnd)
+                                new ReadProcessor(indexPhaser, batch, encoder, bucketLists, rangeStart, rangeEnd,
+                                        processedTranslations, skippedTranslations)
                         );
-                        batch = new FutureSequenceRecords[BATCH_SIZE];
-                        batchPosition = 0;
+                        batch = new FutureSequenceRecords[globalSettings.SEQUENCE_BATCH_SIZE];
+                        batchIndex = 0;
                     } else {
-                        batchPosition++;
+                        batchIndex++;
                     }
-                    readId++;
                 }
+                // submit last batch
                 indexPhaser.register();
                 threadPoolExecutor.submit(
-                        new FastqDNAProcessor(
+                        new ReadProcessor(
                                 indexPhaser,
-                                Arrays.copyOfRange(batch, 0, batchPosition),
+                                Arrays.copyOfRange(batch, 0, batchIndex),
                                 encoder,
                                 bucketLists,
                                 rangeStart,
-                                rangeEnd));
+                                rangeEnd, processedTranslations, skippedTranslations));
                 progressBar.finish();
-
                 indexPhaser.arriveAndAwaitAdvance();
                 logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
 
+                // write read header map during first iteration
                 if (rangeStart == 0) {
                     indexPhaser.register();
                     threadPoolExecutor.submit(() -> {
@@ -136,10 +137,10 @@ public class ReadIndexer {
                         }
                     });
                 }
-
                 indexPhaser.arriveAndAwaitAdvance();
 
-                for (int j = 0; j < Math.min(bucketsPerCycle, (maxBuckets - rangeStart)); j++) {
+                // sort and write buckets
+                for (int j = 0; j < Math.min(globalSettings.BUCKETS_PER_CYCLE, (maxBuckets - rangeStart)); j++) {
                     int finalJ = j;
                     indexPhaser.register();
                     threadPoolExecutor.submit(() -> {
@@ -155,24 +156,70 @@ public class ReadIndexer {
                 indexPhaser.arriveAndAwaitAdvance();
                 sup.reset();
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
-        threadPoolExecutor.shutdown();
-        try {
-            if (threadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES)) {
-                logger.logInfo("Indexing complete.");
-            } else {
-                logger.logError("Indexing timed out.");
-                threadPoolExecutor.shutdownNow();
-                throw new RuntimeException("Indexing timed out.");
-            }
-        } catch (InterruptedException e) {
-            logger.logError("Indexing interrupted.");
-            threadPoolExecutor.shutdownNow();
-            throw new RuntimeException("Indexing interrupted.");
-        }
+        logger.logInfo("Processed Reads: " + processedReads);
+        logger.logInfo("Processed translations: " + processedTranslations.get());
+        logger.logInfo("Skipped translations because length < " + encoder.getK() + ": " + skippedTranslations.get());
         return readIndexIO;
+    }
+
+    private static class ReadProcessor implements Runnable {
+
+        private final Phaser phaser;
+        private final FutureSequenceRecords<Integer, Byte>[] batch;
+        private final Encoder encoder;
+        private final KmerExtractor kmerExtractor;
+        private final ConcurrentLinkedQueue<Long>[] bucketLists;
+        private final int rangeStart;
+        private final int rangeEnd;
+        private final AtomicInteger processedTranslations;
+        private final AtomicInteger skippedTranslations;
+
+        public ReadProcessor(
+                Phaser phaser,
+                FutureSequenceRecords<Integer, Byte>[] batch,
+                Encoder encoder,
+                ConcurrentLinkedQueue<Long>[] bucketLists,
+                int rangeStart,
+                int rangeEnd,
+                AtomicInteger processedTranslations,
+                AtomicInteger skippedTranslations) {
+            this.phaser = phaser;
+            this.batch = batch;
+            this.encoder = encoder;
+            this.kmerExtractor = new KmerExtractor(new KmerEncoder(encoder.getTargetAlphabet().getBase(), encoder.getMask()));
+            this.bucketLists = bucketLists;
+            this.rangeStart = rangeStart;
+            this.rangeEnd = rangeEnd;
+            this.processedTranslations = processedTranslations;
+            this.skippedTranslations = skippedTranslations;
+        }
+
+        @Override
+        public void run() {
+            try {
+                for (FutureSequenceRecords<Integer, Byte> futureSequenceRecords : batch) {
+                    for (SequenceRecord<Integer, Byte> record: futureSequenceRecords.getSequenceRecords()) {
+                        if (record == null || record.sequence().length() < encoder.getK()) {
+                            skippedTranslations.incrementAndGet();
+                        } else {
+                            processedTranslations.incrementAndGet();
+                            int id = record.id();
+                            Sequence<Byte> sequence = record.sequence();
+                            long[] kmers = kmerExtractor.extractKmers(sequence);
+                            for (long kmer : kmers) {
+                                int bucketName = encoder.getBucketNameFromKmer(kmer);
+                                if (bucketName >= rangeStart && bucketName < rangeEnd) {
+                                    bucketLists[bucketName - rangeStart].add(encoder.getIndex(id, kmer));
+                                }
+                            }
+                        }
+                    }
+                }
+            } finally {
+                phaser.arriveAndDeregister();
+            }
+        }
     }
 }
 

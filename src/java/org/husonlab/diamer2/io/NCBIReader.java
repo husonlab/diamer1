@@ -190,7 +190,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
+    public static String preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
 
@@ -242,41 +242,23 @@ public class NCBIReader {
                     highRanks, rankMapping, counts);
             progressBar.finish();
         }
-        String report = """
-                \tdate \t %s
-                \tinput file \t %s
-                \toutput file \t %s
-                \tprocessed sequenceRecords \t %d
-                \tkept sequenceRecords \t %d
-                \tskipped sequenceRecords without (valid) accession \t %d
-                \t[DISABLED] skipped sequenceRecords with rank too high (%s) \t %d
-                """.formatted(
-                java.time.LocalDateTime.now(),
-                sup.getFile(),
-                output,
-                fastaIndex + 1,
-                fastaIndex - counts.skippedNoTaxId - counts.skippedRank + 1,
-                counts.skippedNoTaxId,
-                String.join(", ", highRanks),
-                counts.skippedRank
-        );
+
+        StringBuilder report = new StringBuilder()
+                .append("input file\t").append(sup.getFile()).append("\n")
+                .append("output file\t").append(output).append("\n")
+                .append("processed sequenceRecords\t").append(fastaIndex + 1).append("\n")
+                .append("kept sequenceRecords\t").append(fastaIndex - counts.skippedNoTaxId - counts.skippedRank + 1).append("\n")
+                .append("skipped sequenceRecords without accession\t").append(counts.skippedNoTaxId).append("\n")
+                .append("skipped sequenceRecords with rank too high (")
+                .append(String.join(", ", highRanks)).append(")\t").append(counts.skippedRank).append("\n");
+        rankMapping.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .forEach(entry -> {
+                    report.append(entry.getKey()).append(entry.getValue()).append("\n");
+                });
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);
-
-        try (BufferedWriter bw = Files.newBufferedWriter(output.getParent().resolve("preprocessing_report.txt"))) {
-            bw.write(report);
-            bw.newLine();
-            rankMapping.entrySet().stream()
-            .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-            .forEach(entry -> {
-                try {
-                    bw.write("%s\t%d".formatted(entry.getKey(), entry.getValue()));
-                    bw.newLine();
-                } catch (IOException e) {
-                    System.err.println("Could not write preprocessing report.");
-                }
-            });
-        }
+        return report.toString();
     }
 
     private static void emptyBuffer(int bufferSize, Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer,
@@ -358,7 +340,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static void preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
+    public static String preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -445,40 +427,22 @@ public class NCBIReader {
             }
             progressBar.finish();
         }
-        String report = """
-                \tdate \t %s
-                \tinput file \t %s
-                \toutput file \t %s
-                \tprocessed sequenceRecords \t %d
-                \tkept sequenceRecords \t %d
-                \tskipped sequenceRecords without accession \t %d
-                \tskipped sequenceRecords with rank too high (%s) \t %d
-                """.formatted(
-                java.time.LocalDateTime.now(),
-                sup.getFile(),
-                output,
-                processedFastas,
-                processedFastas - skippedNoTaxId - skippedRank,
-                skippedNoTaxId,
-                String.join(", ", highRanks),
-                skippedRank);
+        StringBuilder report = new StringBuilder()
+                .append("input file\t").append(sup.getFile()).append("\n")
+                .append("output file\t").append(output).append("\n")
+                .append("processed sequenceRecords\t").append(processedFastas).append("\n")
+                .append("kept sequenceRecords\t").append(processedFastas - skippedNoTaxId - skippedRank).append("\n")
+                .append("skipped sequenceRecords without accession\t").append(skippedNoTaxId).append("\n")
+                .append("skipped sequenceRecords with rank too high (")
+                .append(String.join(", ", highRanks)).append(")\t").append(skippedRank).append("\n");
+        rankMapping.entrySet().stream()
+                .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
+                .forEach(entry -> {
+                    report.append(entry.getKey()).append(entry.getValue()).append("\n");
+                });
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);
-
-        try (BufferedWriter bw = Files.newBufferedWriter(output.getParent().resolve("preprocessing_report.txt"))) {
-            bw.write(report);
-            bw.newLine();
-            rankMapping.entrySet().stream()
-                    .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
-                    .forEach(entry -> {
-                        try {
-                            bw.write("%s\t%d".formatted(entry.getKey(), entry.getValue()));
-                            bw.newLine();
-                        } catch (IOException e) {
-                            System.err.println("Could not write preprocessing report.");
-                        }
-                    });
-        }
+        return report.toString();
     }
 
     private static class Counts {

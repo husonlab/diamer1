@@ -193,7 +193,7 @@ public class SequenceSupplier<H, S, C> implements AutoCloseable {
     }
 
     /**
-     * @return the number of sequences that have been read from the file or memory in the current iteration.
+     * @return the file that is read by the {@link SequenceReader}.
      */
     public Path getFile() {
         return sequenceReader.getFile();

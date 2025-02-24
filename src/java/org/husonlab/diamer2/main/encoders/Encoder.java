@@ -46,6 +46,20 @@ public abstract class Encoder {
     }
 
     /**
+     * @return the size of the mask (with spaces)
+     */
+    public int getK() {
+        return k;
+    }
+
+    /**
+     * @return the number of spaces in the mask
+     */
+    public int getS() {
+        return s;
+    }
+
+    /**
      * @return converter to convert amino acid sequences to base 11 sequences
      */
     public abstract Converter<Character, Byte> getDBConverter();

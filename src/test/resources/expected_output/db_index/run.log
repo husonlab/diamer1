@@ -1,6 +1,17 @@
-2025-02-05T22:08:57.416306900
-input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa
-output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
+--indexdb -t 12 -b 1024 --mask 111111111111111 --debug -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index
+MAX_THREADS:	12
+MAX_MEMORY:	3
+KEEP_IN_MEMORY:	false
+BITS_FOR_IDS:	22
+SEQUENCE_BATCH_SIZE:	1000
+BUCKETS_PER_CYCLE:	1024
+QUEUE_SIZE:	24
+DEBUG:	true
+Start: 2025-02-24T15:31:22.517456300
+End: 2025-02-24T15:31:22.991761500
+
+input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index
 processed sequenceRecords: 7
 bucket sizes: 
 0	0

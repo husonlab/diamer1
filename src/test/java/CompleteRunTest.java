@@ -1,12 +1,6 @@
-import org.husonlab.diamer2.indexing.DBIndexer;
-import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.Utilities;
-import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
-import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
-import org.husonlab.diamer2.io.seq.FastaReader;
-import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.Main;
@@ -59,7 +53,7 @@ public class CompleteRunTest {
         Tree tree = NCBIReader.readTaxonomy(nodesDmp, namesDmp, true);
 
         ArrayList<ExclusionRule> exclusionRules = new ArrayList<>();
-        exclusionRules.add(new ExclusionRule("preprocessing_report.txt", new HashSet<>(List.of(1, 2, 3))));
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 10, 11))));
         assertDirectoriesEqual(dbPreprocessedExpected.getParent().toFile(), dbPreprocessed.getParent().toFile(), exclusionRules);
 
         // Generate DB index
@@ -69,7 +63,7 @@ public class CompleteRunTest {
                 dbPreprocessed.toString(), dbIndex.toString()});
 
         exclusionRules = new ArrayList<>();
-        exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 10, 11))));
         assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
 
         Main.main(new String[]{
@@ -80,19 +74,21 @@ public class CompleteRunTest {
         assertDirectoriesEqual(dbIndexSpacedExpected.toFile(), dbIndexSpaced.toFile(), exclusionRules);
 
         // Generate read index
-        Main.main(new String[]{
+        String[] args = new String[]{
                 "--indexreads", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug",
-                reads.toString(), readsIndex.toString()});
+                reads.toString(), readsIndex.toString()};
+        Main.main(args);
         exclusionRules = new ArrayList<>();
         assertDirectoriesEqual(readsIndexExpected.toFile(), readsIndex.toFile(), exclusionRules);
 
-        Main.main(new String[]{
+        args = new String[]{
                 "--indexreads", "-t", "1", "-b", "127", "--keep-in-memory", "--mask", "111111011110011100011", "--debug",
-                reads.toString(), readsIndexSpaced.toString()});
+                reads.toString(), readsIndexSpaced.toString()};
+        Main.main(args);
         assertDirectoriesEqual(readsIndexSpacedExpected.toFile(), readsIndexSpaced.toFile(), exclusionRules);
 
         // Assign reads
-        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), new GlobalSettings(1, 12, false, true));
+        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), new GlobalSettings(args, 1, 12, 12, false, true));
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
@@ -103,7 +99,7 @@ public class CompleteRunTest {
         TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
         TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
         // spaced
-        readAssigner = new ReadAssigner(dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22), new GlobalSettings(1, 12, false, true));
+        readAssigner = new ReadAssigner(dbIndexSpaced, readsIndexSpaced, new K15Base11(mask, 22), new GlobalSettings(args, 1, 12, 12, false, true));
         assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, outputSpaced.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
@@ -119,7 +115,7 @@ public class CompleteRunTest {
         File actualOutput = new File("src/test/resources/test_output");
         exclusionRules = new ArrayList<>();
         exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
-        exclusionRules.add(new ExclusionRule("preprocessing_report.txt", new HashSet<>(List.of(1, 2, 3))));
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 10, 11))));
         assertDirectoriesEqual(expectedOutput, actualOutput, exclusionRules);
     }
 

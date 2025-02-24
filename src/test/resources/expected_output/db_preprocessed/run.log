@@ -1,0 +1,20 @@
+--preprocess -t 12 --debug -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\noel\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid.gz C:\Users\noel\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid2.gz
+MAX_THREADS:	12
+MAX_MEMORY:	3
+KEEP_IN_MEMORY:	false
+BITS_FOR_IDS:	22
+SEQUENCE_BATCH_SIZE:	1000
+BUCKETS_PER_CYCLE:	12
+QUEUE_SIZE:	24
+DEBUG:	true
+Start: 2025-02-24T15:22:06.102471700
+End: 2025-02-24T15:22:06.267242400
+
+input file	C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa
+output file	C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+processed sequenceRecords	7
+kept sequenceRecords	6
+skipped sequenceRecords without accession	1
+skipped sequenceRecords with rank too high (superkingdom, phylum, family, kingdom, class, order)	0
+2 from root4
+1 from root3
