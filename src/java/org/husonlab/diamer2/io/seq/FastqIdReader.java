@@ -24,11 +24,17 @@ public class FastqIdReader extends SequenceReader<Integer, Character> implements
     private final LinkedList<String> headers;
 
     /**
+     * Controls if headers should be collected. Will be set to false after calling {@link #removeHeaders()}.
+     */
+    private boolean collectHeaders;
+
+    /**
      * @param file Path to the file (gzipped or not) to read from
      */
     public FastqIdReader(Path file) {
         super(file);
         headers = new LinkedList<>();
+        collectHeaders = true;
     }
 
     @Override
@@ -57,6 +63,12 @@ public class FastqIdReader extends SequenceReader<Integer, Character> implements
     @Override
     public LinkedList<String> getHeaders() {
         return headers;
+    }
+
+    @Override
+    public void removeHeaders() {
+        headers.clear();
+        collectHeaders = false;
     }
 
     @Override

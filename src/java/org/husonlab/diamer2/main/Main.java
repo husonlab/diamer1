@@ -304,13 +304,17 @@ public class Main {
         Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
         if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
         if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
+        writeLogBegin(globalSettings, output.resolve("run.log"));
+        String runInfo;
         try (FastqIdReader fastQIdReader = new FastqIdReader(reads);
              SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(fastQIdReader, encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
             ReadIndexer readIndexer = new ReadIndexer( sup, fastQIdReader, output, encoder, globalSettings);
-            readIndexer.index();
+            runInfo = readIndexer.index();
         } catch (IOException e) {
+            writeLogEnd(e.toString(), output.resolve("run.log"));
             throw new RuntimeException(e);
         }
+        writeLogEnd(runInfo, output.resolve("run.log"));
     }
 
     private static void assignreads(GlobalSettings globalSettings, CommandLine cli) {
@@ -319,6 +323,9 @@ public class Main {
         Path dbIndex = getFolder(cli.getArgs()[0], true);
         Path readsIndex = getFolder(cli.getArgs()[1], true);
         Path output = getFolder(cli.getArgs()[2], false);
+
+        writeLogBegin(globalSettings, output.resolve("run.log"));
+        String runInfo;
 
         ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), globalSettings);
         ReadAssignment assignment = readAssigner.assignReads();
@@ -332,9 +339,10 @@ public class Main {
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 0.9f));
         assignment.runAssignmentAlgorithm(new OVO(tree, 1f));
-        ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
+        runInfo = ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
         TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
         TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
+        writeLogEnd(runInfo, output.resolve("run.log"));
     }
 
     /**

@@ -1,5 +1,7 @@
 package org.husonlab.diamer2.main.encoders;
 
+import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
+import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.converter.Converter;
 
@@ -142,5 +144,12 @@ public abstract class Encoder {
      */
     protected int bitsRequired(int base, long k_s) {
         return (int) Math.ceil(Math.log(Math.pow(base, k_s)) / Math.log(2));
+    }
+
+    /**
+     * @return a KmerExtractor that can be used to extract kmers from sequences
+     */
+    public KmerExtractor getKmerExtractor(){
+        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask));
     }
 }

@@ -8,4 +8,9 @@ public interface HeaderToIdReader {
      *         is the id that was given to the returned SequenceRecord.
      */
     LinkedList<String> getHeaders();
+
+    /**
+     * Method to clear the headers from memory.
+     */
+    void removeHeaders();
 }

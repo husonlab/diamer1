@@ -111,7 +111,7 @@ public class ReadAssignmentIO {
      * @param headers Whether to write the read headers or just the read IDs
      * @param taxonNames Whether to write the taxon names or just the taxon IDs
      */
-    public static void writePerReadAssignments(ReadAssignment readAssignment, Path file, boolean headers, boolean taxonNames) {
+    public static String writePerReadAssignments(ReadAssignment readAssignment, Path file, boolean headers, boolean taxonNames) {
         Tree tree = readAssignment.getTree();
         int nrOfAssignmentAlgorithms = readAssignment.getAssignmentAlgorithms().size();
         int nrOfReads = readAssignment.size();
@@ -164,19 +164,17 @@ public class ReadAssignmentIO {
             throw new RuntimeException("Error writing read assignment to: " + file, e);
         }
 
-        // write statistics
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file.getParent().resolve("summary.txt").toString()))) {
-            bw.write("Total reads: " + nrOfReads + "\n\n");
-            for (int i = 0; i < nrOfAssignmentAlgorithms; i++) {
-                bw.write(readAssignment.getAssignmentAlgorithms().get(i).getName() + "\n");
-                bw.write("Total assignments:\t%d (%.1f%%)\n".formatted(assignedReads[i], assignedReads[i] / (float) nrOfReads));
-                for (String rank : assignmentsPerRank[i].keySet()) {
-                    bw.write(rank + ": " + assignmentsPerRank[i].get(rank) + "\n");
-                }
-                bw.newLine();
+        StringBuilder info = new StringBuilder();
+        info.append("Total reads: ").append(nrOfReads).append("\n\n");
+        for (int i = 0; i < nrOfAssignmentAlgorithms; i++) {
+            info.append(readAssignment.getAssignmentAlgorithms().get(i).getName()).append("\n");
+            info.append("Total assignments: ").append(assignedReads[i])
+                    .append(" (").append("%.2f".formatted(assignedReads[i] / (float) nrOfReads * 100)).append("%)\n");
+            for (String rank : assignmentsPerRank[i].keySet()) {
+                info.append(rank).append(": ").append(assignmentsPerRank[i].get(rank)).append("\n");
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Error writing assignment summary file: " + file.getParent().resolve("summary.txt"), e);
+            info.append("\n");
         }
+        return info.toString();
     }
 }

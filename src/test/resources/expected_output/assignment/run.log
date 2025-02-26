@@ -1,0 +1,86 @@
+--assignreads -t 12 -b 12 --debug -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment
+MAX_THREADS:	12
+MAX_MEMORY:	4
+KEEP_IN_MEMORY:	false
+BITS_FOR_IDS:	22
+SEQUENCE_BATCH_SIZE:	1000
+BUCKETS_PER_CYCLE:	12
+QUEUE_SIZE:	24
+DEBUG:	true
+Start: 2025-02-26T11:04:31.370792900
+End: 2025-02-26T11:04:31.666063600
+
+Total reads: 6
+
+OVO (ratio: 0.200000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.200000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.500000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.500000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.600000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.600000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.800000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.800000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.900000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 0.900000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 1.000000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
+OVO (ratio: 1.000000)
+Total assignments: 4 (66.67%)
+1 from root: 1
+no rank: 2
+2 from root: 1
+
