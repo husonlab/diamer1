@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.readAssignment;
 
 import org.husonlab.diamer2.indexing.CustomThreadPoolExecutor;
+import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.main.GlobalSettings;
@@ -16,11 +17,12 @@ import java.util.concurrent.*;
  */
 public class ReadAssigner {
     private final Logger logger;
-    private final Tree tree;
+    private final int progressBarStepsPerBucket;
+    private final ProgressBar progressBar;
     private final DBIndexIO dbIndex;
     private final ReadIndexIO readsIndex;
+    final ReadAssignment readAssignment;
     private final Encoder encoder;
-    private final String[] readHeaderMapping;
     private final GlobalSettings settings;
 
     /**
@@ -30,15 +32,19 @@ public class ReadAssigner {
      */
     public ReadAssigner(Path dbIndexPath, Path readsIndexPath, Encoder encoder, GlobalSettings settings) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
-        this.dbIndex = new DBIndexIO(dbIndexPath, 1024);
-        this.readsIndex = new ReadIndexIO(readsIndexPath, 1024);
+        progressBarStepsPerBucket = 100;
+        progressBar = new ProgressBar((long) encoder.getNumberOfBuckets() * progressBarStepsPerBucket, 20);
+        this.dbIndex = new DBIndexIO(dbIndexPath, encoder.getNumberOfBuckets());
+        this.readsIndex = new ReadIndexIO(readsIndexPath, encoder.getNumberOfBuckets());
         this.encoder = encoder;
         this.settings = settings;
+        String[] readHeaderMapping;
         if (readsIndex.readHeaderMappingExists()) {
-            this.readHeaderMapping = this.readsIndex.getReadHeaderMapping();
+            readHeaderMapping = this.readsIndex.getReadHeaderMapping();
         } else {
             throw new RuntimeException("Read header mapping file is missing from the reads index folder.");
         }
+        Tree tree;
         if (dbIndex.treeExists()) {
             tree = dbIndex.getTree();
         } else {
@@ -47,6 +53,7 @@ public class ReadAssigner {
         if (dbIndex.bucketMissing() || readsIndex.bucketMissing()) {
             logger.logWarning("At least one index file is missing, proceeding with available buckets.");
         }
+        readAssignment = new ReadAssignment(tree, readHeaderMapping, settings);
     }
 
     /**
@@ -57,35 +64,23 @@ public class ReadAssigner {
      */
     public ReadAssignment assignReads() {
         logger.logInfo("Searching kmer matches ...");
-        ProgressBar progressBar = new ProgressBar(encoder.getNumberOfBuckets(), 20);
         new OneLineLogger("ReadAssigner", 1000)
                 .addElement(new RunningTime())
                 .addElement(progressBar);
 
-        final ReadAssignment readAssignment = new ReadAssignment(tree, readHeaderMapping, settings);
-        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
+        int bucketsSkipped = 0;
+        try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 settings.MAX_THREADS,
                 settings.MAX_THREADS, settings.QUEUE_SIZE,
-                1, logger);
+                60, logger)) {
 
-        int bucketsSkipped = 0;
-
-        for (int i = 0; i < encoder.getNumberOfBuckets(); i++) {
-            if (dbIndex.isBucketAvailable(i) && readsIndex.isBucketAvailable(i)) {
-                threadPoolExecutor.submit(new BucketProcessor(readAssignment, dbIndex, readsIndex, i, encoder));
-            } else {
-                bucketsSkipped++;
-            }
-        }
-
-        // Wait for all threads to finish and update progress bar
-        threadPoolExecutor.shutdown();
-        while (!threadPoolExecutor.isTerminated()) {
-            progressBar.setProgress(threadPoolExecutor.getCompletedTaskCount() + bucketsSkipped);
-            try {
-                threadPoolExecutor.awaitTermination(1, TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            for (int i = 0; i < encoder.getNumberOfBuckets(); i++) {
+                if (dbIndex.isBucketAvailable(i) && readsIndex.isBucketAvailable(i)) {
+                    threadPoolExecutor.submit(new BucketProcessor(i));
+                } else {
+                    progressBar.incrementProgress(progressBarStepsPerBucket);
+                    bucketsSkipped++;
+                }
             }
         }
 
@@ -101,4 +96,62 @@ public class ReadAssigner {
 
         return readAssignment;
     }
+
+    /**
+     * Class to find matching kmers in two buckets.
+     */
+    private class BucketProcessor implements Runnable {
+        Logger logger;
+        private final int bucketId;
+
+        /**
+         * @param bucketId id of the bucket to process
+         */
+        public BucketProcessor(int bucketId) {
+            this.logger = new Logger("BucketProcessor").addElement(new Time());
+            this.bucketId = bucketId;
+        }
+
+        /**
+         * Reads over the ascending sorted database and reads bucket simultaneously and advances only the bucket with the
+         * smaller kmer. This way, all matching kmers are found and stored in the {@link ReadAssignment}.
+         */
+        @Override
+        public void run() {
+            try (BucketIO.BucketReader db = dbIndex.getBucketReader(bucketId);
+                 BucketIO.BucketReader reads = readsIndex.getBucketReader(bucketId)) {
+                int dbLength = db.getLength();
+                int readsLength = reads.getLength();
+                if (dbLength == 0 || readsLength == 0) {
+                    logger.logWarning("Bucket " + bucketId + " is empty.");
+                    return;
+                }
+                long dbEntry = db.next();
+                int dbCount = 1;
+                long dbKmer = encoder.getKmerFromIndexEntry(dbEntry);
+                float progressUpdateInterval = (readsLength + 1) / (float) progressBarStepsPerBucket;
+                // iterate over all kmers in the reads bucket
+                for (int readsCount = 0; readsCount < readsLength; readsCount++) {
+                    long readsEntry = reads.next();
+                    long readKmer = encoder.getKmerFromIndexEntry(readsEntry);
+                    // advance the db bucket until the kmer is equal or larger than the read kmer
+                    while (dbKmer < readKmer && dbCount < dbLength) {
+                        dbEntry = db.next();
+                        dbKmer = encoder.getKmerFromIndexEntry(dbEntry);
+                        dbCount++;
+                    }
+                    // check if the kmers are equal and store hits
+                    if (dbKmer == readKmer) {
+                        int taxId = encoder.getIdFromIndexEntry(dbEntry);
+                        int readId = encoder.getIdFromIndexEntry(readsEntry);
+                        readAssignment.addReadAssignment(readId, taxId);
+                    }
+                    if ((int)((readsCount + 1) % progressUpdateInterval) == 0) progressBar.incrementProgress();
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Could not process bucket " + bucketId, e);
+            }
+        }
+    }
+
 }

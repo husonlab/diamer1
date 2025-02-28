@@ -5,6 +5,7 @@ import org.husonlab.diamer2.util.logging.Logger;
 import java.util.concurrent.*;
 
 public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
+
     private final Logger logger;
     private final int waitBeforeShutdown;
     public CustomThreadPoolExecutor(int corePoolSize, int maximumPoolSize, int queueSize, int waitBeforeShutdown, Logger logger) {

@@ -22,11 +22,11 @@ public class ProgressBar extends LoggerElement {
     @Override
     public String getMessage() {
         if (total > 0) {
-            int percent = (int) (100.0 * progress / total);
-            int bars = percent * length / 100;
+            double percent = (100.0 * progress / total);
+            int bars = (int) percent * length / 100;
             return "[" +
                     "=".repeat(Math.max(0, bars)) + " ".repeat(Math.max(0, length - bars)) +
-                    "] " + percent + "%";
+                    "] " + "%.2f".formatted(percent) + "%";
         }
         return "";
     }
@@ -54,7 +54,9 @@ public class ProgressBar extends LoggerElement {
      * @param amount The number of steps to increment the progress by.
      */
     public void incrementProgress(int amount) {
-        progress = Math.min(progress + amount, total);
+        synchronized (this) {
+            progress = Math.min(progress + amount, total);
+        }
         logger.notifyUpdate();
     }
 
@@ -63,8 +65,20 @@ public class ProgressBar extends LoggerElement {
      * @param progress The total number of steps that have been completed.
      */
     public void setProgress(long progress) {
-        this.progress = Math.min(progress, total);
+        synchronized (this) {
+            this.progress = Math.min(progress, total);
+        }
         logger.notifyUpdate();
+    }
+
+    /**
+     * Set the progress (total number of steps completed) without notifying the logger.
+     * @param progress The total number of steps that have been completed.
+     */
+    public void setProgressSilent(long progress) {
+        synchronized (this) {
+            this.progress = Math.min(progress, total);
+        }
     }
 
     /**

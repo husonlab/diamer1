@@ -1,14 +1,5 @@
-import org.husonlab.diamer2.io.NCBIReader;
-import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.Utilities;
-import org.husonlab.diamer2.io.taxonomy.TreeIO;
-import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.Main;
-import org.husonlab.diamer2.main.encoders.K15Base11;
-import org.husonlab.diamer2.readAssignment.ReadAssigner;
-import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.readAssignment.algorithms.OVO;
-import org.husonlab.diamer2.taxonomy.Tree;
 import org.junit.Test;
 
 import java.io.BufferedReader;
@@ -21,6 +12,7 @@ import java.util.*;
 public class CompleteRunTest {
     @Test
     public void runAndCompareWithExpectedResult() throws IOException {
+        boolean assertInbetween = true;
         Path nodesDmp = Utilities.getFile("src/test/resources/database/taxdmp/nodes.dmp", true);
         Path namesDmp = Utilities.getFile("src/test/resources/database/taxdmp/names.dmp", true);
         Path ncbiAccession2Taxid = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid.gz", true);
@@ -41,75 +33,80 @@ public class CompleteRunTest {
         Path outputExpected = Utilities.getFolder("src/test/resources/expected_output/assignment", true);
         Path outputSpaced = Utilities.getFolder("src/test/resources/test_output/assignment_spaced", false);
         Path outputSpacedExpected = Utilities.getFolder("src/test/resources/expected_output/assignment_spaced", true);
-        boolean[] mask = new boolean[]{
-                true, true, true, true, true, true, true, true, true, true, true, true, true, true, true
-        };
-        boolean[] maskSpaced = new boolean[]{
-                true, true, true, true, true, true, false, true, true, true, true, false, false, true, true, true, false, false, false, true, true
-        };
 
         // Preprocess DB
-        Main.main(new String[]{"--preprocess", "-t", "12", "--debug",
+        Main.main(new String[]{"--preprocess", "-t", "12", "--debug", "--statistics",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(), db.toString(), dbPreprocessed.toString(),
                 ncbiAccession2Taxid.toString(), ncbiAccession2Taxid2.toString()});
-        Tree tree = NCBIReader.readTaxonomy(nodesDmp, namesDmp, true);
 
         ArrayList<ExclusionRule> exclusionRules = new ArrayList<>();
-        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 10, 11, 13, 14))));
-        assertDirectoriesEqual(dbPreprocessedExpected.getParent().toFile(), dbPreprocessed.getParent().toFile(), exclusionRules);
+        if (assertInbetween) {
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 6, 10, 11, 13, 14))));
+            assertDirectoriesEqual(dbPreprocessedExpected.getParent().toFile(), dbPreprocessed.getParent().toFile(), exclusionRules);
+        }
 
         // Generate DB index
         Main.main(new String[]{
-                "--indexdb", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug",
+                "--indexdb", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbPreprocessed.toString(), dbIndex.toString()});
-
-        exclusionRules = new ArrayList<>();
-        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 10, 11, 13, 14))));
-        assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
+        if (assertInbetween) {
+            exclusionRules = new ArrayList<>();
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 6, 10, 11, 13, 14))));
+            assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
+        }
 
         Main.main(new String[]{
-                "--indexdb", "-t", "12", "-b", "127", "--mask", "111111011110011100011", "--debug",
+                "--indexdb", "-t", "12", "-b", "127", "--mask", "111111011110011100011", "--debug", "--statistics",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbPreprocessed.toString(), dbIndexSpaced.toString()});
-
-        assertDirectoriesEqual(dbIndexSpacedExpected.toFile(), dbIndexSpaced.toFile(), exclusionRules);
+        if (assertInbetween) {
+            assertDirectoriesEqual(dbIndexSpacedExpected.toFile(), dbIndexSpaced.toFile(), exclusionRules);
+        }
 
         // Generate read index
         String[] args = new String[]{
-                "--indexreads", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug",
+                "--indexreads", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
                 reads.toString(), readsIndex.toString()};
         Main.main(args);
-        exclusionRules = new ArrayList<>();
-        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 10, 11))));
-        assertDirectoriesEqual(readsIndexExpected.toFile(), readsIndex.toFile(), exclusionRules);
+        if (assertInbetween) {
+            exclusionRules = new ArrayList<>();
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 6, 10, 11))));
+            assertDirectoriesEqual(readsIndexExpected.toFile(), readsIndex.toFile(), exclusionRules);
+        }
 
         args = new String[]{
-                "--indexreads", "-t", "1", "-b", "127", "--keep-in-memory", "--mask", "111111011110011100011", "--debug",
+                "--indexreads", "-t", "1", "-b", "127", "--keep-in-memory", "--mask", "111111011110011100011", "--debug", "--statistics",
                 reads.toString(), readsIndexSpaced.toString()};
         Main.main(args);
-        assertDirectoriesEqual(readsIndexSpacedExpected.toFile(), readsIndexSpaced.toFile(), exclusionRules);
+        if (assertInbetween) {
+            assertDirectoriesEqual(readsIndexSpacedExpected.toFile(), readsIndexSpaced.toFile(), exclusionRules);
+        }
 
         // Assign reads
         args = new String[]{
-                "--assignreads", "-t", "12", "-b", "12", "--debug",
+                "--assignreads", "-t", "12", "-b", "12", "--debug", "--statistics",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndex.toString(), readsIndex.toString(), output.toString()};
         Main.main(args);
-        assertDirectoriesEqual(output.toFile(), outputExpected.toFile(), exclusionRules);
+        if (assertInbetween) {
+            assertDirectoriesEqual(output.toFile(), outputExpected.toFile(), exclusionRules);
+        }
         args = new String[]{
-                "--assignreads", "-m", "12", "-t", "1", "-b", "12", "--debug",
+                "--assignreads", "-m", "12", "-t", "1", "-b", "12", "--debug", "--statistics",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndexSpaced.toString(), readsIndexSpaced.toString(), outputSpaced.toString()};
         Main.main(args);
-        assertDirectoriesEqual(outputSpaced.toFile(), outputSpacedExpected.toFile(), exclusionRules);
+        if (assertInbetween) {
+            assertDirectoriesEqual(outputSpaced.toFile(), outputSpacedExpected.toFile(), exclusionRules);
+        }
 
         // Compare output with expected output
         File expectedOutput = new File("src/test/resources/expected_output");
         File actualOutput = new File("src/test/resources/test_output");
         exclusionRules = new ArrayList<>();
         exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
-        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 10, 11, 13, 14))));
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 6, 10, 11, 13, 14))));
         assertDirectoriesEqual(expectedOutput, actualOutput, exclusionRules);
     }
 

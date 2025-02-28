@@ -3,6 +3,7 @@ package org.husonlab.diamer2.seq;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -24,7 +25,7 @@ public class Compressed4BitSequence extends Sequence<Byte> {
         for (int i = 0; i < sequence.length; i++) {
             int longIndex = i / 16;
             int byteIndex = i % 16;
-            this.sequence[longIndex] |= ((long) (sequence[i] & 0x0F)) << (byteIndex * 4);
+            this.sequence[longIndex] |= ((long) ((sequence[i] + 1) & 0x0F)) << (byteIndex * 4);
         }
     }
 
@@ -38,7 +39,7 @@ public class Compressed4BitSequence extends Sequence<Byte> {
         for (int i = 0; i < sequence.length; i++) {
             int longIndex = i / 16;
             int byteIndex = i % 16;
-            this.sequence[longIndex] |= ((long) (sequence[i] & 0x0F)) << (byteIndex * 4);
+            this.sequence[longIndex] |= ((long) ((sequence[i] + 1) & 0x0F)) << (byteIndex * 4);
         }
     }
 
@@ -58,7 +59,7 @@ public class Compressed4BitSequence extends Sequence<Byte> {
                 int longIndex = index / 16;
                 int byteIndex = index % 16;
                 index++;
-                return (byte) ((sequence[longIndex] >> (byteIndex * 4)) & 0x0F);
+                return (byte) (((sequence[longIndex] >> (byteIndex * 4)) & 0x0F) - 1);
             }
         };
     }
@@ -70,7 +71,7 @@ public class Compressed4BitSequence extends Sequence<Byte> {
         }
         int longIndex = index / 16;
         int byteIndex = index % 16;
-        return (byte) ((sequence[longIndex] >> (byteIndex * 4)) & 0x0F);
+        return (byte) (((sequence[longIndex] >> (byteIndex * 4)) & 0x0F) - 1);
     }
 
     @Override

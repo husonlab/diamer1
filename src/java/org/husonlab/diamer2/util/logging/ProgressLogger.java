@@ -37,15 +37,38 @@ public class ProgressLogger extends LoggerElement {
      * @param processedItems Number of items that have already been processed.
      */
     public void setProgress(long processedItems) {
-        this.processedItems = processedItems;
+        synchronized (this) {
+            this.processedItems = processedItems;
+        }
         logger.notifyUpdate();
+    }
+
+    /**
+     * Logs the progress of the task without notifying the logger.
+     * @param processedItems Number of items that have already been processed.
+     */
+    public void setProgressSilent(long processedItems) {
+        this.processedItems = processedItems;
     }
 
     /**
      * Increments the number of processed items by one.
      */
     public void incrementProgress() {
-        processedItems++;
+        synchronized (this) {
+            processedItems++;
+        }
+        logger.notifyUpdate();
+    }
+
+    /**
+     * Increments the number of processed items by a given amount.
+     * @param amount Number of items to increment the progress by.
+     */
+    public void incrementProgress(long amount) {
+        synchronized (this) {
+            processedItems += amount;
+        }
         logger.notifyUpdate();
     }
 
@@ -54,7 +77,7 @@ public class ProgressLogger extends LoggerElement {
         long currentTime = System.currentTimeMillis();
         long intervalItems = processedItems - lastPrintItems;
         lastPrintItems = processedItems;
-        float itemsPerSecond = (float) intervalItems / (currentTime - lastPrintTime) * 1000;
+        double itemsPerSecond = (double) intervalItems / (currentTime - lastPrintTime) * 1000.0;
         lastPrintTime = currentTime;
         return " %.2fM %s processed (%.2f %s/s) ".formatted(processedItems*1e-6, itemName, itemsPerSecond, itemName);
     }

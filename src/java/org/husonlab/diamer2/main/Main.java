@@ -6,6 +6,7 @@ import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
+import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
@@ -177,6 +178,12 @@ public class Main {
                         .desc("Run in debug mode")
                         .build()
         );
+        options.addOption(
+                Option.builder()
+                        .longOpt("statistics")
+                        .desc("Collect statistics.")
+                        .build()
+        );
 
         if (args.length == 0 || args[0].equals("-h") || args[0].equals("--help")) {
             printHelp(options);
@@ -216,7 +223,7 @@ public class Main {
         }
         int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : maxThreads;
         GlobalSettings globalSettings = new GlobalSettings(
-                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"));
+                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"));
 
         if (cli.hasOption("preprocess")) {
             preprocess(globalSettings, cli);
@@ -286,8 +293,8 @@ public class Main {
         writeLogBegin(globalSettings, output.resolve("run.log"));
         String runInfo;
 
-        DBIndexer dbIndexer = new DBIndexer(database, output, tree, encoder, globalSettings.BUCKETS_PER_CYCLE, globalSettings);
-        try {
+        try (SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(new FastaIdReader(database), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
+            DBIndexer dbIndexer = new DBIndexer(sup, output, tree, encoder, globalSettings);
             runInfo = dbIndexer.index();
         } catch (IOException e) {
             writeLogEnd(e.toString(), output.resolve("run.log"));

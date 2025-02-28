@@ -38,7 +38,9 @@ public class GlobalSettings {
 
     public final boolean DEBUG;
 
-    public GlobalSettings(String[] args, int MAX_THREADS, int BUCKETS_PER_CYCLE, int MAX_MEMORY, boolean KEEP_IN_MEMORY, boolean DEBUG) {
+    public final boolean COLLECT_STATS;
+
+    public GlobalSettings(String[] args, int MAX_THREADS, int BUCKETS_PER_CYCLE, int MAX_MEMORY, boolean KEEP_IN_MEMORY, boolean DEBUG, boolean COLLECT_STATS) {
         this.args = args;
         this.MAX_THREADS = MAX_THREADS;
         this.BUCKETS_PER_CYCLE = BUCKETS_PER_CYCLE;
@@ -46,6 +48,7 @@ public class GlobalSettings {
         this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
         this.QUEUE_SIZE = MAX_THREADS * 2;
         this.DEBUG = DEBUG;
+        this.COLLECT_STATS = COLLECT_STATS;
     }
 
     @Override

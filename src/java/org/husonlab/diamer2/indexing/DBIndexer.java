@@ -1,12 +1,14 @@
 package org.husonlab.diamer2.indexing;
 
+import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
-import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
+import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
@@ -16,45 +18,49 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+
+import static org.husonlab.diamer2.indexing.Utilities.writeKmerStatistics;
 
 public class DBIndexer {
 
     private final Logger logger;
-    private final Path fastaFile;
-    private final Path indexDir;
-    private final DBIndexIO IndexIO;
-    private final Tree tree;
-    private final Encoder encoder;
-    private final int MAX_THREADS;
-    private final int MAX_QUEUE_SIZE;
-    private final int BATCH_SIZE;
-    private final int bucketsPerCycle;
-    private final boolean KEEP_IN_MEMORY;
-    private final boolean debug;
+    private final Phaser phaser;
+    private int nrOfProcessedFutureSequenceRecords;
+    private final AtomicInteger nrOfProcessedSequenceRecords;
+    private final AtomicInteger nrOfSkippedSequenceRecords;
     private final ArrayList<Pair<Integer, Integer>> bucketSizes;
+    private final ConcurrentHashMap<Long, Integer> kmerCounts;
     private final StringBuilder report;
 
-    public DBIndexer(Path fastaFile,
+    private final SequenceSupplier<Integer, Character, Byte> sup;
+    private final Path indexDir;
+    private final DBIndexIO dbIndexIO;
+    private final Tree tree;
+    private final Encoder encoder;
+    private final GlobalSettings settings;
+
+    public DBIndexer(SequenceSupplier<Integer, Character, Byte> sup,
                      Path indexDir,
                      Tree tree,
                      Encoder encoder,
-                     int bucketsPerCycle,
                      GlobalSettings settings) {
         this.logger = new Logger("DBIndexer");
         logger.addElement(new Time());
-        this.fastaFile = fastaFile;
-        this.encoder = encoder;
-        this.indexDir = indexDir;
-        this.IndexIO = new DBIndexIO(indexDir, 1024);
-        this.tree = tree;
-        this.bucketsPerCycle = bucketsPerCycle;
-        this.MAX_THREADS = settings.MAX_THREADS;
-        this.MAX_QUEUE_SIZE = settings.MAX_THREADS * 2;
-        this.BATCH_SIZE = settings.SEQUENCE_BATCH_SIZE;
-        this.KEEP_IN_MEMORY = settings.KEEP_IN_MEMORY;
-        this.debug = settings.DEBUG;
+        phaser = new Phaser(1);
+        nrOfProcessedFutureSequenceRecords = 0;
+        nrOfProcessedSequenceRecords = new AtomicInteger(0);
+        nrOfSkippedSequenceRecords = new AtomicInteger(0);
         this.bucketSizes = new ArrayList<>();
+        this.kmerCounts = new ConcurrentHashMap<>();
         report = new StringBuilder();
+
+        this.sup = sup;
+        this.encoder = encoder;
+        this.settings = settings;
+        this.indexDir = indexDir;
+        this.dbIndexIO = new DBIndexIO(indexDir, encoder.getNumberOfBuckets());
+        this.tree = tree;
     }
 
     /**
@@ -62,17 +68,11 @@ public class DBIndexer {
      * @throws IOException If an error occurs during reading the database or writing the buckets.
      */
     public String index() throws IOException {
-        logger.logInfo("Indexing " + fastaFile + " to " + indexDir);
+        logger.logInfo("Indexing " + sup.getFile() + " to " + indexDir);
         tree.addNodeLongProperty("kmers in database", 0);
 
-        ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(MAX_THREADS,
-                MAX_THREADS, MAX_QUEUE_SIZE, 1, logger);
-
-        Phaser indexPhaser = new Phaser(1);
-
-        int processedFastas = 0;
-
-        try (SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(new FastaIdReader(fastaFile), encoder.getDBConverter(), KEEP_IN_MEMORY)) {
+        try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(settings.MAX_THREADS,
+                settings.MAX_THREADS, settings.QUEUE_SIZE, 1, logger)) {
 
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             ProgressLogger progressLogger = new ProgressLogger("sequences");
@@ -82,108 +82,146 @@ public class DBIndexer {
                     .addElement(progressLogger);
 
             // Initialize Concurrent HashMaps to store the kmers and their taxIds during indexing
-            final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[bucketsPerCycle];
+            final ConcurrentHashMap<Long, Integer>[] bucketMaps = new ConcurrentHashMap[settings.BUCKETS_PER_CYCLE];
 
-            final int maxBuckets = (int) Math.pow(2, encoder.getBitsOfBucketNames());
-            for (int i = 0; i < maxBuckets; i += bucketsPerCycle) {
+            final int maxBuckets = encoder.getNumberOfBuckets();
+            for (int i = 0; i < maxBuckets; i += settings.BUCKETS_PER_CYCLE) {
+                int bucketIndexRangeStart = i;
+                int bucketIndexRangeEnd = Math.min(i + settings.BUCKETS_PER_CYCLE, maxBuckets);
+                nrOfProcessedFutureSequenceRecords = 0;
+                nrOfProcessedSequenceRecords.set(0);
+                nrOfSkippedSequenceRecords.set(0);
+                logger.logInfo("Indexing buckets " + bucketIndexRangeStart + " - " + bucketIndexRangeEnd);
+                progressBar.setProgressSilent(0);
+                progressLogger.setProgressSilent(0);
 
-                int rangeStart = i;
-                int rangeEnd = Math.min(i + bucketsPerCycle, maxBuckets);
-
-                logger.logInfo("Indexing buckets " + rangeStart + " - " + rangeEnd);
-
-                if (!debug) {
-                    for (int j = 0; j < bucketsPerCycle; j++) {
+                if (!settings.DEBUG) {
+                    for (int j = 0; j < settings.BUCKETS_PER_CYCLE; j++) {
                         bucketMaps[j] = new ConcurrentHashMap<Long, Integer>(57000000); // initial capacity 57000000
                     }
                 } else {
-                    for (int j = 0; j < bucketsPerCycle; j++) {
+                    for (int j = 0; j < settings.BUCKETS_PER_CYCLE; j++) {
                         bucketMaps[j] = new ConcurrentHashMap<Long, Integer>();
                     }
                 }
-
-                progressBar.setProgress(0);
-                progressLogger.setProgress(0);
-                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[BATCH_SIZE];
-                processedFastas = 0;
-                FutureSequenceRecords<Integer, Byte> container;
-                while ((container = sup.next()) != null) {
-                    batch[processedFastas % BATCH_SIZE] = container;
+                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
+                FutureSequenceRecords<Integer, Byte> futureSequenceRecords;
+                while ((futureSequenceRecords = sup.next()) != null) {
+                    batch[nrOfProcessedFutureSequenceRecords % settings.SEQUENCE_BATCH_SIZE] = futureSequenceRecords;
                     progressBar.setProgress(sup.getBytesRead());
-                    progressLogger.setProgress(processedFastas);
-                    if (++processedFastas % BATCH_SIZE == 0) {
-                        indexPhaser.register();
-                        threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, batch, encoder, bucketMaps, tree, rangeStart, rangeEnd));
-                        batch = new FutureSequenceRecords[BATCH_SIZE];
+                    progressLogger.setProgress(nrOfProcessedFutureSequenceRecords);
+                    // submit full batch
+                    if (++nrOfProcessedFutureSequenceRecords % settings.SEQUENCE_BATCH_SIZE == 0) {
+                        phaser.register();
+                        threadPoolExecutor.submit(new FastaProteinProcessor(batch, bucketMaps,
+                                bucketIndexRangeStart, bucketIndexRangeEnd));
+                        batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
                     }
                 }
-                indexPhaser.register();
-                threadPoolExecutor.submit(new FastaProteinProcessor(indexPhaser, Arrays.copyOfRange(batch, 0, processedFastas % BATCH_SIZE), encoder, bucketMaps, tree, rangeStart, rangeEnd));
+                phaser.register();
+                // submit last batch
+                threadPoolExecutor.submit(new FastaProteinProcessor(
+                        Arrays.copyOfRange(batch, 0, nrOfProcessedFutureSequenceRecords % settings.SEQUENCE_BATCH_SIZE),
+                        bucketMaps, bucketIndexRangeStart, bucketIndexRangeEnd));
                 progressBar.finish();
 
-                indexPhaser.arriveAndAwaitAdvance();
-                logger.logInfo("Processed " + processedFastas + " sequences");
-                logger.logInfo("Converting, sorting and writing buckets " + rangeStart + " - " + rangeEnd);
+                phaser.arriveAndAwaitAdvance();
+                logger.logInfo("Converting, sorting and writing buckets " + bucketIndexRangeStart + " - " + bucketIndexRangeEnd);
 
-                for (int j = 0; j < Math.min(bucketsPerCycle, (maxBuckets - rangeStart)); j++) {
-                    bucketSizes.add(new Pair<>(rangeStart + j, bucketMaps[j].size()));
+                for (int j = 0; j < Math.min(settings.BUCKETS_PER_CYCLE, (maxBuckets - bucketIndexRangeStart)); j++) {
+                    bucketSizes.add(new Pair<>(bucketIndexRangeStart + j, bucketMaps[j].size()));
                     int finalJ = j;
-                    indexPhaser.register();
+                    phaser.register();
                     threadPoolExecutor.submit(() -> {
                         try {
-                            IndexIO.getBucketIO(rangeStart + finalJ).write(new Bucket(rangeStart + finalJ, bucketMaps[finalJ], encoder));
+                            dbIndexIO.getBucketIO(bucketIndexRangeStart + finalJ).write(new Bucket(bucketIndexRangeStart + finalJ, bucketMaps[finalJ], encoder));
                         } catch (RuntimeException | IOException e) {
-                            throw new RuntimeException("Error converting and writing bucket " + (rangeStart + finalJ), e);
+                            throw new RuntimeException("Error converting and writing bucket " + (bucketIndexRangeStart + finalJ), e);
                         } finally {
-                            indexPhaser.arriveAndDeregister();
+                            phaser.arriveAndDeregister();
                         }
                     });
 
-                    indexPhaser.register();
+                    phaser.register();
                     threadPoolExecutor.submit(() -> {
                         try {
                             for (int taxId: bucketMaps[finalJ].values()) {
                                 tree.addToNodeProperty(taxId, "kmers in database", 1);
                             }
                         } finally {
-                            indexPhaser.arriveAndDeregister();
+                            phaser.arriveAndDeregister();
                         }
                     });
                 }
-                indexPhaser.arriveAndAwaitAdvance();
+                phaser.arriveAndAwaitAdvance();
                 sup.reset();
             }
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        threadPoolExecutor.shutdown();
-        try {
-            if (threadPoolExecutor.awaitTermination(1, TimeUnit.MINUTES)) {
-                logger.logInfo("Indexing complete.");
-            } else {
-                logger.logError("Indexing timed out.");
-                threadPoolExecutor.shutdownNow();
-                throw new RuntimeException("Indexing timed out.");
-            }
-        } catch (InterruptedException e) {
-            logger.logError("Indexing interrupted.");
-            threadPoolExecutor.shutdownNow();
-            throw new RuntimeException("Indexing interrupted.");
         }
 
         // Export tree with number of kmers that map to each node
         TreeIO.saveTree(tree, indexDir.resolve("tree.txt"));
 
         report
-                .append("input file: ").append(fastaFile).append("\n")
+                .append("input file: ").append(sup.getFile()).append("\n")
                 .append("output directory: ").append(indexDir).append("\n")
-                .append("processed sequenceRecords: ").append(processedFastas).append("\n")
-                .append("bucket sizes: ").append("\n");
-
+                .append("processed sequenceRecords: ").append(nrOfProcessedFutureSequenceRecords).append("\n");
+        long totalKmers = 0;
+        StringBuilder bucketSizesString = new StringBuilder().append("bucket sizes: ").append("\n");
         for (Pair<Integer, Integer> bucketSize : bucketSizes) {
-            report.append(bucketSize.first()).append("\t").append(bucketSize.last()).append("\n");
+            totalKmers += bucketSize.last();
+            bucketSizesString.append(bucketSize.first()).append("\t").append(bucketSize.last()).append("\n");
+        }
+        report.append("total extracted kmers: ").append(totalKmers).append("\n");
+        report.append(bucketSizesString);
+
+        if (settings.COLLECT_STATS) writeKmerStatistics(kmerCounts, dbIndexIO.getIndexFolder());
+        return report.toString();
+    }
+
+    private class FastaProteinProcessor implements Runnable {
+        private final FutureSequenceRecords<Integer, Byte>[] containers;
+        private final KmerExtractor kmerExtractor;
+        private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
+        private final int rangeStart;
+        private final int rangeEnd;
+
+        /**
+         * Processes a batch of Sequence sequences and adds the kmers to the corresponding bucket maps.
+         * @param containers Array of Sequence sequences to process.
+         * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
+         */
+        public FastaProteinProcessor(FutureSequenceRecords<Integer, Byte>[] containers, ConcurrentHashMap<Long, Integer>[] bucketMaps, int rangeStart, int rangeEnd) {
+            this.containers = containers;
+            this.kmerExtractor = encoder.getKmerExtractor();
+            this.bucketMaps = bucketMaps;
+            this.rangeStart = rangeStart;
+            this.rangeEnd = rangeEnd;
         }
 
-        return report.toString();
+        @Override
+        public void run() {
+            try {
+                for (FutureSequenceRecords<Integer, Byte> container : containers) {
+                    for (SequenceRecord<Integer, Byte> record: container.getSequenceRecords()) {
+                        if (record == null || record.sequence().length() < kmerExtractor.getK() || !tree.hasNode(record.id())) {
+                            continue;
+                        }
+                        Sequence<Byte> sequence = record.sequence();
+                        int taxId = record.id();
+                        long[] kmers = kmerExtractor.extractKmers(sequence);
+                        for (long kmerEnc : kmers) {
+                            int bucketName = encoder.getBucketNameFromKmer(kmerEnc);
+                            if (bucketName >= rangeStart && bucketName < rangeEnd) {
+                                if (settings.COLLECT_STATS) kmerCounts.put(kmerEnc, kmerCounts.getOrDefault(kmerEnc, 0) + 1);
+                                bucketMaps[bucketName - rangeStart].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
+                                bucketMaps[bucketName - rangeStart].computeIfAbsent(kmerEnc, k -> taxId);
+                            }
+                        }
+                    }
+                }
+            } finally {
+                phaser.arriveAndDeregister();
+            }
+        }
     }
 }
