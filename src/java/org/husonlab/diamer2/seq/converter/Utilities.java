@@ -2,6 +2,7 @@ package org.husonlab.diamer2.seq.converter;
 
 import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 
 import java.util.ArrayList;
@@ -115,28 +116,31 @@ public class Utilities {
     }
 
     /**
-     * Splits all input sequences at stop codons {@code -1} and returns the resulting sequences.
+     * Splits all input sequences at stop codons {@code -1} and returns the resulting sequences that are above the given
+     * length threshold.
      * @param sequences Input sequences
+     * @param minLength Minimum length of a sequence
+     * @param alphabet Alphabet of the input sequences
      * @return Sequences split at stop codons
      */
-    public static Sequence<Byte>[] splitAtStopCodons(Sequence<Byte>[] sequences) {
-        ArrayList<Sequence<Byte>> sequencesArrayList = new ArrayList<>();
-        for (Sequence<Byte> sequence : sequences) {
+    public static Compressed4BitSequence[] splitAtStopCodons(byte[][] sequences, int minLength, Alphabet<Byte> alphabet) {
+        ArrayList<Compressed4BitSequence> sequencesArrayList = new ArrayList<>();
+        for (byte[] sequence : sequences) {
             ArrayList<Byte> sequenceArrayList = new ArrayList<>();
             for (byte aa: sequence) {
                 if (aa == -1) {
-                    if (!sequenceArrayList.isEmpty()) {
-                        sequencesArrayList.add(new Compressed4BitSequence(new Base11Alphabet(), sequenceArrayList.toArray(new Byte[0])));
-                        sequenceArrayList = new ArrayList<>();
+                    if (!sequenceArrayList.isEmpty() && sequenceArrayList.size() >= minLength) {
+                        sequencesArrayList.add(new Compressed4BitSequence(alphabet, sequenceArrayList.toArray(new Byte[0])));
                     }
+                    sequenceArrayList = new ArrayList<>();
                 } else {
                     sequenceArrayList.add(aa);
                 }
             }
-            if (!sequenceArrayList.isEmpty()) {
-                sequencesArrayList.add(new Compressed4BitSequence(new Base11Alphabet(), sequenceArrayList.toArray(new Byte[0])));
+            if (!sequenceArrayList.isEmpty() && sequenceArrayList.size() >= minLength) {
+                sequencesArrayList.add(new Compressed4BitSequence(alphabet, sequenceArrayList.toArray(new Byte[0])));
             }
         }
-        return sequencesArrayList.toArray(new Sequence[0]);
+        return sequencesArrayList.toArray(new Compressed4BitSequence[0]);
     }
 }

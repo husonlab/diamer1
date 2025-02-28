@@ -178,6 +178,9 @@ public class DBIndexer {
         return report.toString();
     }
 
+    /**
+     * Runnable to compare a read- and a database bucket.
+     */
     private class FastaProteinProcessor implements Runnable {
         private final FutureSequenceRecords<Integer, Byte>[] containers;
         private final KmerExtractor kmerExtractor;

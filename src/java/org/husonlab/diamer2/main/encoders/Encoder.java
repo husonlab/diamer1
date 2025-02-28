@@ -133,6 +133,10 @@ public abstract class Encoder {
      */
     public abstract int getBitsOfBucketNames();
 
+    public int getNrOfKmerBitsInBucketEntry() {
+        return 64 - bitsForIds;
+    };
+
     public abstract int getNumberOfBuckets();
 
     /**

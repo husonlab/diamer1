@@ -10,7 +10,7 @@ import org.husonlab.diamer2.seq.converter.DNAtoBase11RF1NoStop;
  */
 public class K15Base11Nuc extends Encoder {
 
-    private static final DNAtoBase11 dnaEncoder = new DNAtoBase11();
+    private final DNAtoBase11 dnaEncoder;
     private static final DNAtoBase11RF1NoStop dnaEncoderRF1NoStop = new DNAtoBase11RF1NoStop();
     /**
      * number of bits in the bucket that are used to encode the kmer
@@ -27,6 +27,7 @@ public class K15Base11Nuc extends Encoder {
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
         numberOfBuckets = (int)Math.pow(2, bitsOfBucketNames);
+        dnaEncoder = new DNAtoBase11(k);
     }
 
     @Override

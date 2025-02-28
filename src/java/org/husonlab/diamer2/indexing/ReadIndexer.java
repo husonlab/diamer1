@@ -165,7 +165,7 @@ public class ReadIndexer {
                     phaser.register();
                     threadPoolExecutor.submit(() -> {
                         try {
-                            readIndexIO.getBucketIO(bucketIndexRangeStart + finalJ).write(new Bucket(bucketIndexRangeStart + finalJ, bucketLists[finalJ]));
+                            readIndexIO.getBucketIO(bucketIndexRangeStart + finalJ).write(new Bucket(bucketIndexRangeStart + finalJ, bucketLists[finalJ], encoder));
                         } catch (RuntimeException | IOException e) {
                             throw new RuntimeException("Error converting and writing bucket " + finalJ, e);
                         } finally {

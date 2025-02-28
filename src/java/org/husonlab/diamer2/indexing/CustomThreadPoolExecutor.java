@@ -39,7 +39,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
             if (!awaitTermination(waitBeforeShutdown, TimeUnit.MINUTES)) {
                 logger.logError("Task timed out.");
                 shutdownNow();
-                throw new RuntimeException("Indexing timed out.");
+                throw new RuntimeException("Task timed out.");
             }
         } catch (InterruptedException e) {
             logger.logError("Task interrupted.");

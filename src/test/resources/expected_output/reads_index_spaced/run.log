@@ -12,7 +12,7 @@ End: 2025-02-28T14:30:09.222497400
 
 Processed Reads: 6
 Processed translations: 73
-Skipped translations because length < 21: 135
+Skipped translations because length < 21: 0
 total extracted kmers: 1213
 bucket sizes: 
 0	0

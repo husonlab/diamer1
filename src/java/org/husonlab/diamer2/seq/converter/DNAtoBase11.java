@@ -1,11 +1,11 @@
 package org.husonlab.diamer2.seq.converter;
 
 import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
+import static org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -18,6 +18,11 @@ public class DNAtoBase11 implements Converter<Character, Byte> {
 
     private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetDNA();
     private static final Alphabet<Byte> TARGET_ALPHABET = new Base11Alphabet();
+    private final int minLength;
+
+    public DNAtoBase11(int minLength) {
+        this.minLength = minLength;
+    }
 
     @Override
     public Sequence<Byte>[] convert(Sequence<Character> sequence) {
@@ -48,25 +53,27 @@ public class DNAtoBase11 implements Converter<Character, Byte> {
             translations[(i2%6)+1][sequenceLengths[(i+1)%3]-i2/6-1] = encoding[1];
             triplet.deleteCharAt(0);
         }
+
         if (sequence.length() == 3) {
-            return org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons(new Sequence[]{
-                    new Compressed4BitSequence(new Base11Alphabet(), translations[0]),
-                    new Compressed4BitSequence(new Base11Alphabet(), translations[1])});
-        }
+            return splitAtStopCodons(
+                    new byte[][]{
+                            translations[0],
+                            translations[1]}, minLength, new Base11Alphabet());}
         if (sequence.length() == 4) {
-            return org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons(new Sequence[]{
-                    new Compressed4BitSequence(new Base11Alphabet(), translations[0]),
-                    new Compressed4BitSequence(new Base11Alphabet(), translations[1]),
-                    new Compressed4BitSequence(new Base11Alphabet(), translations[2]),
-                    new Compressed4BitSequence(new Base11Alphabet(), translations[3])});
-        }
-        return org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons(new Sequence[]{
-                new Compressed4BitSequence(new Base11Alphabet(), translations[0]),
-                new Compressed4BitSequence(new Base11Alphabet(), translations[1]),
-                new Compressed4BitSequence(new Base11Alphabet(), translations[2]),
-                new Compressed4BitSequence(new Base11Alphabet(), translations[3]),
-                new Compressed4BitSequence(new Base11Alphabet(), translations[4]),
-                new Compressed4BitSequence(new Base11Alphabet(), translations[5])});
+            return splitAtStopCodons(
+                    new byte[][]{
+                            translations[0],
+                            translations[1],
+                            translations[2],
+                            translations[3]}, minLength, new Base11Alphabet());}
+        return splitAtStopCodons(
+                new byte[][]{
+                        translations[0],
+                        translations[1],
+                        translations[2],
+                        translations[3],
+                        translations[4],
+                        translations[5]}, minLength, new Base11Alphabet());
     }
 
     @Override

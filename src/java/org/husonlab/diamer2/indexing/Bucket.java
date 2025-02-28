@@ -42,7 +42,7 @@ public class Bucket {
             content[i] = encoder.getIndex(entry.getValue(), entry.getKey());
             i++;
         }
-        sort(44);
+        sort(encoder.getNrOfKmerBitsInBucketEntry());
     }
 
     /**
@@ -50,10 +50,10 @@ public class Bucket {
      * @param name Name (number) of the bucket.
      * @param bucketList Content of the bucket as a concurrent linked queue.
      */
-    public Bucket(int name, @NotNull ConcurrentLinkedQueue<Long> bucketList) {
+    public Bucket(int name, @NotNull ConcurrentLinkedQueue<Long> bucketList, @NotNull Encoder encoder) {
         this.name = name;
         content = bucketList.stream().mapToLong(Long::longValue).toArray();
-        sort(44);
+        sort(encoder.getNrOfKmerBitsInBucketEntry());
     }
 
     /**
@@ -61,7 +61,7 @@ public class Bucket {
      * @param nBits Number of bits (most significant / from the left) to sort by.
      */
     public void sort(int nBits) {
-        content = Sorting.radixSortNBits(content, 44);
+        content = Sorting.radixSortNBits(content, nBits);
     }
 
     /**
