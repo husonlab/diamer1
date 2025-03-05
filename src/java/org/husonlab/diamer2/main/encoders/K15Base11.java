@@ -1,6 +1,8 @@
 package org.husonlab.diamer2.main.encoders;
 
+import org.husonlab.diamer2.seq.alphabet.AA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.alphabet.DNA;
 import org.husonlab.diamer2.seq.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.converter.Converter;
 import org.husonlab.diamer2.seq.converter.DNAtoBase11;
@@ -8,10 +10,10 @@ import org.husonlab.diamer2.seq.converter.DNAtoBase11;
 /**
  * {@link Encoder} that uses the base 11 alphabet to encode kmers.
  */
-public class K15Base11 extends Encoder {
+public class K15Base11 extends Encoder<Character, AA, Character, DNA, Base11Alphabet> {
 
-    private static final AAtoBase11 aaEncoder = new AAtoBase11();
-    private final DNAtoBase11 dnaEncoder;
+    private static final AAtoBase11 dbConverter = new AAtoBase11();
+    private final DNAtoBase11 readConverter;
     /**
      * number of bits in the bucket that are used to encode the kmer
      */
@@ -23,21 +25,21 @@ public class K15Base11 extends Encoder {
     private final int numberOfBuckets;
 
     public K15Base11(boolean[] mask, int bitsIds) {
-        super(new Base11Alphabet(), mask, bitsIds);
+        super(new AA(), new DNA(), new Base11Alphabet(), mask, bitsIds);
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
         numberOfBuckets = (int)Math.pow(2, bitsOfBucketNames);
-        dnaEncoder = new DNAtoBase11(k);
+        readConverter = new DNAtoBase11(k);
     }
 
     @Override
-    public Converter<Character, Byte> getDBConverter() {
-        return aaEncoder;
+    public Converter<Character, AA, Byte, Base11Alphabet> getDBConverter() {
+        return dbConverter;
     }
 
     @Override
-    public Converter<Character, Byte> getReadConverter() {
-        return dnaEncoder;
+    public Converter<Character, DNA, Byte, Base11Alphabet> getReadConverter() {
+        return readConverter;
     }
 
     @Override
@@ -64,7 +66,6 @@ public class K15Base11 extends Encoder {
     public long getKmerFromIndexEntry(int bucketName, long kmerIndex) {
         return (kmerIndex >>> bitsForIds) << bitsOfBucketNames | bucketName;
     }
-
     @Override
     public long getKmerFromIndexEntry(long kmerIndex) {
         return kmerIndex >>> bitsForIds;

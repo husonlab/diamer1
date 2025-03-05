@@ -2,6 +2,7 @@ package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.converter.Converter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,16 +26,16 @@ import java.util.LinkedList;
  * @param <C> Type of the sequence (determined by the {@link Converter} or the {@link SequenceReader} if no converter is
  *           supplied)
  */
-public class SequenceSupplier<H, S, C> implements AutoCloseable {
+public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alphabet<S2>> implements AutoCloseable {
     /**
      * List to keep the (future) sequence records in memory.
      */
-    private final LinkedList<MemoryEntry<H, C>> FutureSequenceBuffer;
-    private final SequenceReader<H, S> sequenceReader;
-    private final Converter<S, C> converter;
+    private final LinkedList<MemoryEntry<H, S2, A2>> FutureSequenceBuffer;
+    private final SequenceReader<H, S1, A1> sequenceReader;
+    private final Converter<S1, A1, S2, A2> converter;
     private final boolean keepInMemory;
     private boolean finishedReading;
-    private Iterator<MemoryEntry<H, C>> iterator;
+    private Iterator<MemoryEntry<H, S2, A2>> iterator;
     private long bytesRead;
     private int sequencesRead;
 
@@ -43,7 +44,7 @@ public class SequenceSupplier<H, S, C> implements AutoCloseable {
      * @param converter Converter to convert the sequences to a different alphabet
      * @param keepInMemory Whether to keep the sequences in memory or not
      */
-    public SequenceSupplier(@NotNull SequenceReader<H, S> sequenceReader, @Nullable Converter<S, C> converter, boolean keepInMemory) {
+    public SequenceSupplier(@NotNull SequenceReader<H, S1, A1> sequenceReader, @Nullable Converter<S1, A1, S2, A2> converter, boolean keepInMemory) {
         this.sequenceReader = sequenceReader;
         this.converter = converter;
         this.keepInMemory = keepInMemory;
@@ -65,12 +66,12 @@ public class SequenceSupplier<H, S, C> implements AutoCloseable {
      * @return {@link FutureSequenceRecords} containing potentially multiple {@link SequenceRecord}s depending on the
      *         {@link Converter} or {@code null} if one iteration over the sequences is finished.
      */
-    public FutureSequenceRecords<H, C> next() throws IOException {
+    public FutureSequenceRecords<H, S2, A2> next() throws IOException {
         if (keepInMemory) {
             if (iterator != null) {
                 if (iterator.hasNext()) {
                     // case: All sequences are already in memory
-                    MemoryEntry<H, C> entry = iterator.next();
+                    MemoryEntry<H, S2, A2> entry = iterator.next();
                     sequencesRead = entry.sequencesRead;
                     bytesRead = entry.bytesRead;
                     return entry.futureSequenceRecords;
@@ -84,14 +85,14 @@ public class SequenceSupplier<H, S, C> implements AutoCloseable {
                     // but the reset() method has not been called.
                     return null;
                 } else {
-                    SequenceRecord<H, S> sequenceRecord;
+                    SequenceRecord<H, S1, A1> sequenceRecord;
                     if ((sequenceRecord = sequenceReader.next()) != null) {
                         // case: First iteration
                         bytesRead = sequenceReader.getBytesRead();
                         sequencesRead++;
-                        MemoryEntry<H, C> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
+                        MemoryEntry<H, S2, A2> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
                         FutureSequenceBuffer.add(entry);
-                        FutureSequenceRecords<H, C> futureSequenceRecords = getToBeTranslatedContainer(converter, sequenceRecord, entry);
+                        FutureSequenceRecords<H, S2, A2> futureSequenceRecords = getToBeTranslatedContainer(converter, sequenceRecord, entry);
                         entry.futureSequenceRecords = futureSequenceRecords;
                         return futureSequenceRecords;
                     } else {
@@ -102,7 +103,7 @@ public class SequenceSupplier<H, S, C> implements AutoCloseable {
                 }
             }
         } else {
-            SequenceRecord<H, S> sequenceRecord;
+            SequenceRecord<H, S1, A1> sequenceRecord;
             if ((sequenceRecord = sequenceReader.next()) == null) {
                 // case: End of file
                 return null;
@@ -127,24 +128,24 @@ public class SequenceSupplier<H, S, C> implements AutoCloseable {
      *              stored after conversion
      * @return {@link FutureSequenceRecords} containing the input {@link SequenceRecord}.
      */
-    private FutureSequenceRecords<H, C> getToBeTranslatedContainer(
-            Converter<S, C> converter, SequenceRecord<H, S> sequenceRecord, MemoryEntry<H, C> entry) {
-        return new FutureSequenceRecords<H, C>() {
+    private FutureSequenceRecords<H, S2, A2> getToBeTranslatedContainer(
+            Converter<S1, A1, S2, A2> converter, SequenceRecord<H, S1, A1> sequenceRecord, MemoryEntry<H, S2, A2> entry) {
+        return new FutureSequenceRecords<H, S2, A2>() {
             @Override
-            public LinkedList<SequenceRecord<H, C>> getSequenceRecords() {
-                LinkedList<SequenceRecord<H, C>> sequenceRecords = new LinkedList<>();
+            public LinkedList<SequenceRecord<H, S2, A2>> getSequenceRecords() {
+                LinkedList<SequenceRecord<H, S2, A2>> sequenceRecords = new LinkedList<>();
                 if (converter != null) {
                     H header = sequenceRecord.id();
-                    for (Sequence<C> sequence : converter.convert(sequenceRecord.sequence())) {
+                    for (Sequence<S2, A2> sequence : converter.convert(sequenceRecord.sequence())) {
                         sequenceRecords.add(new SequenceRecord<>(header, sequence));
                     }
                 } else {
-                    sequenceRecords.add((SequenceRecord<H, C>) sequenceRecord);
+                    sequenceRecords.add((SequenceRecord<H, S2, A2>) sequenceRecord);
                 }
                 if (entry != null) {
-                    entry.futureSequenceRecords = new FutureSequenceRecords<H, C>() {
+                    entry.futureSequenceRecords = new FutureSequenceRecords<H, S2, A2>() {
                         @Override
-                        public LinkedList<SequenceRecord<H, C>> getSequenceRecords() {
+                        public LinkedList<SequenceRecord<H, S2, A2>> getSequenceRecords() {
                             return sequenceRecords;
                         }
                     };
@@ -211,12 +212,12 @@ public class SequenceSupplier<H, S, C> implements AutoCloseable {
      * Class to store the sequences in memory during the first iteration. To be able to return some kind of progress
      * status during further iterations, the sequencesRead and bytesRead are stored together with the sequences.
      */
-    private static class MemoryEntry<H, S>{
+    private static class MemoryEntry<H, S2, A2 extends Alphabet<S2>>{
         public final int sequencesRead;
         public final long bytesRead;
-        public FutureSequenceRecords<H, S> futureSequenceRecords;
+        public FutureSequenceRecords<H, S2, A2> futureSequenceRecords;
 
-        public MemoryEntry(int sequencesRead, long bytesRead, FutureSequenceRecords<H, S> futureSequenceRecords) {
+        public MemoryEntry(int sequencesRead, long bytesRead, FutureSequenceRecords<H, S2, A2> futureSequenceRecords) {
             this.sequencesRead = sequencesRead;
             this.bytesRead = bytesRead;
             this.futureSequenceRecords = futureSequenceRecords;

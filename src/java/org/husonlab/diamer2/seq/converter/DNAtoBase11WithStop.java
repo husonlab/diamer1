@@ -1,49 +1,79 @@
 package org.husonlab.diamer2.seq.converter;
 
-import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.Compressed4BitSequence;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.alphabet.Base11WithStop;
+import org.husonlab.diamer2.seq.alphabet.DNA;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
- * Converter to convert DNA to the DIAMOND base 11 alphabet in only the first reading frame and ignores stop codons.
+ * Converter to convert DNA to the DIAMOND base 11 alphabet in all 6 reading frames. The sequences of the translations
+ * are split at stop codons.
  */
-public class DNAtoBase11RF1NoStop implements Converter<Character, Byte> {
+public class DNAtoBase11WithStop extends Converter<Character, DNA, Byte, Base11WithStop> {
 
-    private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetDNA();
-    private static final Alphabet<Byte> TARGET_ALPHABET = new Base11Alphabet();
+    private static final Base11WithStop TARGET_ALPHABET = new Base11WithStop();
 
     @Override
-    public Sequence<Byte>[] convert(Sequence<Character> sequence) {
+    public Sequence<Byte, Base11WithStop>[] convert(Sequence<Character, DNA> sequence) {
 
         // The sequence is too short to be translated
         if (sequence.length() < 3) {
             return new Sequence[0];
         }
+        StringBuilder triplet = new StringBuilder();
         // Setup byte array for each reading frame
-        byte[] translation = new byte[Math.floorDiv(sequence.length(), 3)];
-
-        for (int i = 2; i < sequence.length(); i += 3) {
-            byte[] encoding = encodeDNA(String.valueOf(sequence.get(i - 2)) + sequence.get(i - 1) + sequence.get(i));
-            // Forward reading frame
-            translation[(i - 2) / 3] = encoding[0];
+        byte[][] translations = new byte[6][];
+        int[] sequenceLengths = new int[3];
+        for (int i = 0; i < 3; i++) {
+            int len = (sequence.length()-i)/3;
+            sequenceLengths[i] = len;
+            translations[i*2] = new byte[len];
+            translations[i*2+1] = new byte[len];
         }
-        return new Sequence[]{new Compressed4BitSequence(new Base11Alphabet(), translation)};
-    }
+        triplet.append(sequence.get(0)).append(sequence.get(1));
 
-    @Override
-    public Alphabet<Character> getSourceAlphabet() {
-        return SOURCE_ALPHABET;
-    }
+        for (int i = 2; i < sequence.length(); i++) {
+            triplet.append(sequence.get(i));
+            byte[] encoding = encodeDNA(triplet.toString());
+            int i2 = i*2-4;
+            // Forward reading frame
+            translations[i2%6][i2/6] = encoding[0];
+            // Reverse reading frame, gets filled in reverse order
+            translations[(i2%6)+1][sequenceLengths[(i+1)%3]-i2/6-1] = encoding[1];
+            triplet.deleteCharAt(0);
+        }
 
-    @Override
-    public Alphabet<Byte> getTargetAlphabet() {
-        return TARGET_ALPHABET;
+        byte[][] splitTranslations;
+
+        if (sequence.length() == 3) {
+            splitTranslations = new byte[][]{
+                    translations[0],
+                    translations[1]};
+        }
+        else if (sequence.length() == 4) {
+            splitTranslations = new byte[][]{
+                    translations[0],
+                    translations[1],
+                    translations[2],
+                    translations[3]};
+        } else {
+            splitTranslations = new byte[][]{
+                    translations[0],
+                    translations[1],
+                    translations[2],
+                    translations[3],
+                    translations[4],
+                    translations[5]};
+        }
+        Sequence<Byte, Base11WithStop>[] result = new Sequence[splitTranslations.length];
+        for (int i = 0; i < splitTranslations.length; i++) {
+            result[i] = new Compressed4BitSequence<>(TARGET_ALPHABET, splitTranslations[i]);
+        }
+        return result;
     }
 
     /**
@@ -95,8 +125,7 @@ public class DNAtoBase11RF1NoStop implements Converter<Character, Byte> {
             case "TGG" -> {                                     // W
                 return 10;
             }
-            // todo: handle stop codons
-            case "TAA", "TAG", "TGA" -> {
+            case "TAA", "TAG", "TGA" -> {                       // stop codons
                 return 0;
             }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);

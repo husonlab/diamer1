@@ -7,32 +7,38 @@ import org.husonlab.diamer2.seq.SequenceRecord;
  * <p>Implementations can be used to set the Alphabet of a {@link SequenceRecord}.</p>
  * @param <T> the type of symbols in the alphabet
  */
-public interface Alphabet<T> {
+public abstract class Alphabet<T> {
 
     /**
      * Checks if the alphabet contains the given symbol.
      * @param symbol the symbol to check
      * @return true if the symbol is in the alphabet, false otherwise
      */
-    public boolean contains(T symbol);
+    abstract public boolean contains(T symbol);
 
     /**
      * @return an array of all symbols in the alphabet
      */
-    public T[] getSymbols();
+    abstract public T[] getSymbols();
 
     /**
      * @return the number of symbols in the alphabet
      */
-    int getBase();
+    abstract public int getBase();
 
     /**
      * @return the name of the alphabet
      */
-    String getName();
+    abstract public String getName();
 
     /**
      * @return a string representation of the given sequence
      */
-    String toString(Iterable<T> seq);
+    abstract public String toString(Iterable<T> seq);
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof Alphabet && ((Alphabet<?>) obj).getName().equals(getName());
+    }
+
 }

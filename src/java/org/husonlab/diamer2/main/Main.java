@@ -11,13 +11,12 @@ import org.husonlab.diamer2.io.seq.FastaReader;
 import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
-import org.husonlab.diamer2.main.encoders.K15Base11Nuc;
-import org.husonlab.diamer2.main.encoders.K15Base11Uniform;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.main.encoders.K15Base11;
+import org.husonlab.diamer2.seq.alphabet.*;
 import org.husonlab.diamer2.seq.converter.EnforceAA;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
@@ -256,8 +255,8 @@ public class Main {
         for (int i = 2; i < cli.getArgs().length; i++) {
             mappingFiles.add(getFile(cli.getArgs()[i], true));
         }
-        try (SequenceSupplier<String, Character, Character> sequenceSupplier = new SequenceSupplier<>(
-                new FastaReader(database), new EnforceAA(), globalSettings.KEEP_IN_MEMORY)) {
+        try (SequenceSupplier<String, Character, AAWithLowerAndStop, Character, AA> sequenceSupplier = new SequenceSupplier<>(
+                new FastaReader<>(database, new AAWithLowerAndStop()), new EnforceAA(), globalSettings.KEEP_IN_MEMORY)) {
             Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
             if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
                 accessionMapping = new MeganMapping(mappingFiles.getFirst());
@@ -286,15 +285,16 @@ public class Main {
         Path output = getFolder(cli.getArgs()[1], false);
 
         Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
-        Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
-        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
-        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
+        Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
+        // todo: reimplement nucleotide and uniform
+//        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
+//        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
 
         writeLogBegin(globalSettings, output.resolve("run.log"));
         String runInfo;
 
-        try (SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(new FastaIdReader(database), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
-            DBIndexer dbIndexer = new DBIndexer(sup, output, tree, encoder, globalSettings);
+        try (SequenceSupplier<Integer, Character, AA, Byte, Base11Alphabet> sup = new SequenceSupplier<Integer, Character, AA, Byte, Base11Alphabet>(new FastaIdReader<>(database, new AA()), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
+            DBIndexer<AA, Base11Alphabet> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
             runInfo = dbIndexer.index();
         } catch (IOException e) {
             writeLogEnd(e.toString(), output.resolve("run.log"));
@@ -308,14 +308,15 @@ public class Main {
         boolean[] mask = getMask(cli);
         Path reads = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
-        Encoder encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
-        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
-        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
+        Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
+        // todo: reimplement nucleotide and uniform
+//        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
+//        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
         writeLogBegin(globalSettings, output.resolve("run.log"));
         String runInfo;
-        try (FastqIdReader fastQIdReader = new FastqIdReader(reads);
-             SequenceSupplier<Integer, Character, Byte> sup = new SequenceSupplier<>(fastQIdReader, encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer readIndexer = new ReadIndexer( sup, fastQIdReader, output, encoder, globalSettings);
+        try (FastqIdReader<DNA> fastQIdReader = new FastqIdReader<>(reads, new DNA());
+             SequenceSupplier<Integer, Character, DNA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(fastQIdReader, encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
+            ReadIndexer<DNA, Base11Alphabet> readIndexer = new ReadIndexer<>(sup, fastQIdReader, output, encoder, globalSettings);
             runInfo = readIndexer.index();
         } catch (IOException e) {
             writeLogEnd(e.toString(), output.resolve("run.log"));

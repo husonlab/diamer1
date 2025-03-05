@@ -40,7 +40,7 @@ public class KmerExtractor {
      * @param sequence the sequence to extract the kmers from
      * @return the extracted kmers
      */
-    public long[] extractKmers(Sequence<Byte> sequence) {
+    public long[] extractKmers(Sequence<Byte, ?> sequence) {
         int seqLength = sequence.length();
         if (seqLength < k) {
             return new long[0];

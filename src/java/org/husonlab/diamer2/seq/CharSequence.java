@@ -9,7 +9,7 @@ import java.util.Iterator;
  * Class to represent a sequence of characters.
  * <p>Can be used to represent {@link Sequence}s in the DNA or the amino acid {@link Alphabet}.</p>
  */
-public class CharSequence extends Sequence<Character> {
+public class CharSequence<A extends Alphabet<Character>> extends Sequence<Character, A> {
     private final char[] sequence;
 
     /**
@@ -17,7 +17,7 @@ public class CharSequence extends Sequence<Character> {
      * @param alphabet The {@link Alphabet} of the sequence
      * @param sequence The sequence as a char array
      */
-    public CharSequence(Alphabet<Character> alphabet, char[] sequence) {
+    public CharSequence(A alphabet, char[] sequence) {
         super(alphabet);
         this.sequence = sequence;
     }
@@ -27,7 +27,7 @@ public class CharSequence extends Sequence<Character> {
      * @param alphabet The {@link Alphabet} of the sequence
      * @param sequence The sequence as a {@link String}
      */
-    public CharSequence(Alphabet<Character> alphabet, String sequence) {
+    public CharSequence(A alphabet, String sequence) {
         super(alphabet);
         this.sequence = sequence.toCharArray();
     }

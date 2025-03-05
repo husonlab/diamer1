@@ -2,23 +2,24 @@ package org.husonlab.diamer2.seq.converter;
 
 import org.husonlab.diamer2.seq.CharSequence;
 import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.alphabet.AAWithLowerAndStop;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.alphabet.AlphabetAA;
+import org.husonlab.diamer2.seq.alphabet.AA;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
  * Enforces an uppercase amino acid alphabet without stop symbols (*). Sequences are split at stop symbols.
- * All characters that are not part of the {@link AlphabetAA} are removed.
+ * All characters that are not part of the {@link AA} are removed.
  */
-public class EnforceAA implements Converter<Character, Character> {
+public class EnforceAA extends Converter<Character, AAWithLowerAndStop, Character, AA> {
 
-    private static final Alphabet<Character> targetAlphabet = new AlphabetAA();
+    private static final AA targetAlphabet = new AA();
 
     @Override
-    public Sequence<Character>[] convert(Sequence<Character> sequence) {
-        ArrayList<Sequence<Character>> result = new ArrayList<>();
+    public Sequence<Character, AA>[] convert(Sequence<Character, AAWithLowerAndStop> sequence) {
+        ArrayList<Sequence<Character, AA>> result = new ArrayList<>();
         char[] tempArray = new char[sequence.length()];
         int i = 0;
         for (Character s : sequence) {
@@ -35,15 +36,5 @@ public class EnforceAA implements Converter<Character, Character> {
             result.add(new CharSequence(targetAlphabet, Arrays.copyOf(tempArray, i)));
         }
         return result.toArray(new Sequence[0]);
-    }
-
-    @Override
-    public Alphabet<Character> getSourceAlphabet() {
-        return new AlphabetAA();
-    }
-
-    @Override
-    public Alphabet<Character> getTargetAlphabet() {
-        return targetAlphabet;
     }
 }

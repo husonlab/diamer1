@@ -3,19 +3,19 @@ package org.husonlab.diamer2.seq;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
  * Represents a {@link Sequence} of numbers that only require a 4 bit encoding. Used for reduced alphabets.
- * The sequences are compressed in a long array (to save memory) and extracted when needed.
+ * The sequences are compressed in a long array (to save memory) and extracted when needed. Numbers from -1 to 14 can
+ * be stored in this sequence.
  */
-public class Compressed4BitSequence extends Sequence<Byte> {
+public class Compressed4BitSequence<A extends Alphabet<Byte>> extends Sequence<Byte, A> {
 
     private final long[] sequence;
     private final int length;
 
-    public Compressed4BitSequence(Alphabet<Byte> alphabet, byte[] sequence) {
+    public Compressed4BitSequence(A alphabet, byte[] sequence) {
         super(alphabet);
         int longArrayLength = (sequence.length + 15) / 16;
         this.sequence = new long[longArrayLength];
@@ -29,7 +29,7 @@ public class Compressed4BitSequence extends Sequence<Byte> {
         }
     }
 
-    public Compressed4BitSequence(Alphabet<Byte> alphabet, Byte[] sequence) {
+    public Compressed4BitSequence(A alphabet, Byte[] sequence) {
         super(alphabet);
         int longArrayLength = (sequence.length + 15) / 16;
         this.sequence = new long[longArrayLength];

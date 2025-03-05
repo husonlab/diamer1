@@ -3,7 +3,7 @@ package org.husonlab.diamer2.seq.alphabet;
 import java.util.Arrays;
 import java.util.HashSet;
 
-public class AlphabetDNA implements Alphabet<Character> {
+public class DNA extends Alphabet<Character> {
 
     private final Character[] symbols = new Character[]{'A', 'C', 'G', 'T'};
 

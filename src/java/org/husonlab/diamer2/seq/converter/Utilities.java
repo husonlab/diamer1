@@ -1,10 +1,5 @@
 package org.husonlab.diamer2.seq.converter;
 
-import org.husonlab.diamer2.seq.Compressed4BitSequence;
-import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -120,17 +115,16 @@ public class Utilities {
      * length threshold.
      * @param sequences Input sequences
      * @param minLength Minimum length of a sequence
-     * @param alphabet Alphabet of the input sequences
      * @return Sequences split at stop codons
      */
-    public static Compressed4BitSequence[] splitAtStopCodons(byte[][] sequences, int minLength, Alphabet<Byte> alphabet) {
-        ArrayList<Compressed4BitSequence> sequencesArrayList = new ArrayList<>();
+    public static Byte[][] splitAtMinus1AndSizeFilter(byte[][] sequences, int minLength) {
+        ArrayList<Byte[]> sequencesArrayList = new ArrayList<>();
         for (byte[] sequence : sequences) {
             ArrayList<Byte> sequenceArrayList = new ArrayList<>();
             for (byte aa: sequence) {
                 if (aa == -1) {
                     if (!sequenceArrayList.isEmpty() && sequenceArrayList.size() >= minLength) {
-                        sequencesArrayList.add(new Compressed4BitSequence(alphabet, sequenceArrayList.toArray(new Byte[0])));
+                        sequencesArrayList.add(sequenceArrayList.toArray(Byte[]::new));
                     }
                     sequenceArrayList = new ArrayList<>();
                 } else {
@@ -138,9 +132,9 @@ public class Utilities {
                 }
             }
             if (!sequenceArrayList.isEmpty() && sequenceArrayList.size() >= minLength) {
-                sequencesArrayList.add(new Compressed4BitSequence(alphabet, sequenceArrayList.toArray(new Byte[0])));
+                sequencesArrayList.add(sequenceArrayList.toArray(Byte[]::new));
             }
         }
-        return sequencesArrayList.toArray(new Compressed4BitSequence[0]);
+        return sequencesArrayList.toArray(Byte[][]::new);
     }
 }

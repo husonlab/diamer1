@@ -1,9 +1,10 @@
 package org.husonlab.diamer2.seq.alphabet;
 
 /**
- * Alphabet for the reduced amino acid alphabet as used in DIAMOND. There is no symbol for stop codons.
+ * Alphabet for the reduced amino acid alphabet as used in DIAMOND but with stop codons.
+ * The stop codons are grouped with the amino acids in group 0.
  */
-public class Base11Alphabet extends Alphabet<Byte> {
+public class Base11WithStop extends Alphabet<Byte> {
 
     /**
      * @param bits length of a kmer
@@ -31,7 +32,7 @@ public class Base11Alphabet extends Alphabet<Byte> {
 
     @Override
     public String getName() {
-        return "Base 11 Alphabet";
+        return "Base 11 Alphabet With Stop";
     }
 
     @Override

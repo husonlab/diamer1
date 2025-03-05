@@ -1,17 +1,20 @@
 package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.alphabet.Base11WithStop;
+import org.husonlab.diamer2.seq.alphabet.DNA;
 import org.husonlab.diamer2.seq.converter.Converter;
 import org.husonlab.diamer2.seq.converter.DNAtoBase11;
-import org.husonlab.diamer2.seq.converter.DNAtoBase11RF1NoStop;
+import org.husonlab.diamer2.seq.converter.DNAtoBase11RF1WithStop;
+import org.husonlab.diamer2.seq.converter.DNAtoBase11WithStop;
 
 /**
- * {@link Encoder} that uses the base 11 alphabet to encode kmers.
+ * {@link Encoder} for the use of a nucleotide database in the DIAMOND base 11 alphabet.
  */
-public class K15Base11Nuc extends Encoder {
+public class K15Base11Nuc extends Encoder<Character, DNA, Character, DNA, Base11WithStop> {
 
-    private final DNAtoBase11 dnaEncoder;
-    private static final DNAtoBase11RF1NoStop dnaEncoderRF1NoStop = new DNAtoBase11RF1NoStop();
+    private final DNAtoBase11RF1WithStop dbConverter = new DNAtoBase11RF1WithStop();
+    private static final DNAtoBase11WithStop readConverter = new DNAtoBase11WithStop();
     /**
      * number of bits in the bucket that are used to encode the kmer
      */
@@ -23,21 +26,20 @@ public class K15Base11Nuc extends Encoder {
     private final int numberOfBuckets;
 
     public K15Base11Nuc(boolean[] mask, int bitsIds) {
-        super(new Base11Alphabet(), mask, bitsIds);
+        super(new DNA(), new DNA(), new Base11WithStop(), mask, bitsIds);
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
         numberOfBuckets = (int)Math.pow(2, bitsOfBucketNames);
-        dnaEncoder = new DNAtoBase11(k);
     }
 
     @Override
-    public Converter<Character, Byte> getDBConverter() {
-        return dnaEncoder;
+    public Converter<Character, DNA, Byte, Base11WithStop> getDBConverter() {
+        return dbConverter;
     }
 
     @Override
-    public Converter<Character, Byte> getReadConverter() {
-        return dnaEncoderRF1NoStop;
+    public Converter<Character, DNA, Byte, Base11WithStop> getReadConverter() {
+        return readConverter;
     }
 
     @Override

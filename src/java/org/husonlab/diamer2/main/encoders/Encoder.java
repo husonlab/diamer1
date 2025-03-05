@@ -8,9 +8,11 @@ import org.husonlab.diamer2.seq.converter.Converter;
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
  */
-public abstract class Encoder {
+public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<SR>, T extends Alphabet<Byte>> {
 
-    protected final Alphabet<Byte> targetAlphabet;
+    protected final AD sourceDBAlphabet;
+    protected final AR sourceReadAlphabet;
+    protected final T targetAlphabet;
     /**
      * length of the mask (kmer with spaces)
      */
@@ -31,7 +33,9 @@ public abstract class Encoder {
      * @param mask bit mask to use for spaced kmer extraction
      * @param bitsForIds number of bits required to represent the ids of the sequences (taxon ids or read ids)
      */
-    public Encoder(Alphabet<Byte> targetAlphabet, boolean[] mask, int bitsForIds) {
+    public Encoder(AD sourceDBAlphabet, AR sourceReadAlphabet, T targetAlphabet, boolean[] mask, int bitsForIds) {
+        this.sourceDBAlphabet = sourceDBAlphabet;
+        this.sourceReadAlphabet = sourceReadAlphabet;
         this.targetAlphabet = targetAlphabet;
         this.mask = mask;
         // calculate position of the most significant bit (length of the mask / size of the window)
@@ -62,18 +66,40 @@ public abstract class Encoder {
     }
 
     /**
+     * @return the weight of the mask (number of non-zero bits)
+     */
+    public int getW() {
+        return k - s;
+    }
+
+    /**
      * @return converter to convert amino acid sequences to base 11 sequences
      */
-    public abstract Converter<Character, Byte> getDBConverter();
+    public abstract Converter<SD, AD, Byte, T> getDBConverter();
+
     /**
      * @return converter to convert DNA sequences to base 11 sequences
      */
-    public abstract Converter<Character, Byte> getReadConverter();
+    public abstract Converter<SR, AR, Byte, T> getReadConverter();
+
+    /**
+     * @return the alphabet of the database sequences
+     */
+    public AD getSourceDBAlphabet() {
+        return sourceDBAlphabet;
+    }
+
+    /**
+     * @return the alphabet of the read (query) sequences
+     */
+    public AR getSourceReadAlphabet() {
+        return sourceReadAlphabet;
+    }
 
     /**
      * @return the alphabet used to encode the kmers
      */
-    public Alphabet<Byte> getTargetAlphabet() {
+    public T getTargetAlphabet() {
         return targetAlphabet;
     }
 

@@ -2,6 +2,7 @@ package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.io.CountingInputStream;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -18,9 +19,10 @@ import java.util.zip.GZIPInputStream;
  * </p>
  * @param <H> Type of the header
  */
-public abstract class SequenceReader<H, S> implements AutoCloseable {
+public abstract class SequenceReader<H, S, A extends Alphabet<S>> implements AutoCloseable {
 
     protected final Path file;
+    protected final A alphabet;
     protected long fileSize;
     protected H id;
     protected StringBuilder sequence;
@@ -32,8 +34,9 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
     /**
      * @param file Path to the file (gzipped or not) to read from
      */
-    public SequenceReader(Path file) {
+    public SequenceReader(Path file, A alphabet) {
         this.file = file;
+        this.alphabet = alphabet;
         this.id = null;
         this.sequence = new StringBuilder();
         sequencesRead = 0;
@@ -44,18 +47,18 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
      * Reads over the file until the next sequence is found and returns it.
      * @return SequenceRecord with the header and the sequence
      */
-    public abstract SequenceRecord<H, S> next() throws IOException;
+    public abstract SequenceRecord<H, S, A> next() throws IOException;
 
     /**
      * Reads the next n sequences from the file and returns them.
      * @param n Number of sequences to read
      * @return List of {@link SequenceRecord}s
      */
-    public ArrayList<SequenceRecord<H, S>> next(int n) throws IOException {
+    public ArrayList<SequenceRecord<H, S, A>> next(int n) throws IOException {
         sequencesRead += n;
-        ArrayList<SequenceRecord<H, S>> sequenceRecords = new ArrayList<>();
+        ArrayList<SequenceRecord<H, S, A>> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            SequenceRecord<H, S> seq = next();
+            SequenceRecord<H, S, A> seq = next();
             if (seq == null) {
                 break;
             }

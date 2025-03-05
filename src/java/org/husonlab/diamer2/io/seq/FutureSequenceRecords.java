@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 
 import java.util.LinkedList;
 
@@ -15,12 +16,12 @@ import java.util.LinkedList;
  * @param <H> Header type
  * @param <S> Sequence type
  */
-public abstract class FutureSequenceRecords<H, S> {
+public abstract class FutureSequenceRecords<H, S, A extends Alphabet<S>> {
     /**
      * Performs the computation defined in the implementing class and returns the result.
      * <p>
      *     Depending on the implementation, this method call might be more or less computationally expensive.
      * </p>
      */
-    abstract public LinkedList<SequenceRecord<H, S>> getSequenceRecords();
+    abstract public LinkedList<SequenceRecord<H, S, A>> getSequenceRecords();
 }

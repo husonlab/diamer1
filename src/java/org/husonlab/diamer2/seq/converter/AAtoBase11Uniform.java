@@ -3,35 +3,25 @@ package org.husonlab.diamer2.seq.converter;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.alphabet.AlphabetAA;
+import org.husonlab.diamer2.seq.alphabet.AA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.alphabet.Base11Uniform;
 
 /**
  * Converts the standard amino acid alphabet to a base 11 alphabet that is designed to have equal probabilities for
  * each of the 11 target amino acids.
  */
-public class AAtoBase11Uniform implements Converter<Character, Byte> {
+public class AAtoBase11Uniform extends Converter<Character, AA, Byte, Base11Uniform> {
 
-    private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetAA();
     private static final Alphabet<Byte> TARGET_ALPHABET = new Base11Alphabet();
 
     @Override
-    public Sequence<Byte>[] convert(Sequence<Character> sequence) {
+    public Sequence<Byte, Base11Uniform>[] convert(Sequence<Character, AA> sequence) {
         byte[] result = new byte[sequence.length()];
         for (int i = 0; i < sequence.length(); i++) {
             result[i] = encodeAA(sequence.get(i));
         }
         return new Sequence[]{new Compressed4BitSequence(TARGET_ALPHABET, result)};
-    }
-
-    @Override
-    public Alphabet<Character> getSourceAlphabet() {
-        return SOURCE_ALPHABET;
-    }
-
-    @Override
-    public Alphabet<Byte> getTargetAlphabet() {
-        return TARGET_ALPHABET;
     }
 
     /**

@@ -264,7 +264,13 @@ public class Node {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         Node node = (Node) o;
-        return taxId == node.taxId && Objects.equals(scientificName, node.scientificName) && Objects.equals(labels, node.labels) && Objects.equals(rank, node.rank) && Objects.equals(longProperties, node.longProperties) && Objects.equals(doubleProperties, node.doubleProperties);
+        return
+                taxId == node.taxId
+                && Objects.equals(scientificName, node.scientificName)
+                && Objects.equals(labels, node.labels)
+                && Objects.equals(rank, node.rank)
+                && Objects.equals(longProperties, node.longProperties)
+                && Objects.equals(doubleProperties, node.doubleProperties);
     }
 
     @Override

@@ -4,6 +4,7 @@ import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 import org.jetbrains.annotations.NotNull;
@@ -156,7 +157,7 @@ public class NCBIReader {
      * @return a HashMap with the accessions as keys and -1 as values
      */
     public static HashMap<String, Integer> extractAccessions(
-            SequenceSupplier<String, Character, ?> sequenceSupplier) throws IOException {
+            SequenceSupplier<String, ?, ?, ?, ?> sequenceSupplier) throws IOException {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Estimating number of sequenceRecords in database...");
         int numberOfSequencesEst = sequenceSupplier.approximateNumberOfSequences();
@@ -168,12 +169,12 @@ public class NCBIReader {
                 .addElement(new RunningTime())
                 .addElement(progressBar)
                 .addElement(progressLogger);
-        FutureSequenceRecords<String, ?> container;
+        FutureSequenceRecords<String, ?, ?> container;
         sequenceSupplier.reset();
         while ((container = sequenceSupplier.next()) != null) {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
             progressLogger.incrementProgress();
-            for (SequenceRecord<String, ?> record: container.getSequenceRecords()) {
+            for (SequenceRecord<String, ?, ?> record: container.getSequenceRecords()) {
                 for (String accession : extractAccessionsFromHeader(record.id())) {
                     neededAccessions.put(accession, -1);
                 }
@@ -190,7 +191,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static String preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
+    public static String preprocessNRBuffered(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, ?, Character,?> sup) throws IOException {
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
 
@@ -200,7 +201,7 @@ public class NCBIReader {
         int fastaIndex = 0;
         Counts counts = new Counts();
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        FutureSequenceRecords<String, Character> futureSequenceRecords;
+        FutureSequenceRecords<String, Character, ?> futureSequenceRecords;
 
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new GZIPOutputStream(
                      Files.newOutputStream(output))));
@@ -215,14 +216,14 @@ public class NCBIReader {
                     .addElement(progressLogger);
 
             int bufferSize = 100000; // 100000
-            Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer = new Pair[bufferSize];
+            Pair<SequenceRecord<String, Character, ?>, Integer>[] sequenceBuffer = new Pair[bufferSize];
             ArrayList<String> accessionBuffer = new ArrayList<>();
 
             while ((futureSequenceRecords = sup.next()) != null) {
                 progressBar.setProgress(sup.getBytesRead());
                 progressLogger.setProgress(fastaIndex + 1);
 
-                for (SequenceRecord<String, Character> record: futureSequenceRecords.getSequenceRecords()) {
+                for (SequenceRecord<String, Character, ?> record: futureSequenceRecords.getSequenceRecords()) {
                     // Extract taxIds and compute LCA taxId
                     String header = record.id();
                     ArrayList<String> accessions = extractAccessionsFromHeader(header);
@@ -261,17 +262,17 @@ public class NCBIReader {
         return report.toString();
     }
 
-    private static void emptyBuffer(int bufferSize, Pair<SequenceRecord<String, Character>, Integer>[] sequenceBuffer,
+    private static void emptyBuffer(int bufferSize, Pair<SequenceRecord<String, Character, ?>, Integer>[] sequenceBuffer,
                                     ArrayList<String> accessionBuffer, ArrayList<Integer> taxIdBuffer,
                                     BufferedWriter bw, BufferedWriter bwSkipped, Tree tree,
                                     HashSet<String> highRanks, HashMap<String, Integer> rankMapping,
                                     Counts counts) throws IOException {
         int taxIdIndex = 0;
-        for (Pair<SequenceRecord<String, Character>, Integer> bufferEntry: sequenceBuffer) {
+        for (Pair<SequenceRecord<String, Character, ?>, Integer> bufferEntry: sequenceBuffer) {
             if (bufferEntry == null) {    // buffer is not full
                 break;
             }
-            SequenceRecord<String, Character> record = bufferEntry.first();
+            SequenceRecord<String, Character, ?> record = bufferEntry.first();
             String header = record.id();
             String sequence = record.getSequenceString();
             int nrOfAccessions = bufferEntry.last();
@@ -340,7 +341,7 @@ public class NCBIReader {
      * @param output: file to write the preprocessed database to
      * @param tree: NCBI taxonomy tree
      */
-    public static String preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, Character> sup) throws IOException {
+    public static String preprocessNR(Path output, Tree tree, AccessionMapping accessionMapping, SequenceSupplier<String, Character, ?, Character, ?> sup) throws IOException {
 
         HashSet<String> highRanks = new HashSet<>(
                 Arrays.asList("superkingdom", "kingdom", "phylum", "class", "order", "family"));
@@ -352,7 +353,7 @@ public class NCBIReader {
         int skippedNoTaxId = 0;
         int skippedRank = 0;
         HashMap<String, Integer> rankMapping = new HashMap<>();
-        FutureSequenceRecords<String, Character> container;
+        FutureSequenceRecords<String, Character, ?> container;
 
         if (!output.toString().endsWith(".gz")) {
             output = output.resolveSibling(output.getFileName() + ".gz");
@@ -374,7 +375,7 @@ public class NCBIReader {
                 progressBar.setProgress(sup.getBytesRead());
                 progressLogger.setProgress(processedFastas);
 
-                for (SequenceRecord<String, Character> record: container.getSequenceRecords()) {
+                for (SequenceRecord<String, Character, ?> record: container.getSequenceRecords()) {
                     // Extract taxIds and compute LCA taxId
                     String header = record.id();
                     ArrayList<Integer> taxIds = new ArrayList<>();

@@ -1,6 +1,6 @@
 package org.husonlab.diamer2.main.encoders;
 
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.alphabet.*;
 import org.husonlab.diamer2.seq.converter.AAtoBase11Uniform;
 import org.husonlab.diamer2.seq.converter.Converter;
 import org.husonlab.diamer2.seq.converter.DNAtoBase11Uniform;
@@ -9,10 +9,10 @@ import org.husonlab.diamer2.seq.converter.DNAtoBase11Uniform;
  * {@link Encoder} that uses a base 11 alphabet that is designed to have about the same likelihood for each of the 11
  * amino acids.
  */
-public class K15Base11Uniform extends Encoder {
+public class K15Base11Uniform extends Encoder<Character, AA, Character, DNA, Base11Uniform> {
 
-    private static final AAtoBase11Uniform aaEncoder = new AAtoBase11Uniform();
-    private final DNAtoBase11Uniform dnaEncoder;
+    private static final AAtoBase11Uniform dbConverter = new AAtoBase11Uniform();
+    private final DNAtoBase11Uniform readConverter;
     /**
      * number of bits in the bucket that are used to encode the kmer
      */
@@ -24,21 +24,21 @@ public class K15Base11Uniform extends Encoder {
     private final int numberOfBuckets;
 
     public K15Base11Uniform(boolean[] mask, int bitsIds) {
-        super(new Base11Alphabet(), mask, bitsIds);
+        super(new AA(), new DNA(), new Base11Uniform(), mask, bitsIds);
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
         numberOfBuckets = (int)Math.pow(2, bitsOfBucketNames);
-        dnaEncoder = new DNAtoBase11Uniform(k);
+        readConverter = new DNAtoBase11Uniform(k);
     }
 
     @Override
-    public Converter<Character, Byte> getDBConverter() {
-        return aaEncoder;
+    public Converter<Character, AA, Byte, Base11Uniform> getDBConverter() {
+        return dbConverter;
     }
 
     @Override
-    public Converter<Character, Byte> getReadConverter() {
-        return dnaEncoder;
+    public Converter<Character, DNA, Byte, Base11Uniform> getReadConverter() {
+        return readConverter;
     }
 
     @Override

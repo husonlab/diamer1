@@ -1,10 +1,6 @@
 package org.husonlab.diamer2.seq.alphabet;
 
-/**
- * Alphabet for the reduced amino acid alphabet as used in DIAMOND. There is no symbol for stop codons.
- */
-public class Base11Alphabet extends Alphabet<Byte> {
-
+public class Base11Uniform extends Alphabet<Byte> {
     /**
      * @param bits length of a kmer
      * @return highest number that can occur when a kmer with the given length is converted to a number.
@@ -31,7 +27,7 @@ public class Base11Alphabet extends Alphabet<Byte> {
 
     @Override
     public String getName() {
-        return "Base 11 Alphabet";
+        return "Base 11 Uniform";
     }
 
     @Override

@@ -9,6 +9,7 @@ import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
@@ -22,7 +23,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.husonlab.diamer2.indexing.Utilities.writeKmerStatistics;
 
-public class DBIndexer {
+public class DBIndexer<A1 extends Alphabet<Character>, A2 extends Alphabet<Byte>> {
 
     private final Logger logger;
     private final Phaser phaser;
@@ -33,14 +34,14 @@ public class DBIndexer {
     private final ConcurrentHashMap<Long, Integer> kmerCounts;
     private final StringBuilder report;
 
-    private final SequenceSupplier<Integer, Character, Byte> sup;
+    private final SequenceSupplier<Integer, Character, A1, Byte, A2> sup;
     private final Path indexDir;
     private final DBIndexIO dbIndexIO;
     private final Tree tree;
     private final Encoder encoder;
     private final GlobalSettings settings;
 
-    public DBIndexer(SequenceSupplier<Integer, Character, Byte> sup,
+    public DBIndexer(SequenceSupplier<Integer, Character, A1, Byte, A2> sup,
                      Path indexDir,
                      Tree tree,
                      Encoder encoder,
@@ -104,8 +105,8 @@ public class DBIndexer {
                         bucketMaps[j] = new ConcurrentHashMap<Long, Integer>();
                     }
                 }
-                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
-                FutureSequenceRecords<Integer, Byte> futureSequenceRecords;
+                FutureSequenceRecords<Integer, Byte, A2>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
+                FutureSequenceRecords<Integer, Byte, A2> futureSequenceRecords;
                 while ((futureSequenceRecords = sup.next()) != null) {
                     batch[nrOfProcessedFutureSequenceRecords % settings.SEQUENCE_BATCH_SIZE] = futureSequenceRecords;
                     progressBar.setProgress(sup.getBytesRead());
@@ -182,7 +183,7 @@ public class DBIndexer {
      * Runnable to compare a read- and a database bucket.
      */
     private class FastaProteinProcessor implements Runnable {
-        private final FutureSequenceRecords<Integer, Byte>[] containers;
+        private final FutureSequenceRecords<Integer, Byte, A2>[] containers;
         private final KmerExtractor kmerExtractor;
         private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
         private final int rangeStart;
@@ -193,7 +194,7 @@ public class DBIndexer {
          * @param containers Array of Sequence sequences to process.
          * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
          */
-        public FastaProteinProcessor(FutureSequenceRecords<Integer, Byte>[] containers, ConcurrentHashMap<Long, Integer>[] bucketMaps, int rangeStart, int rangeEnd) {
+        public FastaProteinProcessor(FutureSequenceRecords<Integer, Byte, A2>[] containers, ConcurrentHashMap<Long, Integer>[] bucketMaps, int rangeStart, int rangeEnd) {
             this.containers = containers;
             this.kmerExtractor = encoder.getKmerExtractor();
             this.bucketMaps = bucketMaps;
@@ -204,14 +205,13 @@ public class DBIndexer {
         @Override
         public void run() {
             try {
-                for (FutureSequenceRecords<Integer, Byte> container : containers) {
-                    for (SequenceRecord<Integer, Byte> record: container.getSequenceRecords()) {
-                        if (record == null || record.sequence().length() < kmerExtractor.getK() || !tree.hasNode(record.id())) {
+                for (FutureSequenceRecords<Integer, Byte, A2> container : containers) {
+                    for (SequenceRecord<Integer, Byte, A2> record: container.getSequenceRecords()) {
+                        if (record == null || record.length() < kmerExtractor.getK() || !tree.hasNode(record.id())) {
                             continue;
                         }
-                        Sequence<Byte> sequence = record.sequence();
                         int taxId = record.id();
-                        long[] kmers = kmerExtractor.extractKmers(sequence);
+                        long[] kmers = kmerExtractor.extractKmers(record.sequence());
                         for (long kmerEnc : kmers) {
                             int bucketName = encoder.getBucketNameFromKmer(kmerEnc);
                             if (bucketName >= rangeStart && bucketName < rangeEnd) {

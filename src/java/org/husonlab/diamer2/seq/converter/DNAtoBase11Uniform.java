@@ -1,21 +1,19 @@
 package org.husonlab.diamer2.seq.converter;
 
-import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.Compressed4BitSequence;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.Sequence;
+import org.husonlab.diamer2.seq.alphabet.DNA;
+import org.husonlab.diamer2.seq.alphabet.Base11Uniform;
 
-import static org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons;
+import static org.husonlab.diamer2.seq.converter.Utilities.splitAtMinus1AndSizeFilter;
 
 /**
  * Converter to convert DNA to a base 11 alphabet that is designed to have about the same likelihood for each of the 11
  * target amino acids. The conversion is done for all 6 reading frames and all translations are split at stop codons.
  */
-public class DNAtoBase11Uniform implements Converter<Character, Byte> {
+public class DNAtoBase11Uniform extends Converter<Character, DNA, Byte, Base11Uniform> {
 
-    private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetDNA();
-    private static final Alphabet<Byte> TARGET_ALPHABET = new Base11Alphabet();
+    private static final Base11Uniform TARGET_ALPHABET = new Base11Uniform();
     private final int minLength;
 
     public DNAtoBase11Uniform(int minLength) {
@@ -23,7 +21,7 @@ public class DNAtoBase11Uniform implements Converter<Character, Byte> {
     }
 
     @Override
-    public Sequence<Byte>[] convert(Sequence<Character> sequence) {
+    public Sequence<Byte, Base11Uniform>[] convert(Sequence<Character, DNA> sequence) {
 
         // The sequence is too short to be translated
         if (sequence.length() < 3) {
@@ -51,36 +49,33 @@ public class DNAtoBase11Uniform implements Converter<Character, Byte> {
             translations[(i2%6)+1][sequenceLengths[(i+1)%3]-i2/6-1] = encoding[1];
             triplet.deleteCharAt(0);
         }
+        Byte[][] splitTranslations;
+
         if (sequence.length() == 3) {
-            return org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons(
-                    new byte[][]{
-                            translations[0],
-                            translations[1]}, minLength, new Base11Alphabet());}
-        if (sequence.length() == 4) {
-            return org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons(
-                    new byte[][]{
-                            translations[0],
-                            translations[1],
-                            translations[2],
-                            translations[3]}, minLength, new Base11Alphabet());}
-        return org.husonlab.diamer2.seq.converter.Utilities.splitAtStopCodons(
-                new byte[][]{
-                        translations[0],
-                        translations[1],
-                        translations[2],
-                        translations[3],
-                        translations[4],
-                        translations[5]}, minLength, new Base11Alphabet());
-    }
-
-    @Override
-    public Alphabet<Character> getSourceAlphabet() {
-        return SOURCE_ALPHABET;
-    }
-
-    @Override
-    public Alphabet<Byte> getTargetAlphabet() {
-        return TARGET_ALPHABET;
+            splitTranslations = splitAtMinus1AndSizeFilter(new byte[][]{
+                    translations[0],
+                    translations[1]}, minLength);
+        }
+        else if (sequence.length() == 4) {
+            splitTranslations = splitAtMinus1AndSizeFilter(new byte[][]{
+                    translations[0],
+                    translations[1],
+                    translations[2],
+                    translations[3]}, minLength);
+        } else {
+            splitTranslations = splitAtMinus1AndSizeFilter(new byte[][]{
+                    translations[0],
+                    translations[1],
+                    translations[2],
+                    translations[3],
+                    translations[4],
+                    translations[5]}, minLength);
+        }
+        Sequence<Byte, Base11Uniform>[] result = new Sequence[splitTranslations.length];
+        for (int i = 0; i < splitTranslations.length; i++) {
+            result[i] = new Compressed4BitSequence<>(TARGET_ALPHABET, splitTranslations[i]);
+        }
+        return result;
     }
 
     public byte[] encodeDNA(String codon) {

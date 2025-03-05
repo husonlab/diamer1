@@ -8,25 +8,26 @@ import java.util.Iterator;
 /**
  * Represents a sequence of symbols of type T.
  * <p>Can be used together with the {@link SequenceRecord} class to combine a sequence with a header/id.</p>
- * @param <T> the type of symbols in the sequence
+ * @param <S> the type of symbols in the sequence
+ * @param <A> the type of alphabet used for the sequence
  */
-public abstract class Sequence<T> implements Iterable<T> {
-    private final Alphabet<T> alphabet;
+public abstract class Sequence<S, A extends Alphabet<S>> implements Iterable<S> {
+    private final A alphabet;
 
-    public Sequence(Alphabet<T> alphabet) {
+    public Sequence(A alphabet) {
         this.alphabet = alphabet;
     }
 
     @NotNull
     @Override
-    public abstract Iterator<T> iterator();
+    public abstract Iterator<S> iterator();
 
     /**
      * Get the symbol at the given index.
      * @param index the index of the symbol to get
      * @return the symbol at the given index
      */
-    public abstract T get(int index);
+    public abstract S get(int index);
 
     /**
      * Get the length of the sequence.
@@ -47,7 +48,7 @@ public abstract class Sequence<T> implements Iterable<T> {
      * Get the alphabet of the sequence.
      * @return the alphabet of the sequence
      */
-    public Alphabet<T> getAlphabet() {
+    public Alphabet<S> getAlphabet() {
         return alphabet;
     }
 }

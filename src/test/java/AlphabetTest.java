@@ -1,6 +1,6 @@
 //import org.husonlab.diamer2.seq.*;
 //import org.husonlab.diamer2.seq.CharSequence;
-//import org.husonlab.diamer2.seq.alphabet.AlphabetDNA;
+//import org.husonlab.diamer2.seq.alphabet.DNA;
 //import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 //import org.husonlab.diamer2.seq.converter.Converter;
 //import org.husonlab.diamer2.seq.converter.DNAtoBase11;
@@ -13,7 +13,7 @@
 //    public void testAlphabetDNA() {
 //        SequenceRecord<Character> record = new SequenceRecord<>(
 //            "header",
-//            new CharSequence(new AlphabetDNA(), "ACCTGGT")
+//            new CharSequence(new DNA(), "ACCTGGT")
 //        );
 //
 //        SequenceRecord<Short> record2 = new SequenceRecord<>(
@@ -23,7 +23,7 @@
 //
 //        Converter<Character, Short> converter = new DNAtoBase11();
 //
-//        Sequence<Short>[] test = converter.convert(record.getSequence());
+//        Sequence<Short>[] test = converter.convert(record.sequence());
 //
 //        Encoder<Long> encoder = new K15Base11Encoder(0b111111111111111L, 22);
 //

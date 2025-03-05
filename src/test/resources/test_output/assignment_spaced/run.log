@@ -1,4 +1,4 @@
---assignreads -m 12 -t 1 -b 12 --debug --statistics -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment_spaced
+--assignreads -m 12 -t 1 -b 12 --debug --statistics -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_spaced C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_spaced C:\Users\noel\Documents\diamer2\src\test\resources\test_output\assignment_spaced
 MAX_THREADS:	1
 MAX_MEMORY:	12
 KEEP_IN_MEMORY:	false
@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	12
 QUEUE_SIZE:	2
 DEBUG:	true
-Start: 2025-02-28T20:37:44.774501800
-End: 2025-02-28T20:37:45.157580500
+Start: 2025-03-05T12:12:24.615746600
+End: 2025-03-05T12:12:24.868896700
 
 Total reads: 6
 

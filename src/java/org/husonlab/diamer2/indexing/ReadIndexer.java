@@ -9,6 +9,7 @@ import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 
@@ -16,7 +17,6 @@ import java.io.*;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -25,7 +25,7 @@ import static org.husonlab.diamer2.indexing.Utilities.writeKmerStatistics;
 /**
  * Class to create an index for sequencing reads.
  */
-public class ReadIndexer {
+public class ReadIndexer<A1 extends Alphabet<Character>, A2 extends Alphabet<Byte>> {
 
     private final Logger logger;
     private final Phaser phaser;
@@ -36,7 +36,7 @@ public class ReadIndexer {
     private final ConcurrentHashMap<Long, Integer> kmerCounts;
     private final StringBuilder report;
 
-    private final SequenceSupplier<Integer, Character, Byte> sup;
+    private final SequenceSupplier<Integer, Character, A1, Byte, A2> sup;
     private final HeaderToIdReader fastqIdReader;
     private final ReadIndexIO readIndexIO;
     private final Encoder encoder;
@@ -49,7 +49,7 @@ public class ReadIndexer {
      * @param encoder The {@link Encoder} used to encode the reads.
      * @param settings The {@link GlobalSettings} object containing the settings for the indexing process.
      */
-    public ReadIndexer(SequenceSupplier<Integer, Character, Byte> sup,
+    public ReadIndexer(SequenceSupplier<Integer, Character, A1, Byte, A2> sup,
                        HeaderToIdReader fastqIdReader,
                        Path indexDir,
                        Encoder encoder,
@@ -111,9 +111,9 @@ public class ReadIndexer {
 
                 // initialize batch of FutureSequenceRecords
                 // each batch is processed in a separate thread
-                FutureSequenceRecords<Integer, Byte>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
+                FutureSequenceRecords<Integer, Byte, A2>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
 
-                FutureSequenceRecords<Integer, Byte> futureSequenceRecords;
+                FutureSequenceRecords<Integer, Byte, A2> futureSequenceRecords;
                 while ((futureSequenceRecords = sup.next()) != null) {
                     batch[nrOfProcessedFurutreSequenceRecords % settings.SEQUENCE_BATCH_SIZE] = futureSequenceRecords;
                     progressBar.setProgress(sup.getBytesRead());
@@ -199,7 +199,7 @@ public class ReadIndexer {
      */
     private class ReadProcessor implements Runnable {
 
-        private final FutureSequenceRecords<Integer, Byte>[] batch;
+        private final FutureSequenceRecords<Integer, Byte, A2>[] batch;
         private final KmerExtractor kmerExtractor;
         private final ConcurrentLinkedQueue<Long>[] bucketLists;
         private final int rangeStart;
@@ -212,7 +212,7 @@ public class ReadIndexer {
          * @param rangeEnd    end of the range of buckets to process
          */
         public ReadProcessor(
-                FutureSequenceRecords<Integer, Byte>[] batch,
+                FutureSequenceRecords<Integer, Byte, A2>[] batch,
                 ConcurrentLinkedQueue<Long>[] bucketLists,
                 int rangeStart,
                 int rangeEnd) {
@@ -226,16 +226,15 @@ public class ReadIndexer {
         @Override
         public void run() {
             try {
-                for (FutureSequenceRecords<Integer, Byte> futureSequenceRecords : batch) {
-                    for (SequenceRecord<Integer, Byte> record: futureSequenceRecords.getSequenceRecords()) {
+                for (FutureSequenceRecords<Integer, Byte, A2> futureSequenceRecords : batch) {
+                    for (SequenceRecord<Integer, Byte, A2> record: futureSequenceRecords.getSequenceRecords()) {
                         // skip empty or too short sequences
-                        if (record == null || record.sequence().length() < encoder.getK()) {
+                        if (record == null || record.length() < encoder.getK()) {
                             nrOfSkippedTranslations.incrementAndGet();
                         } else {
                             nrOfProcessedTranslations.incrementAndGet();
                             int id = record.id();
-                            Sequence<Byte> sequence = record.sequence();
-                            long[] kmers = kmerExtractor.extractKmers(sequence);
+                            long[] kmers = kmerExtractor.extractKmers(record.sequence());
                             for (long kmer : kmers) {
                                 int bucketName = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketName >= rangeStart && bucketName < rangeEnd) {

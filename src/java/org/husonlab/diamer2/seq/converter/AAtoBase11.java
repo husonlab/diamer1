@@ -2,35 +2,23 @@ package org.husonlab.diamer2.seq.converter;
 
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.Compressed4BitSequence;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.alphabet.AlphabetAA;
+import org.husonlab.diamer2.seq.alphabet.AA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 
 /**
  * Converts the standard amino acid alphabet to the base 11 alphabet of DIAMOND.
  */
-public class AAtoBase11 implements Converter<Character, Byte> {
+public class AAtoBase11 extends Converter<Character, AA, Byte, Base11Alphabet> {
 
-    private static final Alphabet<Character> SOURCE_ALPHABET = new AlphabetAA();
-    private static final Alphabet<Byte> TARGET_ALPHABET = new Base11Alphabet();
+    private static final Base11Alphabet TARGET_ALPHABET = new Base11Alphabet();
 
     @Override
-    public Sequence<Byte>[] convert(Sequence<Character> sequence) {
+    public Sequence<Byte, Base11Alphabet>[] convert(Sequence<Character, AA> sequence) {
         byte[] result = new byte[sequence.length()];
         for (int i = 0; i < sequence.length(); i++) {
             result[i] = encodeAA(sequence.get(i));
         }
-        return new Sequence[]{new Compressed4BitSequence(TARGET_ALPHABET, result)};
-    }
-
-    @Override
-    public Alphabet<Character> getSourceAlphabet() {
-        return SOURCE_ALPHABET;
-    }
-
-    @Override
-    public Alphabet<Byte> getTargetAlphabet() {
-        return TARGET_ALPHABET;
+        return new Sequence[]{new Compressed4BitSequence<>(TARGET_ALPHABET, result)};
     }
 
     /**

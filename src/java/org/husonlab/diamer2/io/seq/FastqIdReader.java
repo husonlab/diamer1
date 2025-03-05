@@ -1,7 +1,9 @@
 package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.io.Utilities;
+import org.husonlab.diamer2.seq.CharSequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -16,7 +18,7 @@ import java.util.LinkedList;
  *     A List of the original headers can be obtained with {@link #getHeaders()}.
  * </p>
  */
-public class FastqIdReader extends SequenceReader<Integer, Character> implements HeaderToIdReader {
+public class FastqIdReader<A extends Alphabet<Character>> extends SequenceReader<Integer, Character, A> implements HeaderToIdReader {
 
     /**
      * List to store the headers of the sequences during reading.
@@ -31,14 +33,14 @@ public class FastqIdReader extends SequenceReader<Integer, Character> implements
     /**
      * @param file Path to the file (gzipped or not) to read from
      */
-    public FastqIdReader(Path file) {
-        super(file);
+    public FastqIdReader(Path file, A alphabet) {
+        super(file, alphabet);
         headers = new LinkedList<>();
         collectHeaders = true;
     }
 
     @Override
-    public SequenceRecord<Integer, Character> next() throws IOException {
+    public SequenceRecord<Integer, Character, A> next() throws IOException {
         if (line != null && line.startsWith("@")) {
             id = sequencesRead++;
             headers.add(line);
@@ -46,7 +48,7 @@ public class FastqIdReader extends SequenceReader<Integer, Character> implements
             br.readLine();
             br.readLine();
             line = br.readLine();
-            return SequenceRecord.DNA(id, sequence.toString());
+            return new SequenceRecord<>(id, new CharSequence<>(alphabet, sequence.toString().toCharArray()));
         } else {
             while ((line = br.readLine()) != null) {
                 if (line.startsWith("@")) {

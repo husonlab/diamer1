@@ -1,8 +1,8 @@
 package org.husonlab.diamer2.taxonomy;
 
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.util.Pair;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
@@ -44,9 +44,66 @@ public class Tree {
         defaultDoubleProperties = new ArrayList<>();
     }
 
+    /**
+     * @param taxId Taxonomic ID of a node
+     * @return {@code true} if the tree contains the specified node
+     */
+    public boolean hasNode(int taxId) {
+        return idMap.containsKey(taxId);
+    }
+
+    /**
+     * Adds a node to the tree.
+     * @param taxId Taxonomic ID of the node
+     * @param node the node to add
+     */
+    public void addNode(int taxId, Node node) {
+        for (int i = node.longProperties.size(); i < defaultLongProperties.size(); i++) {
+            node.longProperties.add(defaultLongProperties.get(i));
+        }
+        for (int i = node.doubleProperties.size(); i < defaultDoubleProperties.size(); i++) {
+            node.doubleProperties.add(defaultDoubleProperties.get(i));
+        }
+        synchronized (idMap) {
+            idMap.put(taxId, node);
+        }
+    }
+
+    /**
+     * @param taxId Taxonomic ID
+     * @return Node with the input taxonomic ID or {@code null} if the tree does not contain the node
+     */
+    @Nullable
+    public Node getNode(int taxId) {
+        if (idMap.containsKey(taxId)) {
+            return idMap.get(taxId);
+        }
+        return null;
+    }
+
+    /**
+     * @param taxId the taxonomic ID of the node
+     * @return the node corresponding to the taxonomic ID
+     * @throws RuntimeException if the node does not exist
+     */
+    private Node getNodeOrError(int taxId) {
+        if (!idMap.containsKey(taxId)) {
+            throw new RuntimeException("Tried access non-existing node: " + taxId);
+        }
+        return idMap.get(taxId);
+    }
+
+    @Nullable
     public Node getRoot() {
         if (root == null) {
             autoFindRoot();
+        }
+        return root;
+    }
+
+    public Node getRoorOrError() {
+        if (getRoot() == null) {
+            throw new RuntimeException("Root not found");
         }
         return root;
     }
@@ -128,7 +185,7 @@ public class Tree {
      * @return the taxonomic ID of the lowest common ancestor or -1 if the nodes are not in this tree.
      */
     public int findLCA(int taxId1, int taxId2) {
-        Node lca = findLCA(idMap.get(taxId1), idMap.get(taxId2));
+        Node lca = findLCA(getNode(taxId1), getNode(taxId2));
         return lca == null ? -1 : lca.getTaxId();
     }
 
@@ -179,14 +236,38 @@ public class Tree {
     }
 
     /**
+     * @param label the label of the property
+     * @return the node corresponding to the taxonomic ID
+     * @throws RuntimeException if the property does not exist
+     */
+    private int getLongPropertyIndex(String label) {
+        if (!longPropertyDescriptions.containsKey(label)) {
+            throw new RuntimeException("Tried to access non-existing long property: " + label);
+        }
+        return longPropertyDescriptions.get(label);
+    }
+
+    /**
+     * @param label the label of the property
+     * @return the node corresponding to the taxonomic ID
+     * @throws RuntimeException if the property does not exist
+     */
+    private int getDoublePropertyIndex(String label) {
+        if (!doublePropertyDescriptions.containsKey(label)) {
+            throw new RuntimeException("Tried to access non-existing double property: " + label);
+        }
+        return doublePropertyDescriptions.get(label);
+    }
+
+    /**
      * Set the value of an <strong>existing</strong> long property of a specific node.
      * @param taxId the taxonomic ID of the node
      * @param label the label of the property
      * @param value the value of the property
      */
     public void setNodeProperty(int taxId, String label, long value) {
-        Node node = ensureNodeExist(taxId);
-        int index = ensureLongPropertyExist(label);
+        Node node = getNodeOrError(taxId);
+        int index = getLongPropertyIndex(label);
         synchronized (node) {
             node.longProperties.set(index, value);
         }
@@ -199,8 +280,8 @@ public class Tree {
      * @param value the value of the property
      */
     public void setNodeProperty(int taxId, String label, double value) {
-        Node node = ensureNodeExist(taxId);
-        int index = ensureDoublePropertyExist(label);
+        Node node = getNodeOrError(taxId);
+        int index = getDoublePropertyIndex(label);
         synchronized (node) {
             node.doubleProperties.set(index, value);
         }
@@ -213,8 +294,8 @@ public class Tree {
      * @param value the value to add
      */
     public void addToNodeProperty(int taxId, String label, long value) {
-        Node node = ensureNodeExist(taxId);
-        int index = ensureLongPropertyExist(label);
+        Node node = getNodeOrError(taxId);
+        int index = getLongPropertyIndex(label);
         synchronized (node) {
             node.longProperties.set(index, node.longProperties.get(index) + value);
         }
@@ -227,47 +308,11 @@ public class Tree {
      * @param value the value to add
      */
     public void addToNodeProperty(int taxId, String label, double value) {
-        Node node = ensureNodeExist(taxId);
-        int index = ensureDoublePropertyExist(label);
+        Node node = getNodeOrError(taxId);
+        int index = getDoublePropertyIndex(label);
         synchronized (node) {
             node.doubleProperties.set(index, node.doubleProperties.get(index) + value);
         }
-    }
-
-    /**
-     * Throws a {@link RuntimeException} if no long property with the given label exists.
-     * @param label the label of the property
-     * @return the node corresponding to the taxonomic ID
-     */
-    private int ensureLongPropertyExist(String label) {
-        if (!longPropertyDescriptions.containsKey(label)) {
-            throw new RuntimeException("Tried to access non-existing long property: " + label);
-        }
-        return longPropertyDescriptions.get(label);
-    }
-
-    /**
-     * Throws a {@link RuntimeException} if no double property with the given label exists.
-     * @param label the label of the property
-     * @return the node corresponding to the taxonomic ID
-     */
-    private int ensureDoublePropertyExist(String label) {
-        if (!doublePropertyDescriptions.containsKey(label)) {
-            throw new RuntimeException("Tried to access non-existing double property: " + label);
-        }
-        return doublePropertyDescriptions.get(label);
-    }
-
-    /**
-     * Throws a {@link RuntimeException} if the node with the given taxonomic ID does not exist.
-     * @param taxId the taxonomic ID of the node
-     * @return the node corresponding to the taxonomic ID
-     */
-    private Node ensureNodeExist(int taxId) {
-        if (!idMap.containsKey(taxId)) {
-            throw new RuntimeException("Tried access non-existing node: " + taxId);
-        }
-        return idMap.get(taxId);
     }
 
     /**
@@ -325,18 +370,6 @@ public class Tree {
     }
 
     /**
-     * Resets the numeric properties of all nodes
-     */
-    public void resetNodeProperties() {
-        longPropertyDescriptions.clear();
-        doublePropertyDescriptions.clear();
-        for (Node node : idMap.values()) {
-            node.longProperties.clear();
-            node.doubleProperties.clear();
-        }
-    }
-
-    /**
      * Accumulates a long property over all nodes in the tree.
      * @param label the label of the property
      * @param targetLabel the label of the property to accumulate the values to
@@ -346,7 +379,7 @@ public class Tree {
             throw new RuntimeException("Tried to access non-existing property: " + label);
         }
         addNodeLongProperty(targetLabel, 0);
-        accumulateNodeLongProperty(label, targetLabel, getRoot());
+        accumulateNodeLongProperty(label, targetLabel, getRoorOrError());
     }
 
     /**
@@ -372,7 +405,7 @@ public class Tree {
             throw new RuntimeException("Tried to access non-existing property: " + label);
         }
         addNodeDoubleProperty(targetLabel, 0);
-        accumulateNodeDoubleProperty(label, targetLabel, getRoot());
+        accumulateNodeDoubleProperty(label, targetLabel, getRoorOrError());
     }
 
     /**
@@ -389,23 +422,17 @@ public class Tree {
     }
 
     /**
-     * Searches for the node with the given rank in the path from the given node to the root.
-     * @param node the node to start from
-     * @param rank the rank to search for
-     * @return the node with the given rank or null if the rank was not found
+     * Resets the numeric properties of all nodes
      */
-    public Node getRank(Node node, String rank) {
-        Node rankNode = null;
-        Node previousNode = null;
-        while (node != previousNode && node != null) {
-            if (node.getRank().equals(rank)) {
-                rankNode = node;
-                break;
-            }
-            previousNode = node;
-            node = node.getParent();
+    public void resetNodeProperties() {
+        longPropertyDescriptions.clear();
+        doublePropertyDescriptions.clear();
+        defaultLongProperties.clear();
+        defaultDoubleProperties.clear();
+        for (Node node : idMap.values()) {
+            node.longProperties.clear();
+            node.doubleProperties.clear();
         }
-        return rankNode;
     }
 
     /**
@@ -524,6 +551,27 @@ public class Tree {
     }
 
     /**
+     * Searches for the node with the given rank in the path from the given node to the root.
+     * @param node the node to start from
+     * @param rank the rank to search for
+     * @return the node with the given rank or null if the rank was not found
+     */
+    @Contract("null, _ -> null")
+    public Node getRank(Node node, @NotNull String rank) {
+        Node rankNode = null;
+        Node previousNode = null;
+        while (node != previousNode && node != null) {
+            if (rank.equals(node.getRank())) {
+                rankNode = node;
+                break;
+            }
+            previousNode = node;
+            node = node.getParent();
+        }
+        return rankNode;
+    }
+
+    /**
      * Reduces a phylogenetic tree to the 8 standard ranks
      * (superkingdom, kingdom, phylum, class, order, family, genus, species).
      * <p>
@@ -574,35 +622,6 @@ public class Tree {
         return nodesPerRank;
     }
 
-    /**
-     * @param taxId Taxonomic ID of a node
-     * @return {@code true} if the tree contains the specified node
-     */
-    public boolean hasNode(int taxId) {
-        return idMap.containsKey(taxId);
-    }
-
-    /**
-     * Adds a node to the tree.
-     * @param taxId Taxonomic ID of the node
-     * @param node the node to add
-     */
-    public void addNode(int taxId, Node node) {
-        node.longProperties.addAll(defaultLongProperties);
-        node.doubleProperties.addAll(defaultDoubleProperties);
-        synchronized (idMap) {
-            idMap.put(taxId, node);
-        }
-    }
-
-    /**
-     * @param taxId Taxonomic ID
-     * @return Node with the input taxonomic ID or {@code null} if the tree does not contain the node
-     */
-    public Node getNode(int taxId) {
-        return idMap.get(taxId);
-    }
-
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
@@ -613,9 +632,5 @@ public class Tree {
     @Override
     public int hashCode() {
         return Objects.hash(idMap, root);
-    }
-
-    @Deprecated
-    public record WeightsPerRank(String rank, long totalWeight, int[][] taxonWeights) {
     }
 }

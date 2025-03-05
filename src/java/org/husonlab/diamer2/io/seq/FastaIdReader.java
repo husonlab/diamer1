@@ -1,7 +1,9 @@
 package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.io.Utilities;
+import org.husonlab.diamer2.seq.CharSequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -12,14 +14,14 @@ import java.nio.file.Path;
  *     The headers of the FASTA file must only contain an integer id or an exception will be thrown.
  * </p>
  */
-public class FastaIdReader extends SequenceReader<Integer, Character> {
+public class FastaIdReader<A extends Alphabet<Character>> extends SequenceReader<Integer, Character, A> {
 
-    public FastaIdReader(Path file) {
-        super(file);
+    public FastaIdReader(Path file, A alphabet) {
+        super(file, alphabet);
     }
 
     @Override
-    public SequenceRecord<Integer, Character> next() throws IOException {
+    public SequenceRecord<Integer, Character, A> next() throws IOException {
         sequencesRead++;
         if (line != null && line.startsWith(">")) {
             try {
@@ -31,12 +33,12 @@ public class FastaIdReader extends SequenceReader<Integer, Character> {
             while ((line = br.readLine()) != null) {
                 line = line.strip();
                 if (line.startsWith(">")) {
-                    return SequenceRecord.DNA(id, sequence.toString());
+                    return new SequenceRecord<>(id, new CharSequence<>(alphabet, sequence.toString()));
                 } else {
                     sequence.append(line);
                 }
             }
-            return SequenceRecord.DNA(id, sequence.toString());
+            return new SequenceRecord<>(id, new CharSequence<>(alphabet, sequence.toString()));
         } else {
             while ((line = br.readLine()) != null) {
                 if (line.startsWith(">")) {

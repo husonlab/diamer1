@@ -1,85 +1,37 @@
 package org.husonlab.diamer2.seq.converter;
 
-import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.Sequence;
-import org.husonlab.diamer2.seq.alphabet.DNA;
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.Compressed4BitSequence;
+import org.husonlab.diamer2.seq.alphabet.*;
 import org.husonlab.diamer2.seq.alphabet.Utilities;
-import static org.husonlab.diamer2.seq.converter.Utilities.splitAtMinus1AndSizeFilter;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
- * Converter to convert DNA to the DIAMOND base 11 alphabet in all 6 reading frames. The sequences of the translations
- * are split at stop codons.
+ * Converter to convert DNA to the DIAMOND base 11 alphabet in only the first reading frame and ignores stop codons.
+ * The stop codons are grouped in the first base 11 symbol.
  */
-public class DNAtoBase11 extends Converter<Character, DNA, Byte, Base11Alphabet> {
+public class DNAtoBase11RF1WithStop extends Converter<Character, DNA, Byte, Base11WithStop> {
 
-    private static final Base11Alphabet TARGET_ALPHABET = new Base11Alphabet();
-    private final int minLength;
-
-    public DNAtoBase11(int minLength) {
-        this.minLength = minLength;
-    }
+    private static final Base11WithStop TARGET_ALPHABET = new Base11WithStop();
 
     @Override
-    public Sequence<Byte, Base11Alphabet>[] convert(Sequence<Character, DNA> sequence) {
+    public Sequence<Byte, Base11WithStop>[] convert(Sequence<Character, DNA> sequence) {
 
         // The sequence is too short to be translated
         if (sequence.length() < 3) {
             return new Sequence[0];
         }
-        StringBuilder triplet = new StringBuilder();
         // Setup byte array for each reading frame
-        byte[][] translations = new byte[6][];
-        int[] sequenceLengths = new int[3];
-        for (int i = 0; i < 3; i++) {
-            int len = (sequence.length()-i)/3;
-            sequenceLengths[i] = len;
-            translations[i*2] = new byte[len];
-            translations[i*2+1] = new byte[len];
-        }
-        triplet.append(sequence.get(0)).append(sequence.get(1));
+        byte[] translation = new byte[Math.floorDiv(sequence.length(), 3)];
 
-        for (int i = 2; i < sequence.length(); i++) {
-            triplet.append(sequence.get(i));
-            byte[] encoding = encodeDNA(triplet.toString());
-            int i2 = i*2-4;
+        for (int i = 2; i < sequence.length(); i += 3) {
+            byte[] encoding = encodeDNA(String.valueOf(sequence.get(i - 2)) + sequence.get(i - 1) + sequence.get(i));
             // Forward reading frame
-            translations[i2%6][i2/6] = encoding[0];
-            // Reverse reading frame, gets filled in reverse order
-            translations[(i2%6)+1][sequenceLengths[(i+1)%3]-i2/6-1] = encoding[1];
-            triplet.deleteCharAt(0);
+            translation[(i - 2) / 3] = encoding[0];
         }
-
-        Byte[][] splitTranslations;
-
-        if (sequence.length() == 3) {
-            splitTranslations = splitAtMinus1AndSizeFilter(new byte[][]{
-                            translations[0],
-                            translations[1]}, minLength);
-        }
-        else if (sequence.length() == 4) {
-            splitTranslations = splitAtMinus1AndSizeFilter(new byte[][]{
-                    translations[0],
-                    translations[1],
-                    translations[2],
-                    translations[3]}, minLength);
-        } else {
-            splitTranslations = splitAtMinus1AndSizeFilter(new byte[][]{
-                    translations[0],
-                    translations[1],
-                    translations[2],
-                    translations[3],
-                    translations[4],
-                    translations[5]}, minLength);
-        }
-        Sequence<Byte, Base11Alphabet>[] result = new Sequence[splitTranslations.length];
-        for (int i = 0; i < splitTranslations.length; i++) {
-            result[i] = new Compressed4BitSequence<>(TARGET_ALPHABET, splitTranslations[i]);
-        }
-        return result;
+        return new Sequence[]{new Compressed4BitSequence<>(TARGET_ALPHABET, translation)};
     }
 
     /**
@@ -131,8 +83,9 @@ public class DNAtoBase11 extends Converter<Character, DNA, Byte, Base11Alphabet>
             case "TGG" -> {                                     // W
                 return 10;
             }
-            case "TAA", "TAG", "TGA" -> {                       // stop codons
-                return -1;
+            // todo: handle stop codons
+            case "TAA", "TAG", "TGA" -> {
+                return 0;
             }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);
         }
@@ -171,33 +124,29 @@ public class DNAtoBase11 extends Converter<Character, DNA, Byte, Base11Alphabet>
 
     public byte[] encodeDNA(String codon) {
         switch (codon) {
-            case "ATG" -> { return new byte[]{(byte)9, (byte)8}; }
-            case "AGG", "CGG" -> { return new byte[]{(byte)0, (byte)4}; }
-            case "TAC", "TAT" -> { return new byte[]{(byte)6, (byte)2}; }
-            case "AAA", "GAA" -> { return new byte[]{(byte)0, (byte)5}; }
-            case "TGG" -> { return new byte[]{(byte)10, (byte)4}; }
-            case "TAA", "TAG" -> { return new byte[]{(byte)-1, (byte)2}; }
-            case "AGA", "CGA", "CGC", "CGT" -> { return new byte[]{(byte)0, (byte)1}; }
-            case "CTA", "TTA" -> { return new byte[]{(byte)2, (byte)-1}; }
-            case "AAC", "AAG", "AAT", "CAA", "CAG", "GAC", "GAG", "GAT" -> { return new byte[]{(byte)0, (byte)2}; }
-            case "GGA", "GGC", "GGT" -> { return new byte[]{(byte)3, (byte)1}; }
+            case "ACC", "GCC", "TCC" -> { return new byte[]{(byte)1, (byte)3}; }
+            case "ATA", "GTA" -> { return new byte[]{(byte)2, (byte)6}; }
+            case "AGA", "CGA", "CGC", "CGT", "TGA" -> { return new byte[]{(byte)0, (byte)1}; }
+            case "ACT", "AGC", "AGT", "GCT" -> { return new byte[]{(byte)1, (byte)1}; }
+            case "ACG", "GCG", "TCA", "TCG", "TCT" -> { return new byte[]{(byte)1, (byte)0}; }
+            case "AAC", "AAG", "AAT", "CAA", "CAG", "GAC", "GAG", "GAT", "TAA", "TAG" -> { return new byte[]{(byte)0, (byte)2}; }
             case "GGG" -> { return new byte[]{(byte)3, (byte)4}; }
-            case "CCA" -> { return new byte[]{(byte)4, (byte)10}; }
-            case "TGA" -> { return new byte[]{(byte)-1, (byte)1}; }
+            case "AAA", "GAA" -> { return new byte[]{(byte)0, (byte)5}; }
+            case "GTG" -> { return new byte[]{(byte)2, (byte)8}; }
+            case "AGG", "CGG" -> { return new byte[]{(byte)0, (byte)4}; }
+            case "ATG" -> { return new byte[]{(byte)9, (byte)8}; }
+            case "TGG" -> { return new byte[]{(byte)10, (byte)4}; }
+            case "CCC" -> { return new byte[]{(byte)4, (byte)3}; }
             case "TTC", "TTT" -> { return new byte[]{(byte)5, (byte)0}; }
-            case "TCA" -> { return new byte[]{(byte)1, (byte)-1}; }
+            case "CCG", "CCT" -> { return new byte[]{(byte)4, (byte)0}; }
+            case "CCA" -> { return new byte[]{(byte)4, (byte)10}; }
+            case "CAT" -> { return new byte[]{(byte)8, (byte)9}; }
+            case "TAC", "TAT" -> { return new byte[]{(byte)6, (byte)2}; }
+            case "TGC", "TGT" -> { return new byte[]{(byte)7, (byte)1}; }
+            case "GGA", "GGC", "GGT" -> { return new byte[]{(byte)3, (byte)1}; }
             case "CAC" -> { return new byte[]{(byte)8, (byte)2}; }
             case "ACA", "GCA" -> { return new byte[]{(byte)1, (byte)7}; }
-            case "CAT" -> { return new byte[]{(byte)8, (byte)9}; }
-            case "ATC", "ATT", "CTC", "CTG", "CTT", "GTC", "GTT", "TTG" -> { return new byte[]{(byte)2, (byte)0}; }
-            case "TGC", "TGT" -> { return new byte[]{(byte)7, (byte)1}; }
-            case "ACC", "GCC", "TCC" -> { return new byte[]{(byte)1, (byte)3}; }
-            case "CCC" -> { return new byte[]{(byte)4, (byte)3}; }
-            case "CCG", "CCT" -> { return new byte[]{(byte)4, (byte)0}; }
-            case "ACT", "AGC", "AGT", "GCT" -> { return new byte[]{(byte)1, (byte)1}; }
-            case "GTG" -> { return new byte[]{(byte)2, (byte)8}; }
-            case "ACG", "GCG", "TCG", "TCT" -> { return new byte[]{(byte)1, (byte)0}; }
-            case "ATA", "GTA" -> { return new byte[]{(byte)2, (byte)6}; }
+            case "ATC", "ATT", "CTA", "CTC", "CTG", "CTT", "GTC", "GTT", "TTA", "TTG" -> { return new byte[]{(byte)2, (byte)0}; }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);
         }
     }
