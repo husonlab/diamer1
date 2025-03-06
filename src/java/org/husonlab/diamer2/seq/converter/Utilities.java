@@ -111,8 +111,8 @@ public class Utilities {
     }
 
     /**
-     * Splits all input sequences at stop codons {@code -1} and returns the resulting sequences that are above the given
-     * length threshold.
+     * Splits all input arrays at stop codons ({@code -1}) and returns the resulting sequences that are above or equal
+     * to the given length threshold.
      * @param sequences Input sequences
      * @param minLength Minimum length of a sequence
      * @return Sequences split at stop codons

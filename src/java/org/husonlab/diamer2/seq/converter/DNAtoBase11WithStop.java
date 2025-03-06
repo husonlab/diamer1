@@ -10,8 +10,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 
 /**
- * Converter to convert DNA to the DIAMOND base 11 alphabet in all 6 reading frames. The sequences of the translations
- * are split at stop codons.
+ * Converter to convert DNA to the DIAMOND base 11 alphabet in all 6 reading frames. Translations are not split at stop
+ * codons, but the stop codons are encoded as amino acid 0.
  */
 public class DNAtoBase11WithStop extends Converter<Character, DNA, Byte, Base11WithStop> {
 

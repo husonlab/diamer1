@@ -33,9 +33,9 @@ public class ReadAssigner {
     public ReadAssigner(Path dbIndexPath, Path readsIndexPath, Encoder encoder, GlobalSettings settings) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         progressBarStepsPerBucket = 100;
-        progressBar = new ProgressBar((long) encoder.getNumberOfBuckets() * progressBarStepsPerBucket, 20);
-        this.dbIndex = new DBIndexIO(dbIndexPath, encoder.getNumberOfBuckets());
-        this.readsIndex = new ReadIndexIO(readsIndexPath, encoder.getNumberOfBuckets());
+        progressBar = new ProgressBar((long) encoder.getNrOfBuckets() * progressBarStepsPerBucket, 20);
+        this.dbIndex = new DBIndexIO(dbIndexPath, encoder.getNrOfBuckets());
+        this.readsIndex = new ReadIndexIO(readsIndexPath, encoder.getNrOfBuckets());
         this.encoder = encoder;
         this.settings = settings;
         String[] readHeaderMapping;
@@ -74,7 +74,7 @@ public class ReadAssigner {
                 settings.MAX_THREADS, settings.QUEUE_SIZE,
                 60, logger)) {
 
-            for (int i = 0; i < encoder.getNumberOfBuckets(); i++) {
+            for (int i = 0; i < encoder.getNrOfBuckets(); i++) {
                 if (dbIndex.isBucketAvailable(i) && readsIndex.isBucketAvailable(i)) {
                     threadPoolExecutor.submit(new BucketProcessor(i));
                 } else {

@@ -27,6 +27,7 @@ public class NCBIReader {
      * <a href=https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/>https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/</a>.</p>
      * @param nodesDumpfile path to the nodes dumpfile (nodes.dmp)
      * @param namesDumpfile path to the names dumpfile (names.dmp)
+     * @param onlyOneName if true, only one name (preferably the "scientific name") is added to each node
      */
     @NotNull
     public static Tree readTaxonomy(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile, boolean onlyOneName) {

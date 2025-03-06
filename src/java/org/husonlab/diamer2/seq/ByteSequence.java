@@ -9,11 +9,11 @@ import java.util.Iterator;
  * Represents a {@link Sequence} of bytes.
  * <p>Can be used for sequences in reduced {@link Alphabet}s, that don't need to be compressed to 4 bits.</p>
  */
-public class ByteSequence extends Sequence<Byte, Alphabet<Byte>> {
+public class ByteSequence<A extends Alphabet<Byte>> extends Sequence<Byte, A> {
 
     private final byte[] sequence;
 
-    public ByteSequence(Alphabet<Byte> alphabet, byte[] sequence) {
+    public ByteSequence(A alphabet, byte[] sequence) {
         super(alphabet);
         this.sequence = sequence;
     }

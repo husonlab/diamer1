@@ -1,10 +1,16 @@
 package org.husonlab.diamer2.main;
 
+import org.apache.commons.cli.CommandLine;
+
 public class GlobalSettings {
     /**
      * cli arguments
      */
     public final String[] args;
+    /**
+     * cli object
+     */
+    public final CommandLine cli;
 
     public final static String VERSION = "2.0.0";
     /**
@@ -40,8 +46,9 @@ public class GlobalSettings {
 
     public final boolean COLLECT_STATS;
 
-    public GlobalSettings(String[] args, int MAX_THREADS, int BUCKETS_PER_CYCLE, int MAX_MEMORY, boolean KEEP_IN_MEMORY, boolean DEBUG, boolean COLLECT_STATS) {
+    public GlobalSettings(String[] args, CommandLine cli, int MAX_THREADS, int BUCKETS_PER_CYCLE, int MAX_MEMORY, boolean KEEP_IN_MEMORY, boolean DEBUG, boolean COLLECT_STATS) {
         this.args = args;
+        this.cli = cli;
         this.MAX_THREADS = MAX_THREADS;
         this.BUCKETS_PER_CYCLE = BUCKETS_PER_CYCLE;
         this.MAX_MEMORY = MAX_MEMORY;

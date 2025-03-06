@@ -13,6 +13,7 @@ import java.nio.file.Path;
  * <p>
  *     The headers of the FASTA file must only contain an integer id or an exception will be thrown.
  * </p>
+ * @param <A> the alphabet of the sequences
  */
 public class FastaIdReader<A extends Alphabet<Character>> extends SequenceReader<Integer, Character, A> {
 

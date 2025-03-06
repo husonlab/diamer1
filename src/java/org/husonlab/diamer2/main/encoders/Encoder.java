@@ -2,11 +2,18 @@ package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
+import org.husonlab.diamer2.io.seq.HeaderToIdReader;
+import org.husonlab.diamer2.io.seq.SequenceReader;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.converter.Converter;
 
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
+ * @param <SD> the type of the database sequences
+ * @param <AD> the alphabet of the database sequences
+ * @param <SR> the type of the query sequences
+ * @param <AR> the alphabet of the query sequences
+ * @param <T> the target alphabet
  */
 public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<SR>, T extends Alphabet<Byte>> {
 
@@ -73,6 +80,43 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
     }
 
     /**
+     * Calculates the number of bits required to represent a kmer of length k_s with an alphabet with a given base.
+     * <p>Is used to calculate the bits that are required to encode a kmer.</p>
+     * @param base the base of the alphabet
+     * @param k_s the number of non-zero bits in the mask
+     * @return the number of bits required to encode the kmer.
+     */
+    protected int bitsRequired(int base, long k_s) {
+        return (int) Math.ceil(Math.log(Math.pow(base, k_s)) / Math.log(2));
+    }
+
+    /**
+     * @return a KmerExtractor that can be used to extract kmers from sequences
+     */
+    public KmerExtractor getKmerExtractor(){
+        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask));
+    }
+
+    public int getNrOfKmerBitsInBucketEntry() {
+        return 64 - bitsForIds;
+    };
+
+    /**
+     * @return a reader to read the database sequences.
+     */
+    public abstract SequenceReader<Integer,SD,AD> getDBReader();
+
+    /**
+     * @return a reader to read the database sequences.
+     */
+    public abstract SequenceReader<Integer, SR, AR> getReadReader();
+
+    /**
+     * @return a reader to read the query sequences.
+     */
+    public abstract  HeaderToIdReader getHeaderToIdReader();
+
+    /**
      * @return converter to convert amino acid sequences to base 11 sequences
      */
     public abstract Converter<SD, AD, Byte, T> getDBConverter();
@@ -85,23 +129,17 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
     /**
      * @return the alphabet of the database sequences
      */
-    public AD getSourceDBAlphabet() {
-        return sourceDBAlphabet;
-    }
+    public abstract AD getDBAlphabet();
 
     /**
      * @return the alphabet of the read (query) sequences
      */
-    public AR getSourceReadAlphabet() {
-        return sourceReadAlphabet;
-    }
+    public abstract AR getReadAlphabet();
 
     /**
      * @return the alphabet used to encode the kmers
      */
-    public T getTargetAlphabet() {
-        return targetAlphabet;
-    }
+    public abstract T getTargetAlphabet();
 
     /**
      * @return the mask used to extract kmers
@@ -157,29 +195,9 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
     /**
      * @return the number of bits that remain and make up the names of the buckets.
      */
-    public abstract int getBitsOfBucketNames();
+    public abstract int getNrOfBitsBucketNames();
 
-    public int getNrOfKmerBitsInBucketEntry() {
-        return 64 - bitsForIds;
-    };
+    public abstract int getNrOfBitsRequiredForKmer();
 
-    public abstract int getNumberOfBuckets();
-
-    /**
-     * Calculates the number of bits required to represent a kmer of length k_s with an alphabet with a given base.
-     * <p>Is used to calculate the bits that are required to encode a kmer.</p>
-     * @param base the base of the alphabet
-     * @param k_s the number of non-zero bits in the mask
-     * @return the number of bits required to encode the kmer.
-     */
-    protected int bitsRequired(int base, long k_s) {
-        return (int) Math.ceil(Math.log(Math.pow(base, k_s)) / Math.log(2));
-    }
-
-    /**
-     * @return a KmerExtractor that can be used to extract kmers from sequences
-     */
-    public KmerExtractor getKmerExtractor(){
-        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask));
-    }
+    public abstract int getNrOfBuckets();
 }

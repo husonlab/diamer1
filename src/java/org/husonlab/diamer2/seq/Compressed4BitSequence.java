@@ -9,6 +9,7 @@ import java.util.Iterator;
  * Represents a {@link Sequence} of numbers that only require a 4 bit encoding. Used for reduced alphabets.
  * The sequences are compressed in a long array (to save memory) and extracted when needed. Numbers from -1 to 14 can
  * be stored in this sequence.
+ * @param <A> The alphabet of the sequence
  */
 public class Compressed4BitSequence<A extends Alphabet<Byte>> extends Sequence<Byte, A> {
 

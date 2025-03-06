@@ -6,11 +6,11 @@ import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
-import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.FastaReader;
-import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
+import org.husonlab.diamer2.main.encoders.K15Base11Nuc;
+import org.husonlab.diamer2.main.encoders.K15Base11Uniform;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
@@ -96,6 +96,23 @@ public class Main {
                         .build()
         );
         options.addOptionGroup(computationOptions);
+        options.addOption(
+                Option.builder()
+                        .longOpt("encoder")
+                        .argName("encoder")
+                        .desc("""
+                                base11 (default) \
+                                DB: protein\
+                                Encoding: DIAMOND's base 11 alphabet with a maximum kmer weight of 15\
+                                
+                                base11uniform
+                                DB: protein\
+                                Encoding: a base 11 alphabet in which the likelihood of each amino acid is about the same\
+                                """)
+                        .hasArg()
+                        .type(Path.class)
+                        .build()
+        );
         options.addOption(
                 Option.builder("t")
                         .longOpt("threads")
@@ -198,6 +215,24 @@ public class Main {
         }
 
         // parse arguments or set default values
+        GlobalSettings globalSettings = parseGlobalSettings(args, cli, options);
+
+        if (cli.hasOption("preprocess")) {
+            preprocess(globalSettings, cli);
+        } else if (cli.hasOption("indexdb")) {
+            indexdb(globalSettings, cli);
+        } else if (cli.hasOption("indexreads")) {
+            indexreads(globalSettings, cli);
+        } else if (cli.hasOption("assignreads")) {
+            assignreads(globalSettings, cli);
+        } else {
+            System.err.println("No computation option selected");
+            printHelp(options);
+            System.exit(1);
+        }
+    }
+
+    private static GlobalSettings parseGlobalSettings(String[] args, CommandLine cli, Options options) {
         int maxThreads = Runtime.getRuntime().availableProcessors();
         try {
             Integer parsedThreads = cli.getParsedOptionValue("t");
@@ -221,22 +256,8 @@ public class Main {
             System.exit(1);
         }
         int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : maxThreads;
-        GlobalSettings globalSettings = new GlobalSettings(
-                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"));
-
-        if (cli.hasOption("preprocess")) {
-            preprocess(globalSettings, cli);
-        } else if (cli.hasOption("indexdb")) {
-            indexdb(globalSettings, cli);
-        } else if (cli.hasOption("indexreads")) {
-            indexreads(globalSettings, cli);
-        } else if (cli.hasOption("assignreads")) {
-            assignreads(globalSettings, cli);
-        } else {
-            System.err.println("No computation option selected");
-            printHelp(options);
-            System.exit(1);
-        }
+        return new GlobalSettings(
+                args, cli, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"));
     }
 
     private static void preprocess(GlobalSettings globalSettings, CommandLine cli) {
@@ -277,30 +298,65 @@ public class Main {
         writeLogEnd(runInfo, output.getParent().resolve("run.log"));
     }
 
+
     private static void indexdb(GlobalSettings globalSettings, CommandLine cli) {
         Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
         checkNumberOfPositionalArguments(cli, 2);
         boolean[] mask = getMask(cli);
         Path database = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
-
-        Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
-        Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
-        // todo: reimplement nucleotide and uniform
-//        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
-//        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
-
         writeLogBegin(globalSettings, output.resolve("run.log"));
-        String runInfo;
 
-        try (SequenceSupplier<Integer, Character, AA, Byte, Base11Alphabet> sup = new SequenceSupplier<Integer, Character, AA, Byte, Base11Alphabet>(new FastaIdReader<>(database, new AA()), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
-            DBIndexer<AA, Base11Alphabet> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
-            runInfo = dbIndexer.index();
-        } catch (IOException e) {
+        // parse tree
+        Tree tree;
+        try {
+            tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
+        } catch (Exception e) {
             writeLogEnd(e.toString(), output.resolve("run.log"));
             throw new RuntimeException(e);
         }
-        writeLogEnd(runInfo, output.resolve("run.log"));
+        // run indexing with specified encoder
+        if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
+            Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
+                    database, null, mask, globalSettings.BITS_FOR_IDS);
+            try (SequenceSupplier<Integer, Character, AA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(
+                    encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
+                DBIndexer<Base11Alphabet> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
+                String runInfo = dbIndexer.index();
+                writeLogEnd(runInfo, output.resolve("run.log"));
+            } catch (IOException e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
+            Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
+                    database, null, mask, globalSettings.BITS_FOR_IDS);
+            try (SequenceSupplier<Integer, Character, AA, Byte, Base11Uniform> sup = new SequenceSupplier<>(
+                    encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
+                DBIndexer<Base11Uniform> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
+                String runInfo = dbIndexer.index();
+                writeLogEnd(runInfo, output.resolve("run.log"));
+            } catch (IOException e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
+            Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
+                    database, null, mask, globalSettings.BITS_FOR_IDS);
+            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11WithStop> sup = new SequenceSupplier<>(
+                    encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
+                DBIndexer<Base11WithStop> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
+                String runInfo = dbIndexer.index();
+                writeLogEnd(runInfo, output.resolve("run.log"));
+            } catch (IOException e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+
+        } else {
+            System.err.println("Invalid encoder: " + cli.getOptionValue("encoder"));
+            System.exit(1);
+        }
     }
 
     private static void indexreads(GlobalSettings globalSettings, CommandLine cli) {
@@ -308,21 +364,48 @@ public class Main {
         boolean[] mask = getMask(cli);
         Path reads = getFile(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
-        Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(mask, globalSettings.BITS_FOR_IDS);
-        // todo: reimplement nucleotide and uniform
-//        if (cli.hasOption("nucleotide")) {encoder = new K15Base11Nuc(mask, globalSettings.BITS_FOR_IDS);}
-//        if (cli.hasOption("uniform")) {encoder = new K15Base11Uniform(mask, globalSettings.BITS_FOR_IDS);}
         writeLogBegin(globalSettings, output.resolve("run.log"));
-        String runInfo;
-        try (FastqIdReader<DNA> fastQIdReader = new FastqIdReader<>(reads, new DNA());
-             SequenceSupplier<Integer, Character, DNA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(fastQIdReader, encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer<DNA, Base11Alphabet> readIndexer = new ReadIndexer<>(sup, fastQIdReader, output, encoder, globalSettings);
-            runInfo = readIndexer.index();
-        } catch (IOException e) {
-            writeLogEnd(e.toString(), output.resolve("run.log"));
-            throw new RuntimeException(e);
+
+        if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
+            Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
+                    null, reads, mask, globalSettings.BITS_FOR_IDS);
+            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(
+                    encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
+                ReadIndexer<Base11Alphabet> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
+                String runInfo = readIndexer.index();
+                writeLogEnd(runInfo, output.resolve("run.log"));
+            } catch (IOException e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
+            Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
+                    null, reads, mask, globalSettings.BITS_FOR_IDS);
+            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Uniform> sup = new SequenceSupplier<>(
+                    encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
+                ReadIndexer<Base11Uniform> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
+                String runInfo = readIndexer.index();
+                writeLogEnd(runInfo, output.resolve("run.log"));
+            } catch (IOException e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
+            Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
+                    null, output, mask, globalSettings.BITS_FOR_IDS);
+            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11WithStop> sup = new SequenceSupplier<>(
+                    encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
+                ReadIndexer<Base11WithStop> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
+                String runInfo = readIndexer.index();
+                writeLogEnd(runInfo, output.resolve("run.log"));
+            } catch (IOException e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else {
+            System.err.println("Invalid encoder: " + cli.getOptionValue("encoder"));
+            System.exit(1);
         }
-        writeLogEnd(runInfo, output.resolve("run.log"));
     }
 
     private static void assignreads(GlobalSettings globalSettings, CommandLine cli) {
@@ -335,7 +418,8 @@ public class Main {
         writeLogBegin(globalSettings, output.resolve("run.log"));
         String runInfo;
 
-        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(mask, 22), globalSettings);
+        // todo: use encoder
+        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(dbIndex, readsIndex, mask, 22), globalSettings);
         ReadAssignment assignment = readAssigner.assignReads();
         ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
         assignment.addKmerCountsToTree();
@@ -436,5 +520,48 @@ public class Main {
             result[i] = mask.charAt(i) == '1';
         }
         return result;
+    }
+
+    private static class Computation<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<SR>, T extends Alphabet<Byte>> {
+        private final Encoder<SD, AD, SR, AR, T> encoder;
+        protected final GlobalSettings globalSettings;
+
+        public Computation(Encoder<SD, AD, SR, AR, T> encoder, GlobalSettings globalSettings) {
+            this.encoder = encoder;
+            this.globalSettings = globalSettings;
+        }
+
+        public void indexDB(Tree tree, Path output) {
+            (new RunWithLog(output, globalSettings) {
+                @Override
+                public String task() throws Exception {
+                    SequenceSupplier<Integer, SD, AD, Byte, T> sup = new SequenceSupplier<>(encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY);
+                    DBIndexer<T> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
+                    return dbIndexer.index();
+                }}).run();
+        }
+    }
+
+    private static abstract class RunWithLog {
+        private final Path output;
+        private final GlobalSettings globalSettings;
+
+        public RunWithLog(Path output, GlobalSettings globalSettings) {
+            this.output = output;
+            this.globalSettings = globalSettings;
+        }
+
+        public abstract String task() throws Exception;
+
+        public void run() {
+            writeLogBegin(globalSettings, output.resolve("run.log"));
+            try {
+                String runInfo = task();
+                writeLogEnd(runInfo, output.resolve("run.log"));
+            } catch (Exception e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        }
     }
 }

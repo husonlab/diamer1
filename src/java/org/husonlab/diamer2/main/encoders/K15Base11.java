@@ -1,5 +1,9 @@
 package org.husonlab.diamer2.main.encoders;
 
+import org.husonlab.diamer2.io.seq.FastaIdReader;
+import org.husonlab.diamer2.io.seq.FastqIdReader;
+import org.husonlab.diamer2.io.seq.HeaderToIdReader;
+import org.husonlab.diamer2.io.seq.SequenceReader;
 import org.husonlab.diamer2.seq.alphabet.AA;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.DNA;
@@ -7,29 +11,56 @@ import org.husonlab.diamer2.seq.converter.AAtoBase11;
 import org.husonlab.diamer2.seq.converter.Converter;
 import org.husonlab.diamer2.seq.converter.DNAtoBase11;
 
+import java.nio.file.Path;
+
 /**
  * {@link Encoder} that uses the base 11 alphabet to encode kmers.
  */
 public class K15Base11 extends Encoder<Character, AA, Character, DNA, Base11Alphabet> {
 
+    private static final AA dbAlphabet = new AA();
+    private static final DNA readsAlphabet = new DNA();
+    private static final Base11Alphabet targetAlphabet = new Base11Alphabet();
+    private final Path db;
+    private final Path reads;
+    private FastqIdReader<DNA> readsReader;
     private static final AAtoBase11 dbConverter = new AAtoBase11();
     private final DNAtoBase11 readConverter;
     /**
      * number of bits in the bucket that are used to encode the kmer
      */
-    private final int bitsOfKmerInBucket;
+    private final int nrOfBitsRequiredForKmer;
     /**
      * number of bits that do not fit in the bucket and are stored in the bucket names.
      */
-    private final int bitsOfBucketNames;
-    private final int numberOfBuckets;
+    private final int nrOfBitsBucketNames;
+    private final int nrOfBuckets;
 
-    public K15Base11(boolean[] mask, int bitsIds) {
-        super(new AA(), new DNA(), new Base11Alphabet(), mask, bitsIds);
-        bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
-        bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
-        numberOfBuckets = (int)Math.pow(2, bitsOfBucketNames);
+    public K15Base11(Path db, Path reads, boolean[] mask, int bitsIds) {
+        super(dbAlphabet, readsAlphabet, targetAlphabet, mask, bitsIds);
+        this.db = db;
+        this.reads = reads;
+        nrOfBitsRequiredForKmer = bitsRequired(targetAlphabet.getBase(), k - s);
+        nrOfBitsBucketNames = nrOfBitsRequiredForKmer - (64 - bitsIds);
+        nrOfBuckets = (int)Math.pow(2, nrOfBitsBucketNames);
         readConverter = new DNAtoBase11(k);
+    }
+
+    @Override
+    public SequenceReader<Integer, Character, AA> getDBReader() {
+        return new FastaIdReader<>(db, dbAlphabet);
+    }
+
+    @Override
+    public SequenceReader<Integer, Character, DNA> getReadReader() {
+        if (readsReader == null) readsReader = new FastqIdReader<>(reads, readsAlphabet);
+        return readsReader;
+    }
+
+    @Override
+    public HeaderToIdReader getHeaderToIdReader() {
+        if (readsReader == null) readsReader = new FastqIdReader<>(reads, readsAlphabet);
+        return readsReader;
     }
 
     @Override
@@ -43,8 +74,23 @@ public class K15Base11 extends Encoder<Character, AA, Character, DNA, Base11Alph
     }
 
     @Override
+    public AA getDBAlphabet() {
+        return dbAlphabet;
+    }
+
+    @Override
+    public DNA getReadAlphabet() {
+        return readsAlphabet;
+    }
+
+    @Override
+    public Base11Alphabet getTargetAlphabet() {
+        return targetAlphabet;
+    }
+
+    @Override
     public long getBucketPartFromKmer(long kmer) {
-        return kmer >>> bitsOfBucketNames;
+        return kmer >>> nrOfBitsBucketNames;
     }
 
     @Override
@@ -54,7 +100,7 @@ public class K15Base11 extends Encoder<Character, AA, Character, DNA, Base11Alph
 
     @Override
     public int getBucketNameFromKmer(long kmer) {
-        return (int) kmer & (1 << bitsOfBucketNames) - 1;
+        return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
     }
 
     @Override
@@ -64,7 +110,7 @@ public class K15Base11 extends Encoder<Character, AA, Character, DNA, Base11Alph
 
     @Override
     public long getKmerFromIndexEntry(int bucketName, long kmerIndex) {
-        return (kmerIndex >>> bitsForIds) << bitsOfBucketNames | bucketName;
+        return (kmerIndex >>> bitsForIds) << nrOfBitsBucketNames | bucketName;
     }
     @Override
     public long getKmerFromIndexEntry(long kmerIndex) {
@@ -72,12 +118,17 @@ public class K15Base11 extends Encoder<Character, AA, Character, DNA, Base11Alph
     }
 
     @Override
-    public int getBitsOfBucketNames() {
-        return bitsOfBucketNames;
+    public int getNrOfBitsBucketNames() {
+        return nrOfBitsBucketNames;
     }
 
     @Override
-    public int getNumberOfBuckets() {
-        return numberOfBuckets;
+    public int getNrOfBitsRequiredForKmer() {
+        return nrOfBitsRequiredForKmer;
+    }
+
+    @Override
+    public int getNrOfBuckets() {
+        return nrOfBuckets;
     }
 }

@@ -10,7 +10,7 @@ import java.util.LinkedList;
 
 /**
  * Converter to convert DNA to the DIAMOND base 11 alphabet in only the first reading frame and ignores stop codons.
- * The stop codons are grouped in the first base 11 symbol.
+ * Sequences are not split at stop codons, but the stop codons are grouped in the first base 11 symbol (0).
  */
 public class DNAtoBase11RF1WithStop extends Converter<Character, DNA, Byte, Base11WithStop> {
 

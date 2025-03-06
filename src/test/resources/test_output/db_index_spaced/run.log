@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	127
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-05T12:12:22.135303100
-End: 2025-03-05T12:12:22.412300800
+Start: 2025-03-06T18:19:34.063368700
+End: 2025-03-06T18:19:34.295855800
 
 input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_spaced

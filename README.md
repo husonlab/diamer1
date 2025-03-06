@@ -1,6 +1,7 @@
 # Major bugfixes, that require to recalculate test results:
 * 24.02.2025:
   * Fixed error in read length threshold that would prevent translated protein sequences < 45 amino acids from being used
+* 28.02.2025:
   * Fixed bug in Compressed4BitSequence that did not properly store -1 values.
 
 # Changes since last meeting:

@@ -3,6 +3,9 @@ package org.husonlab.diamer2.seq.alphabet;
 import java.util.Arrays;
 import java.util.HashSet;
 
+/**
+ * Standard DNA alphabet.
+ */
 public class DNA extends Alphabet<Character> {
 
     private final Character[] symbols = new Character[]{'A', 'C', 'G', 'T'};

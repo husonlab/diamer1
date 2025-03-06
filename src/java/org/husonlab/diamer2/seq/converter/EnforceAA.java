@@ -3,7 +3,6 @@ package org.husonlab.diamer2.seq.converter;
 import org.husonlab.diamer2.seq.CharSequence;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.alphabet.AAWithLowerAndStop;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.alphabet.AA;
 
 import java.util.ArrayList;
@@ -11,7 +10,7 @@ import java.util.Arrays;
 
 /**
  * Enforces an uppercase amino acid alphabet without stop symbols (*). Sequences are split at stop symbols.
- * All characters that are not part of the {@link AA} are removed.
+ * All characters that are not part of the {@link AA} alphabet are removed.
  */
 public class EnforceAA extends Converter<Character, AAWithLowerAndStop, Character, AA> {
 
@@ -25,7 +24,7 @@ public class EnforceAA extends Converter<Character, AAWithLowerAndStop, Characte
         for (Character s : sequence) {
             s = Character.toUpperCase(s);
             if (s == '*' && i > 0) {
-                result.add(new CharSequence(targetAlphabet, Arrays.copyOf(tempArray, i)));
+                result.add(new CharSequence<>(targetAlphabet, Arrays.copyOf(tempArray, i)));
                 tempArray = new char[sequence.length() - i - 1];
                 i = 0;
             } else if (targetAlphabet.contains(s)) {
@@ -33,7 +32,7 @@ public class EnforceAA extends Converter<Character, AAWithLowerAndStop, Characte
             }
         }
         if (i > 0) {
-            result.add(new CharSequence(targetAlphabet, Arrays.copyOf(tempArray, i)));
+            result.add(new CharSequence<>(targetAlphabet, Arrays.copyOf(tempArray, i)));
         }
         return result.toArray(new Sequence[0]);
     }
