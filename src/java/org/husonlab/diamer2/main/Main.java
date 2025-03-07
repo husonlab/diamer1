@@ -391,9 +391,10 @@ public class Main {
         Path output = getFolder(cli.getArgs()[1], false);
         writeLogBegin(globalSettings, output.resolve("run.log"));
 
+        // todo: use encoder.getReadsIndexIO instead of output directly
         if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
             Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
-                    null, reads, null, null, mask, globalSettings.BITS_FOR_IDS);
+                    null, reads, null, output, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(
                     encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 ReadIndexer<Base11Alphabet> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
@@ -405,7 +406,7 @@ public class Main {
             }
         } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
             Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
-                    null, reads, null, null, mask, globalSettings.BITS_FOR_IDS);
+                    null, reads, null, output, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Uniform> sup = new SequenceSupplier<>(
                     encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 ReadIndexer<Base11Uniform> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
@@ -417,7 +418,7 @@ public class Main {
             }
         } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
             Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
-                    null, output, null, null, mask, globalSettings.BITS_FOR_IDS);
+                    null, reads, null, output, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, DNA, Byte, Base11WithStop> sup = new SequenceSupplier<>(
                     encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 ReadIndexer<Base11WithStop> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);

@@ -1,5 +1,6 @@
 package org.husonlab.diamer2.seq.converter;
 
+import org.husonlab.diamer2.seq.CharSequence;
 import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.Compressed4BitSequence;
 import org.husonlab.diamer2.seq.alphabet.*;
@@ -15,23 +16,55 @@ import java.util.LinkedList;
 public class DNAtoBase11RF1WithStop extends Converter<Character, DNA, Byte, Base11WithStop> {
 
     private static final Base11WithStop TARGET_ALPHABET = new Base11WithStop();
+    private static final DNA dnaAlphabet = new DNA();
 
     @Override
     public Sequence<Byte, Base11WithStop>[] convert(Sequence<Character, DNA> sequence) {
+        LinkedList<Sequence<Byte, Base11WithStop>> translations = new LinkedList<>();
+        for (Sequence<Character, DNA> validSequence: removeInvalidCharactersAndSplit(sequence)) {
+            // The sequence is too short to be translated
+            if (validSequence.length() < 3) {
+                continue;
+            }
+            // Setup byte array for each reading frame
+            byte[] translation = new byte[Math.floorDiv(validSequence.length(), 3)];
 
-        // The sequence is too short to be translated
-        if (sequence.length() < 3) {
+            for (int i = 2; i < validSequence.length(); i += 3) {
+                byte[] encoding = encodeDNA(String.valueOf(validSequence.get(i - 2)) + validSequence.get(i - 1) + validSequence.get(i));
+                // Use only forward reading frame
+                translation[(i - 2) / 3] = encoding[0];
+            }
+            translations.add(new Compressed4BitSequence<>(TARGET_ALPHABET, translation));
+        }
+
+        if (translations.isEmpty()) {
             return new Sequence[0];
+        } else {
+            return translations.toArray(new Sequence[0]);
         }
-        // Setup byte array for each reading frame
-        byte[] translation = new byte[Math.floorDiv(sequence.length(), 3)];
+    }
 
-        for (int i = 2; i < sequence.length(); i += 3) {
-            byte[] encoding = encodeDNA(String.valueOf(sequence.get(i - 2)) + sequence.get(i - 1) + sequence.get(i));
-            // Forward reading frame
-            translation[(i - 2) / 3] = encoding[0];
+    /**
+     * Removes all characters that are not part of the DNA alphabet and splits the sequence into the remaining valid
+     * parts.
+     */
+    private Sequence<Character, DNA>[] removeInvalidCharactersAndSplit(Sequence<Character, DNA> sequence) {
+        LinkedList<Sequence<Character, DNA>> sequences = new LinkedList<>();
+        StringBuilder sb = new StringBuilder();
+        for (Character c : sequence) {
+            if (dnaAlphabet.contains(c)) {
+                sb.append(c);
+            } else {
+                if (sb.length() > 0) {
+                    sequences.add(new CharSequence<>(dnaAlphabet, sb.toString()));
+                    sb = new StringBuilder();
+                }
+            }
         }
-        return new Sequence[]{new Compressed4BitSequence<>(TARGET_ALPHABET, translation)};
+        if (sb.length() > 0) {
+            sequences.add(new CharSequence<>(dnaAlphabet, sb.toString()));
+        }
+        return sequences.toArray(new Sequence[0]);
     }
 
     /**

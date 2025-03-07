@@ -1,0 +1,73 @@
+--assignreads --debug --statistics --encoder base11nuc --ovo 0.2,0.5,0.6,0.8,0.9,1.0 -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc C:\Users\noel\Documents\diamer2\src\test\resources\test_output\assignment_nt
+MAX_THREADS:	16
+MAX_MEMORY:	3
+KEEP_IN_MEMORY:	false
+BITS_FOR_IDS:	22
+SEQUENCE_BATCH_SIZE:	1000
+BUCKETS_PER_CYCLE:	16
+QUEUE_SIZE:	32
+DEBUG:	true
+Start: 2025-03-07T18:52:35.296842400
+End: 2025-03-07T18:52:35.507152400
+
+Buckets skipped: 0
+Reads with matches: 2
+Reads without matches: 4
+Matching kmers: 78
+
+OVO (0.20) read count
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.20) read count (norm. kmers)
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.50) read count
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.50) read count (norm. kmers)
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.60) read count
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.60) read count (norm. kmers)
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.80) read count
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.80) read count (norm. kmers)
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.90) read count
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (0.90) read count (norm. kmers)
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (1.00) read count
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVO (1.00) read count (norm. kmers)
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVA (0.70) read count
+Total assignments: 2 (33.33%)
+1 from root: 2
+
+OVA (0.70) read count (norm. kmers)
+Total assignments: 2 (33.33%)
+1 from root: 2
+
