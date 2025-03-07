@@ -53,10 +53,10 @@ public class TreeIO {
                         (writeLabel ? node.getScientificNameOrFirstLabel() + "\t" : "");
                 bw.write(line.substring(0, line.length() - 1));
                 for (String longPerpoerty : longProperties) {
-                    bw.write("\t" + tree.getNodeLongProperty(node.getTaxId(), longPerpoerty));
+                    bw.write("\t" + tree.getLongProperty(node.getTaxId(), longPerpoerty));
                 }
                 for (String doubleProperty : doubleProperties) {
-                    bw.write("\t" + tree.getNodeDoubleProperty(node.getTaxId(), doubleProperty));
+                    bw.write("\t" + tree.getDoubleProperty(node.getTaxId(), doubleProperty));
                 }
                 bw.write("\n");
                 queue.addAll(node.getChildren());
@@ -73,7 +73,7 @@ public class TreeIO {
      * </p>
      */
     public static void saveTree(Tree tree, Path file) {
-        saveTree(tree, file, true, true, true, true, tree.getNodeLongPropertyLabels(), tree.getNodeDoublePropertyLabels());
+        saveTree(tree, file, true, true, true, true, tree.getLongPropertyLabels(), tree.getDoublePropertyLabels());
     }
 
     /**
@@ -82,7 +82,7 @@ public class TreeIO {
      * @param file the file to save the tree to
      */
     public static void savePerTaxonAssignment(Tree tree, Path file) {
-        saveTree(tree, file, false, true, true, true, tree.getNodeLongPropertyLabels(), tree.getNodeDoublePropertyLabels());
+        saveTree(tree, file, false, true, true, true, tree.getLongPropertyLabels(), tree.getDoublePropertyLabels());
     }
 
     /**
@@ -106,7 +106,7 @@ public class TreeIO {
             // parse header
             String[] header = br.readLine().split("\t");
             for (int i = 4; i < header.length; i++) {
-                tree.addNodeLongProperty(header[i], 0L);
+                tree.addLongProperty(header[i], 0L);
             }
             // parse content
             String line;
@@ -119,7 +119,7 @@ public class TreeIO {
                 Node node = new Node(taxId, parent, rank, label);
                 tree.addNode(taxId, node);
                 for (int i = 4; i < values.length; i++) {
-                    tree.setNodeProperty(taxId, header[i], Long.parseLong(values[i]));
+                    tree.setProperty(taxId, header[i], Long.parseLong(values[i]));
                 }
             }
         } catch (Exception e) {

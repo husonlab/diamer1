@@ -190,6 +190,22 @@ public class Tree {
     }
 
     /**
+     * @param label of the property
+     * @return true if the property exists
+     */
+    public boolean hasLongProperty(String label) {
+        return longPropertyDescriptions.containsKey(label);
+    }
+
+    /**
+     * @param label of the property
+     * @return true if the property exists
+     */
+    public boolean hasDoubleProperty(String label) {
+        return doublePropertyDescriptions.containsKey(label);
+    }
+
+    /**
      * Add a new long property to each node.
      * <p>
      *     If there already is a long property with the same label, it will be overwritten.
@@ -197,7 +213,7 @@ public class Tree {
      * @param label   the label of the property
      * @param initial the initial value of the property
      */
-    public void addNodeLongProperty(String label, long initial) {
+    public void addLongProperty(String label, long initial) {
         if (longPropertyDescriptions.containsKey(label)) {
             int index = longPropertyDescriptions.get(label);
             for (Node node: idMap.values()) {
@@ -220,7 +236,7 @@ public class Tree {
      * @param label   the label of the property
      * @param initial the initial value of the property
      */
-    public void addNodeDoubleProperty(String label, double initial) {
+    public void addDoubleProperty(String label, double initial) {
         if (doublePropertyDescriptions.containsKey(label)) {
             int index = doublePropertyDescriptions.get(label);
             for (Node node: idMap.values()) {
@@ -265,7 +281,7 @@ public class Tree {
      * @param label the label of the property
      * @param value the value of the property
      */
-    public void setNodeProperty(int taxId, String label, long value) {
+    public void setProperty(int taxId, String label, long value) {
         Node node = getNodeOrError(taxId);
         int index = getLongPropertyIndex(label);
         synchronized (node) {
@@ -279,7 +295,7 @@ public class Tree {
      * @param label the label of the property
      * @param value the value of the property
      */
-    public void setNodeProperty(int taxId, String label, double value) {
+    public void setProperty(int taxId, String label, double value) {
         Node node = getNodeOrError(taxId);
         int index = getDoublePropertyIndex(label);
         synchronized (node) {
@@ -293,7 +309,7 @@ public class Tree {
      * @param label the label of the property
      * @param value the value to add
      */
-    public void addToNodeProperty(int taxId, String label, long value) {
+    public void addToProperty(int taxId, String label, long value) {
         Node node = getNodeOrError(taxId);
         int index = getLongPropertyIndex(label);
         synchronized (node) {
@@ -307,7 +323,7 @@ public class Tree {
      * @param label the label of the property
      * @param value the value to add
      */
-    public void addToNodeProperty(int taxId, String label, double value) {
+    public void addToProperty(int taxId, String label, double value) {
         Node node = getNodeOrError(taxId);
         int index = getDoublePropertyIndex(label);
         synchronized (node) {
@@ -318,7 +334,7 @@ public class Tree {
     /**
      * @return a list of all labels of properties of type long
      */
-    public List<String> getNodeLongPropertyLabels() {
+    public List<String> getLongPropertyLabels() {
         return longPropertyDescriptions.entrySet().stream()
         .sorted(Map.Entry.comparingByValue())
         .map(Map.Entry::getKey)
@@ -328,7 +344,7 @@ public class Tree {
     /**
      * @return a list of all labels of properties of type double
      */
-    public List<String> getNodeDoublePropertyLabels() {
+    public List<String> getDoublePropertyLabels() {
         return doublePropertyDescriptions.entrySet().stream()
                 .sorted(Map.Entry.comparingByValue())
                 .map(Map.Entry::getKey)
@@ -341,7 +357,7 @@ public class Tree {
      * @param label the label of the property
      * @return the value of the property
      */
-    public long getNodeLongProperty(int taxId, String label) {
+    public long getLongProperty(int taxId, String label) {
         if (!idMap.containsKey(taxId)) {
             throw new RuntimeException("Tried to get property of non-existing node: " + taxId);
         }
@@ -358,7 +374,7 @@ public class Tree {
      * @param label the label of the property
      * @return the value of the property
      */
-    public double getNodeDoubleProperty(int taxId, String label) {
+    public double getDoubleProperty(int taxId, String label) {
         if (!idMap.containsKey(taxId)) {
             throw new RuntimeException("Tried to get property of non-existing node: " + taxId);
         }
@@ -374,23 +390,23 @@ public class Tree {
      * @param label the label of the property
      * @param targetLabel the label of the property to accumulate the values to
      */
-    public void accumulateNodeLongProperty(String label, String targetLabel) {
+    public void accumulateLongProperty(String label, String targetLabel) {
         if (!longPropertyDescriptions.containsKey(label)) {
             throw new RuntimeException("Tried to access non-existing property: " + label);
         }
-        addNodeLongProperty(targetLabel, 0);
-        accumulateNodeLongProperty(label, targetLabel, getRoorOrError());
+        addLongProperty(targetLabel, 0);
+        accumulateLongProperty(label, targetLabel, getRoorOrError());
     }
 
     /**
      * Recursive helper function to accumulate a long property over all nodes in the tree.
      */
-    private void accumulateNodeLongProperty(String label, String targetLabel, Node root) {
-        setNodeProperty(root.getTaxId(), targetLabel, getNodeLongProperty(root.getTaxId(), label));
+    private void accumulateLongProperty(String label, String targetLabel, Node root) {
+        setProperty(root.getTaxId(), targetLabel, getLongProperty(root.getTaxId(), label));
         if (!root.isLeaf()) {
             for (Node child : root.getChildren()) {
-                accumulateNodeLongProperty(label, targetLabel, child);
-                addToNodeProperty(root.getTaxId(), targetLabel, getNodeLongProperty(child.getTaxId(), targetLabel));
+                accumulateLongProperty(label, targetLabel, child);
+                addToProperty(root.getTaxId(), targetLabel, getLongProperty(child.getTaxId(), targetLabel));
             }
         }
     }
@@ -400,23 +416,23 @@ public class Tree {
      * @param label the label of the property
      * @param targetLabel the label of the property to accumulate the values to
      */
-    public void accumulateNodeDoubleProperty(String label, String targetLabel) {
+    public void accumulateDoubleProperty(String label, String targetLabel) {
         if (!doublePropertyDescriptions.containsKey(label)) {
             throw new RuntimeException("Tried to access non-existing property: " + label);
         }
-        addNodeDoubleProperty(targetLabel, 0);
-        accumulateNodeDoubleProperty(label, targetLabel, getRoorOrError());
+        addDoubleProperty(targetLabel, 0);
+        accumulateDoubleProperty(label, targetLabel, getRoorOrError());
     }
 
     /**
      * Recursive helper function to accumulate a double property over all nodes in the tree.
      */
-    private void accumulateNodeDoubleProperty(String label, String targetLabel, Node root) {
-        setNodeProperty(root.getTaxId(), targetLabel, getNodeDoubleProperty(root.getTaxId(), label));
+    private void accumulateDoubleProperty(String label, String targetLabel, Node root) {
+        setProperty(root.getTaxId(), targetLabel, getDoubleProperty(root.getTaxId(), label));
         if (!root.isLeaf()) {
             for (Node child : root.getChildren()) {
-                accumulateNodeDoubleProperty(label, targetLabel, child);
-                addToNodeProperty(root.getTaxId(), targetLabel, getNodeDoubleProperty(child.getTaxId(), targetLabel));
+                accumulateDoubleProperty(label, targetLabel, child);
+                addToProperty(root.getTaxId(), targetLabel, getDoubleProperty(child.getTaxId(), targetLabel));
             }
         }
     }
@@ -424,7 +440,7 @@ public class Tree {
     /**
      * Resets the numeric properties of all nodes
      */
-    public void resetNodeProperties() {
+    public void resetProperties() {
         longPropertyDescriptions.clear();
         doublePropertyDescriptions.clear();
         defaultLongProperties.clear();
@@ -436,31 +452,31 @@ public class Tree {
     }
 
     /**
-     * Creates a new subtree with the nodes and weights given in the array.
+     * Creates a new subtree with the nodes and weights given in the input array.
      * <p>The subtree will contain the root of the original tree and all nodes that lie on the paths from each input
      * node to the root. The accumulated weights will not be set.</p>
      * @param nodesAndWeights an array of arrays of node IDs and weights [[nodeId1, weight1], [nodeId2, weight2], ...]
      * @param targetLabel the label of the property to store the weights in
      * @return a new tree with the nodes and weights given in the array
      */
-    public Tree getWeightedSubTreeInt(List<ReadAssignment.KmerMatch<Integer>> nodesAndWeights, String targetLabel) {
+    public Tree getWeightedSubTreeInt(List<ReadAssignment.KmerCount<Integer>> nodesAndWeights, String targetLabel) {
 
         Tree subTree = new Tree();
-        subTree.addNodeLongProperty(targetLabel, 0L);
+        subTree.addLongProperty(targetLabel, 0L);
 
-        for (ReadAssignment.KmerMatch<Integer> kmerMatch : nodesAndWeights) {
+        for (ReadAssignment.KmerCount<Integer> kmerCount : nodesAndWeights) {
 
             // Skip nodes that are not in the tree
-            if (!idMap.containsKey(kmerMatch.getTaxId())) {
+            if (!idMap.containsKey(kmerCount.getTaxId())) {
                 continue;
             }
             // Get the taxonomic ID of the node the id is mapped to.
             // This can happen if the tree was reduced to the standard ranks before.
-            int nodeId = idMap.get(kmerMatch.getTaxId()).getTaxId();
+            int nodeId = idMap.get(kmerCount.getTaxId()).getTaxId();
 
             // In case the node is already in the new tree, only the weight is updated
             if (subTree.hasNode(nodeId)) {
-                subTree.addToNodeProperty(nodeId, targetLabel, kmerMatch.getCount());
+                subTree.addToProperty(nodeId, targetLabel, kmerCount.getCount());
                 continue;
             }
 
@@ -487,7 +503,7 @@ public class Tree {
 
             // Add the root node to the new tree
             subTree.addNode(nodeId, nodeCopy);
-            subTree.addToNodeProperty(originalId, targetLabel, kmerMatch.getCount());
+            subTree.addToProperty(originalId, targetLabel, kmerCount.getCount());
         }
         subTree.autoFindRoot();
         return subTree;
@@ -501,23 +517,23 @@ public class Tree {
      * @param targetLabel the label of the property to store the weights in
      * @return a new tree with the nodes and weights given in the array as node double properties
      */
-    public Tree getWeightedSubTreeDouble(List<ReadAssignment.KmerMatch<Double>> nodesAndWeights, String targetLabel) {
+    public Tree getWeightedSubTreeDouble(List<ReadAssignment.KmerCount<Double>> nodesAndWeights, String targetLabel) {
 
         Tree subTree = new Tree();
-        subTree.addNodeDoubleProperty(targetLabel, 0L);
+        subTree.addDoubleProperty(targetLabel, 0L);
 
-        for (ReadAssignment.KmerMatch<Double> kmerMatch : nodesAndWeights) {
+        for (ReadAssignment.KmerCount<Double> kmerCount : nodesAndWeights) {
             // Skip nodes that are not in the tree
-            if (!idMap.containsKey(kmerMatch.getTaxId())) {
+            if (!idMap.containsKey(kmerCount.getTaxId())) {
                 continue;
             }
             // Get the taxonomic ID of the node the id is mapped to.
             // This can happen if the tree was reduced to the standard ranks before.
-            int nodeId = idMap.get(kmerMatch.getTaxId()).getTaxId();
+            int nodeId = idMap.get(kmerCount.getTaxId()).getTaxId();
 
             // In case the node is already in the new tree, only the weight is updated
             if (subTree.hasNode(nodeId)) {
-                subTree.addToNodeProperty(nodeId, targetLabel, kmerMatch.getCount());
+                subTree.addToProperty(nodeId, targetLabel, kmerCount.getCount());
                 continue;
             }
 
@@ -544,7 +560,7 @@ public class Tree {
 
             // Add the root node to the new tree
             subTree.addNode(nodeId, nodeCopy);
-            subTree.addToNodeProperty(originalId, targetLabel, kmerMatch.getCount());
+            subTree.addToProperty(originalId, targetLabel, kmerCount.getCount());
         }
         subTree.autoFindRoot();
         return subTree;
@@ -594,7 +610,6 @@ public class Tree {
                     parent = parent.getParent();
                 }
                 // add children to the standard-rank parent
-                // todo: transfer properties
                 node.getParent().getChildren().remove(node);
                 for (Node child : node.getChildren()) {
                     parent.addChild(child);

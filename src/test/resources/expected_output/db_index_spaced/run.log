@@ -1,17 +1,17 @@
---indexdb -t 12 -b 127 --mask 111111011110011100011 --debug -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
+--indexdb -t 12 -b 127 --mask 111111011110011100011 --debug --statistics -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 MAX_THREADS:	12
-MAX_MEMORY:	4
+MAX_MEMORY:	3
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	127
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-02-28T09:55:37.255038300
-End: 2025-02-28T09:55:37.601353
+Start: 2025-03-07T14:33:13.489675300
+End: 2025-03-07T14:33:13.722173
 
-input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
-output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
+input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 processed sequenceRecords: 7
 total extracted kmers: 1283
 bucket sizes: 

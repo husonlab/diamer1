@@ -83,7 +83,6 @@ public class DNAtoBase11RF1WithStop extends Converter<Character, DNA, Byte, Base
             case "TGG" -> {                                     // W
                 return 10;
             }
-            // todo: handle stop codons
             case "TAA", "TAG", "TGA" -> {
                 return 0;
             }

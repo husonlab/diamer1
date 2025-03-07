@@ -20,8 +20,6 @@ public class K15Base11Nuc extends Encoder<Character, DNA, Character, DNA, Base11
     private static final DNA dbAlphabet = new DNA();
     private static final DNA readsAlphabet = new DNA();
     private static final Base11WithStop targetAlphabet = new Base11WithStop();
-    private final Path db;
-    private final Path reads;
     private FastqIdReader<DNA> readsReader;
     private final DNAtoBase11RF1WithStop dbConverter = new DNAtoBase11RF1WithStop();
     private static final DNAtoBase11WithStop readConverter = new DNAtoBase11WithStop();
@@ -35,10 +33,8 @@ public class K15Base11Nuc extends Encoder<Character, DNA, Character, DNA, Base11
     private final int bitsOfBucketNames;
     private final int numberOfBuckets;
 
-    public K15Base11Nuc(Path db, Path reads, boolean[] mask, int bitsIds) {
-        super(dbAlphabet, readsAlphabet, new Base11WithStop(), mask, bitsIds);
-        this.db = db;
-        this.reads = reads;
+    public K15Base11Nuc(Path db, Path reads, Path dbIndex, Path readsIndex, boolean[] mask, int bitsIds) {
+        super(dbAlphabet, readsAlphabet, new Base11WithStop(), db, reads, dbIndex, readsIndex, mask, bitsIds);
         bitsOfKmerInBucket = bitsRequired(targetAlphabet.getBase(), k - s);
         bitsOfBucketNames = bitsOfKmerInBucket - (64 - bitsIds);
         numberOfBuckets = (int)Math.pow(2, bitsOfBucketNames);

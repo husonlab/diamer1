@@ -69,7 +69,7 @@ public class DBIndexer<A extends Alphabet<Byte>> {
      */
     public String index() throws IOException {
         logger.logInfo("Indexing " + sup.getFile() + " to " + indexDir);
-        tree.addNodeLongProperty("kmers in database", 0);
+        tree.addLongProperty("kmers in database", 0);
 
         try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(settings.MAX_THREADS,
                 settings.MAX_THREADS, settings.QUEUE_SIZE, 1, logger)) {
@@ -146,7 +146,7 @@ public class DBIndexer<A extends Alphabet<Byte>> {
                     threadPoolExecutor.submit(() -> {
                         try {
                             for (int taxId: bucketMaps[finalJ].values()) {
-                                tree.addToNodeProperty(taxId, "kmers in database", 1);
+                                tree.addToProperty(taxId, "kmers in database", 1);
                             }
                         } finally {
                             phaser.arriveAndDeregister();

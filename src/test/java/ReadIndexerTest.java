@@ -17,12 +17,12 @@
 //        ReadIndexer readIndexer = new ReadIndexer(new File("src/test/resources/reads/reads.fq"), Path.of("src/test/resources/test_output/reads_index"), 0b11111111111L, new Base11Alphabet(), 4, 2, 2, 64);
 //        readIndexer.index();
 //        Bucket[] buckets = new Bucket[1024];
-//        int kmerCount = 0;
+//        int KmerCount = 0;
 //        for (int i = 0; i < 1024; i++) {
 //            buckets[i] = new BucketIO(new File("src/test/resources/test_output/reads_index/" + i + ".bin"), i).read();
-//            kmerCount += Objects.requireNonNull(buckets[i].getContent()).length;
+//            KmerCount += Objects.requireNonNull(buckets[i].getContent()).length;
 //        }
-//        assertEquals(3392, kmerCount);
+//        assertEquals(3392, KmerCount);
 //
 ////        TestKmer[] testKmers = {
 ////            new TestKmer("GATTAGCGATGATGATACCGCGGCGCTGGGCGGCGGCAAAAGCAA", 0),

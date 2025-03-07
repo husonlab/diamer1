@@ -2,10 +2,14 @@ package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
+import org.husonlab.diamer2.io.indexing.DBIndexIO;
+import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.HeaderToIdReader;
 import org.husonlab.diamer2.io.seq.SequenceReader;
 import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.seq.converter.Converter;
+
+import java.nio.file.Path;
 
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
@@ -20,6 +24,10 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
     protected final AD sourceDBAlphabet;
     protected final AR sourceReadAlphabet;
     protected final T targetAlphabet;
+    protected final Path db;
+    protected final Path reads;
+    protected final Path dbIndex;
+    protected final Path readsIndex;
     /**
      * length of the mask (kmer with spaces)
      */
@@ -40,10 +48,14 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
      * @param mask bit mask to use for spaced kmer extraction
      * @param bitsForIds number of bits required to represent the ids of the sequences (taxon ids or read ids)
      */
-    public Encoder(AD sourceDBAlphabet, AR sourceReadAlphabet, T targetAlphabet, boolean[] mask, int bitsForIds) {
+    public Encoder(AD sourceDBAlphabet, AR sourceReadAlphabet, T targetAlphabet, Path db, Path reads, Path dbIndex, Path readsIndex, boolean[] mask, int bitsForIds) {
         this.sourceDBAlphabet = sourceDBAlphabet;
         this.sourceReadAlphabet = sourceReadAlphabet;
         this.targetAlphabet = targetAlphabet;
+        this.db = db;
+        this.reads = reads;
+        this.dbIndex = dbIndex;
+        this.readsIndex = readsIndex;
         this.mask = mask;
         // calculate position of the most significant bit (length of the mask / size of the window)
         this.k = mask.length;
@@ -99,7 +111,21 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
 
     public int getNrOfKmerBitsInBucketEntry() {
         return 64 - bitsForIds;
-    };
+    }
+
+    /**
+     * @return The DB <strong>Index</strong> IO class to read and write the database index.
+     */
+    public DBIndexIO getDBIndexIO() {
+        return new DBIndexIO(dbIndex, getNrOfBuckets());
+    }
+
+    /**
+     * @return The Read <strong>Index</strong> IO class to read and write the read index.
+     */
+    public ReadIndexIO getReadIndexIO() {
+        return new ReadIndexIO(readsIndex, getNrOfBuckets());
+    }
 
     /**
      * @return a reader to read the database sequences.

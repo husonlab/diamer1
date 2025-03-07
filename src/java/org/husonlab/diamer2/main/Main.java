@@ -11,6 +11,8 @@ import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.encoders.K15Base11Nuc;
 import org.husonlab.diamer2.main.encoders.K15Base11Uniform;
+import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
+import org.husonlab.diamer2.readAssignment.algorithms.OVA;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
@@ -25,6 +27,7 @@ import org.husonlab.diamer2.util.Pair;
 
 import java.io.*;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -97,23 +100,6 @@ public class Main {
         );
         options.addOptionGroup(computationOptions);
         options.addOption(
-                Option.builder()
-                        .longOpt("encoder")
-                        .argName("encoder")
-                        .desc("""
-                                base11 (default) \
-                                DB: protein\
-                                Encoding: DIAMOND's base 11 alphabet with a maximum kmer weight of 15\
-                                
-                                base11uniform
-                                DB: protein\
-                                Encoding: a base 11 alphabet in which the likelihood of each amino acid is about the same\
-                                """)
-                        .hasArg()
-                        .type(Path.class)
-                        .build()
-        );
-        options.addOption(
                 Option.builder("t")
                         .longOpt("threads")
                         .argName("number")
@@ -178,18 +164,6 @@ public class Main {
         );
         options.addOption(
                 Option.builder()
-                        .longOpt("nucleotide")
-                        .desc("Set if you want to index / use a nucleotide database to ignore stop codons.")
-                        .build()
-        );
-        options.addOption(
-                Option.builder()
-                        .longOpt("uniform")
-                        .desc("Uses a uniform amino acid alphabet.")
-                        .build()
-        );
-        options.addOption(
-                Option.builder()
                         .longOpt("debug")
                         .desc("Run in debug mode")
                         .build()
@@ -198,6 +172,58 @@ public class Main {
                 Option.builder()
                         .longOpt("statistics")
                         .desc("Collect statistics.")
+                        .build()
+        );
+        options.addOption(
+                Option.builder()
+                        .longOpt("encoder")
+                        .argName("encoder")
+                        .desc("""
+                                base11 (default) \
+                                
+                                DB: protein\
+                                
+                                Encoding: DIAMOND's base 11 alphabet with a maximum kmer weight of 15\
+                                
+                                -
+                                
+                                base11uniform\
+                                
+                                DB: protein\
+                                
+                                Encoding: a base 11 alphabet in which the likelihood of each amino acid is about the same\
+                                
+                                -
+                                
+                                base11nuc\
+                                
+                                DB: nucleotide\
+                                
+                                Encoding: DIAMOND's base 11 alphabet but with stop codons encoded as 0.""")
+                        .hasArg()
+                        .type(Path.class)
+                        .build()
+        );
+        options.addOption(
+                Option.builder()
+                        .longOpt("ovo")
+                        .desc("""
+                                One Versus One assignment algorithm. Use syntax --ovo 0.7,0.8,0.9,... to run the
+                                algorithm with (multiple) different thresholds. (default is 0.7)
+                                """)
+                        .hasArg()
+                        .type(Path.class)
+                        .build()
+        );
+        options.addOption(
+                Option.builder()
+                        .longOpt("ova")
+                        .desc("""
+                                One Versus All assignment algorithm. Use syntax --ova 0.7,0.8,0.9,... to run the
+                                algorithm with (multiple) different thresholds. (default is 0.7)
+                                """)
+                        .hasArg()
+                        .type(Path.class)
                         .build()
         );
 
@@ -298,7 +324,6 @@ public class Main {
         writeLogEnd(runInfo, output.getParent().resolve("run.log"));
     }
 
-
     private static void indexdb(GlobalSettings globalSettings, CommandLine cli) {
         Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
         checkNumberOfPositionalArguments(cli, 2);
@@ -318,37 +343,37 @@ public class Main {
         // run indexing with specified encoder
         if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
             Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
-                    database, null, mask, globalSettings.BITS_FOR_IDS);
+                    database, null, null, null, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, AA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(
                     encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 DBIndexer<Base11Alphabet> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
                 String runInfo = dbIndexer.index();
                 writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 writeLogEnd(e.toString(), output.resolve("run.log"));
                 throw new RuntimeException(e);
             }
         } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
             Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
-                    database, null, mask, globalSettings.BITS_FOR_IDS);
+                    database, null, null, null, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, AA, Byte, Base11Uniform> sup = new SequenceSupplier<>(
                     encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 DBIndexer<Base11Uniform> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
                 String runInfo = dbIndexer.index();
                 writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 writeLogEnd(e.toString(), output.resolve("run.log"));
                 throw new RuntimeException(e);
             }
         } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
             Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
-                    database, null, mask, globalSettings.BITS_FOR_IDS);
+                    database, null, null, null, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, DNA, Byte, Base11WithStop> sup = new SequenceSupplier<>(
                     encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 DBIndexer<Base11WithStop> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
                 String runInfo = dbIndexer.index();
                 writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 writeLogEnd(e.toString(), output.resolve("run.log"));
                 throw new RuntimeException(e);
             }
@@ -368,37 +393,37 @@ public class Main {
 
         if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
             Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
-                    null, reads, mask, globalSettings.BITS_FOR_IDS);
+                    null, reads, null, null, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(
                     encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 ReadIndexer<Base11Alphabet> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
                 String runInfo = readIndexer.index();
                 writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 writeLogEnd(e.toString(), output.resolve("run.log"));
                 throw new RuntimeException(e);
             }
         } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
             Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
-                    null, reads, mask, globalSettings.BITS_FOR_IDS);
+                    null, reads, null, null, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Uniform> sup = new SequenceSupplier<>(
                     encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 ReadIndexer<Base11Uniform> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
                 String runInfo = readIndexer.index();
                 writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 writeLogEnd(e.toString(), output.resolve("run.log"));
                 throw new RuntimeException(e);
             }
         } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
             Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
-                    null, output, mask, globalSettings.BITS_FOR_IDS);
+                    null, output, null, null, mask, globalSettings.BITS_FOR_IDS);
             try (SequenceSupplier<Integer, Character, DNA, Byte, Base11WithStop> sup = new SequenceSupplier<>(
                     encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
                 ReadIndexer<Base11WithStop> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
                 String runInfo = readIndexer.index();
                 writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (IOException e) {
+            } catch (Exception e) {
                 writeLogEnd(e.toString(), output.resolve("run.log"));
                 throw new RuntimeException(e);
             }
@@ -414,26 +439,77 @@ public class Main {
         Path dbIndex = getFolder(cli.getArgs()[0], true);
         Path readsIndex = getFolder(cli.getArgs()[1], true);
         Path output = getFolder(cli.getArgs()[2], false);
-
+        List<AssignmentAlgorithm> algorithms = new ArrayList<>();
+        if (cli.hasOption("ovo")) {
+            String[] thresholds = cli.getOptionValue("ovo").split(",");
+            for (String threshold : thresholds) {
+                algorithms.add(new OVO(Float.parseFloat(threshold)));
+            }
+        } else {
+            algorithms.add(new OVO(0.7f));
+        }
+        if (cli.hasOption("ova")) {
+            String[] thresholds = cli.getOptionValue("ova").split(",");
+            for (String threshold : thresholds) {
+                algorithms.add(new OVO(Float.parseFloat(threshold)));
+            }
+        } else {
+            algorithms.add(new OVA(0.7f));
+        }
         writeLogBegin(globalSettings, output.resolve("run.log"));
-        String runInfo;
 
-        // todo: use encoder
-        ReadAssigner readAssigner = new ReadAssigner(dbIndex, readsIndex, new K15Base11(dbIndex, readsIndex, mask, 22), globalSettings);
-        ReadAssignment assignment = readAssigner.assignReads();
-        ReadAssignmentIO.writeRawAssignment(assignment, output.resolve("raw_assignments.tsv"));
-        assignment.addKmerCountsToTree();
-        assignment.normalizeKmerMatchesAndAddToTree();
-        Tree tree = assignment.getTree();
-        assignment.runAssignmentAlgorithm(new OVO(tree, 0.2f));
-        assignment.runAssignmentAlgorithm(new OVO(tree, 0.5f));
-        assignment.runAssignmentAlgorithm(new OVO(tree, 0.6f));
-        assignment.runAssignmentAlgorithm(new OVO(tree, 0.8f));
-        assignment.runAssignmentAlgorithm(new OVO(tree, 0.9f));
-        assignment.runAssignmentAlgorithm(new OVO(tree, 1f));
-        runInfo = ReadAssignmentIO.writePerReadAssignments(assignment, output.resolve("per_read_assignments.tsv"), false, true);
-        TreeIO.savePerTaxonAssignment(assignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
-        TreeIO.saveForMegan(assignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
+        ReadAssignment readAssignment = null;
+
+        String runInfo = "";
+        if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
+            Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
+                    null, null, dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
+            ReadAssigner<Character, AA, Character, DNA, Base11Alphabet> readAssigner = new ReadAssigner<>(encoder, globalSettings);
+            try {
+                runInfo = readAssigner.assignReads();
+                readAssignment = readAssigner.getReadAssignment();
+            } catch (Exception e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
+            Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
+                    null, null, dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
+            ReadAssigner<Character, AA, Character, DNA, Base11Uniform> readAssigner = new ReadAssigner<>(encoder, globalSettings);
+            try {
+                runInfo = readAssigner.assignReads();
+                readAssignment = readAssigner.getReadAssignment();
+            } catch (Exception e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
+            Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
+                    null, null, dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
+            ReadAssigner<Character, DNA, Character, DNA, Base11WithStop> readAssigner = new ReadAssigner<>(encoder, globalSettings);
+            try {
+                runInfo = readAssigner.assignReads();
+                readAssignment = readAssigner.getReadAssignment();
+            } catch (Exception e) {
+                writeLogEnd(e.toString(), output.resolve("run.log"));
+                throw new RuntimeException(e);
+            }
+        } else {
+            System.err.println("Invalid encoder: " + cli.getOptionValue("encoder"));
+            System.exit(1);
+        }
+
+        ReadAssignmentIO.writeRawAssignment(readAssignment, output.resolve("raw_assignments.tsv"));
+        readAssignment.addKmerCountsToTree();
+        readAssignment.normalizeKmerCounts();
+
+        for (AssignmentAlgorithm algorithm : algorithms) {
+            readAssignment.runAssignmentAlgorithm(algorithm);
+        }
+
+        runInfo = runInfo + "\n\n" + ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, globalSettings);
+        TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
+        TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
         writeLogEnd(runInfo, output.resolve("run.log"));
     }
 
@@ -455,7 +531,7 @@ public class Main {
     private static void writeLogBegin(GlobalSettings settings, Path out) {
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(out.toFile())))) {
             writer.print(settings.toString());
-            writer.println("Start: " + java.time.LocalDateTime.now());
+            writer.println("Start: " + LocalDateTime.now());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -466,7 +542,7 @@ public class Main {
      */
     private static void writeLogEnd(String runInfo, Path out) {
         try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(out.toFile(), true)))) {
-            writer.println("End: " + java.time.LocalDateTime.now());
+            writer.println("End: " + LocalDateTime.now());
             writer.println();
             writer.print(runInfo);
         } catch (IOException e) {
@@ -520,48 +596,5 @@ public class Main {
             result[i] = mask.charAt(i) == '1';
         }
         return result;
-    }
-
-    private static class Computation<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<SR>, T extends Alphabet<Byte>> {
-        private final Encoder<SD, AD, SR, AR, T> encoder;
-        protected final GlobalSettings globalSettings;
-
-        public Computation(Encoder<SD, AD, SR, AR, T> encoder, GlobalSettings globalSettings) {
-            this.encoder = encoder;
-            this.globalSettings = globalSettings;
-        }
-
-        public void indexDB(Tree tree, Path output) {
-            (new RunWithLog(output, globalSettings) {
-                @Override
-                public String task() throws Exception {
-                    SequenceSupplier<Integer, SD, AD, Byte, T> sup = new SequenceSupplier<>(encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY);
-                    DBIndexer<T> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
-                    return dbIndexer.index();
-                }}).run();
-        }
-    }
-
-    private static abstract class RunWithLog {
-        private final Path output;
-        private final GlobalSettings globalSettings;
-
-        public RunWithLog(Path output, GlobalSettings globalSettings) {
-            this.output = output;
-            this.globalSettings = globalSettings;
-        }
-
-        public abstract String task() throws Exception;
-
-        public void run() {
-            writeLogBegin(globalSettings, output.resolve("run.log"));
-            try {
-                String runInfo = task();
-                writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        }
     }
 }

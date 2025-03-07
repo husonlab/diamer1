@@ -6,36 +6,36 @@ import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
+import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.concurrent.*;
 
 /**
  * Class to handle the process of matching kmers between the index of the database and the index of the reads.
  */
-public class ReadAssigner {
+public class ReadAssigner<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<SR>, T extends Alphabet<Byte>> {
     private final Logger logger;
     private final int progressBarStepsPerBucket;
     private final ProgressBar progressBar;
     private final DBIndexIO dbIndex;
     private final ReadIndexIO readsIndex;
     final ReadAssignment readAssignment;
-    private final Encoder encoder;
+    private final Encoder<SD, AD, SR, AR, T> encoder;
     private final GlobalSettings settings;
 
     /**
-     * @param dbIndexPath path to the folder with database index files (buckets)
-     * @param readsIndexPath path to the folder with reads index files (buckets)
      * @param encoder encoder with the settings used for encoding the kmers
      */
-    public ReadAssigner(Path dbIndexPath, Path readsIndexPath, Encoder encoder, GlobalSettings settings) {
+    public ReadAssigner(Encoder<SD, AD, SR, AR, T> encoder, GlobalSettings settings) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         progressBarStepsPerBucket = 100;
         progressBar = new ProgressBar((long) encoder.getNrOfBuckets() * progressBarStepsPerBucket, 20);
-        this.dbIndex = new DBIndexIO(dbIndexPath, encoder.getNrOfBuckets());
-        this.readsIndex = new ReadIndexIO(readsIndexPath, encoder.getNrOfBuckets());
+        this.dbIndex = encoder.getDBIndexIO();
+        this.readsIndex = encoder.getReadIndexIO();
         this.encoder = encoder;
         this.settings = settings;
         String[] readHeaderMapping;
@@ -62,7 +62,7 @@ public class ReadAssigner {
      * analyze the results.</p>
      * @return {@link ReadAssignment} with all the found kmer matches
      */
-    public ReadAssignment assignReads() {
+    public String assignReads() {
         logger.logInfo("Searching kmer matches ...");
         new OneLineLogger("ReadAssigner", 1000)
                 .addElement(new RunningTime())
@@ -83,17 +83,33 @@ public class ReadAssigner {
                 }
             }
         }
-
         progressBar.finish();
-        if (bucketsSkipped > 0) {
-            logger.logWarning("Skipped %d buckets.".formatted(bucketsSkipped));
-        }
 
         logger.logInfo("Sorting, normalizing and saving kmer matches ...");
-        readAssignment.sortKmerMatches();
+        int nrOfMatchingKmers = 0;
+        int nrOfReadsWithMatches = 0;
+        int nrOfReadsWithoutMatches = 0;
+        for (ArrayList<ReadAssignment.KmerCount<Integer>> readAssignments: readAssignment.getKmerCounts()) {
+            if (!readAssignments.isEmpty()) {
+                nrOfReadsWithMatches++;
+                for (ReadAssignment.KmerCount<Integer> readAssignment: readAssignments) {
+                    nrOfMatchingKmers += readAssignment.getCount();
+                }
+            } else {
+                nrOfReadsWithoutMatches++;
+            }
+        }
+        readAssignment.sortKmerCounts();
         readAssignment.addKmerCountsToTree();
-        readAssignment.normalizeKmerMatchesAndAddToTree();
+        readAssignment.normalizeKmerCounts();
 
+        return "Buckets skipped: " + bucketsSkipped + "\n" +
+                "Reads with matches: " + nrOfReadsWithMatches + "\n" +
+                "Reads without matches: " + nrOfReadsWithoutMatches + "\n" +
+                "Matching kmers: " + nrOfMatchingKmers;
+    }
+
+    public ReadAssignment getReadAssignment() {
         return readAssignment;
     }
 

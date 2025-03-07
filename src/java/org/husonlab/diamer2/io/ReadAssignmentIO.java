@@ -1,7 +1,6 @@
 package org.husonlab.diamer2.io;
 
 import org.husonlab.diamer2.main.GlobalSettings;
-import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
@@ -28,7 +27,7 @@ public class ReadAssignmentIO {
         logger.addElement(new Time());
         logger.logInfo("Reading read assignments from " + readAssignmentFile);
         String[] readHeaderMapping;
-        ArrayList<ReadAssignment.KmerMatch<Integer>>[] kmerMatches;
+        ArrayList<ReadAssignment.KmerCount<Integer>>[] kmerMatches;
         try (BufferedReader reader = new BufferedReader(new FileReader(readAssignmentFile.toString()))) {
             int size;
             try {
@@ -56,7 +55,7 @@ public class ReadAssignmentIO {
                         String[] assignmentParts = assignmentString.split(":");
                         int taxId = Integer.parseInt(assignmentParts[0]);
                         int count = Integer.parseInt(assignmentParts[1]);
-                        kmerMatches[lineNumber].add(new ReadAssignment.KmerMatch<>(taxId, count));
+                        kmerMatches[lineNumber].add(new ReadAssignment.KmerCount<>(taxId, count));
                     }
                 }
                 readHeaderMapping[lineNumber] = read[0];
@@ -81,15 +80,15 @@ public class ReadAssignmentIO {
         ProgressBar progressBar = new ProgressBar(readAssignment.size(), 20);
         new OneLineLogger("ReadAssignmentIO", 100).addElement(progressBar);
 
-        readAssignment.sortKmerMatches();
+        readAssignment.sortKmerCounts();
 
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file.toString()))) {
             bw.write(readAssignment.size() + "\n");
             for (int i = 0; i < readAssignment.size(); i++) {
                 progressBar.incrementProgress();
                 bw.write(readAssignment.getReadHeader(i) + "\t");
-                for (ReadAssignment.KmerMatch<Integer> kmerMatch : readAssignment.getKmerMatches(i)) {
-                    bw.write(kmerMatch.getTaxId() + ":" + kmerMatch.getCount() + " ");
+                for (ReadAssignment.KmerCount<Integer> kmerCount : readAssignment.getKmerCounts(i)) {
+                    bw.write(kmerCount.getTaxId() + ":" + kmerCount.getCount() + " ");
                 }
                 bw.newLine();
             }
@@ -111,7 +110,7 @@ public class ReadAssignmentIO {
      * @param headers Whether to write the read headers or just the read IDs
      * @param taxonNames Whether to write the taxon names or just the taxon IDs
      */
-    public static String writePerReadAssignments(ReadAssignment readAssignment, Path file, boolean headers, boolean taxonNames) {
+    public static String writePerReadAssignments(ReadAssignment readAssignment, Path file, boolean headers, boolean taxonNames, GlobalSettings settings) {
         Tree tree = readAssignment.getTree();
         int nrOfAssignmentAlgorithms = readAssignment.getAssignmentAlgorithms().size();
         int nrOfReads = readAssignment.size();
@@ -132,8 +131,8 @@ public class ReadAssignmentIO {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file.toString()))) {
             bw.write(nrOfReads + "\n");
             bw.write(headers ? "Read" : "ReadID");
-            for (AssignmentAlgorithm algorithm : readAssignment.getAssignmentAlgorithms()) {
-                bw.write("\t" + algorithm.getName());
+            for (String algorithm : readAssignment.getAssignmentAlgorithms()) {
+                bw.write("\t" + algorithm);
             }
             bw.newLine();
             for (int i = 0; i < nrOfReads; i++) {
@@ -165,15 +164,17 @@ public class ReadAssignmentIO {
         }
 
         StringBuilder info = new StringBuilder();
-        info.append("Total reads: ").append(nrOfReads).append("\n\n");
-        for (int i = 0; i < nrOfAssignmentAlgorithms; i++) {
-            info.append(readAssignment.getAssignmentAlgorithms().get(i).getName()).append("\n");
-            info.append("Total assignments: ").append(assignedReads[i])
-                    .append(" (").append("%.2f".formatted(assignedReads[i] / (float) nrOfReads * 100)).append("%)\n");
-            for (String rank : assignmentsPerRank[i].keySet()) {
-                info.append(rank).append(": ").append(assignmentsPerRank[i].get(rank)).append("\n");
+
+        if (settings.COLLECT_STATS) {
+            for (int i = 0; i < nrOfAssignmentAlgorithms; i++) {
+                info.append(readAssignment.getAssignmentAlgorithms().get(i)).append("\n");
+                info.append("Total assignments: ").append(assignedReads[i])
+                        .append(" (").append("%.2f".formatted(assignedReads[i] / (float) nrOfReads * 100)).append("%)\n");
+                for (String rank : assignmentsPerRank[i].keySet()) {
+                    info.append(rank).append(": ").append(assignmentsPerRank[i].get(rank)).append("\n");
+                }
+                info.append("\n");
             }
-            info.append("\n");
         }
         return info.toString();
     }

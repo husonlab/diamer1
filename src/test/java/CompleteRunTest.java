@@ -48,7 +48,7 @@ public class CompleteRunTest {
         // Generate DB index
         Main.main(new String[]{
                 "--indexdb", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
-                "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
+                "-no", nodesDmp.toString(), "-na", namesDmp.toString(), "--encoder", "base11",
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {
             exclusionRules = new ArrayList<>();
@@ -85,7 +85,8 @@ public class CompleteRunTest {
 
         // Assign reads
         args = new String[]{
-                "--assignreads", "-t", "12", "-b", "12", "--debug", "--statistics",
+                "--assignreads", "-t", "12", "-b", "12", "--debug", "--statistics", "--encoder", "base11",
+                "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndex.toString(), readsIndex.toString(), output.toString()};
         Main.main(args);
@@ -94,6 +95,7 @@ public class CompleteRunTest {
         }
         args = new String[]{
                 "--assignreads", "-m", "12", "-t", "1", "-b", "12", "--debug", "--statistics",
+                "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndexSpaced.toString(), readsIndexSpaced.toString(), outputSpaced.toString()};
         Main.main(args);

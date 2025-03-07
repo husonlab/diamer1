@@ -20,8 +20,6 @@ public class K15Base11Uniform extends Encoder<Character, AA, Character, DNA, Bas
     private static final AA dbAlphabet = new AA();
     private static final DNA readsAlphabet = new DNA();
     private static final Base11Uniform targetAlphabet = new Base11Uniform();
-    private final Path db;
-    private final Path reads;
     private FastqIdReader<DNA> readReader;
     private static final AAtoBase11Uniform dbConverter = new AAtoBase11Uniform();
     private final DNAtoBase11Uniform readConverter;
@@ -35,10 +33,8 @@ public class K15Base11Uniform extends Encoder<Character, AA, Character, DNA, Bas
     private final int nrOfBitsBucketNames;
     private final int nrOfBuckets;
 
-    public K15Base11Uniform(Path db, Path reads, boolean[] mask, int bitsIds) {
-        super(dbAlphabet, readsAlphabet, targetAlphabet, mask, bitsIds);
-        this.db = db;
-        this.reads = reads;
+    public K15Base11Uniform(Path db, Path reads, Path dbIndex, Path readsIndex, boolean[] mask, int bitsIds) {
+        super(dbAlphabet, readsAlphabet, targetAlphabet, db, reads, dbIndex, readsIndex, mask, bitsIds);
         nrOfBitsRequiredForKmer = bitsRequired(targetAlphabet.getBase(), k - s);
         nrOfBitsBucketNames = nrOfBitsRequiredForKmer - (64 - bitsIds);
         nrOfBuckets = (int)Math.pow(2, nrOfBitsBucketNames);
