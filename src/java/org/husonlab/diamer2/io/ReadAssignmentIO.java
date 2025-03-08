@@ -11,8 +11,7 @@ import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.io.*;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.*;
 
 public class ReadAssignmentIO {
 
@@ -28,6 +27,7 @@ public class ReadAssignmentIO {
         logger.logInfo("Reading read assignments from " + readAssignmentFile);
         String[] readHeaderMapping;
         ArrayList<ReadAssignment.KmerCount<Integer>>[] kmerMatches;
+        HashSet<Integer> missingTaxIds = new HashSet<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(readAssignmentFile.toString()))) {
             int size;
             try {
@@ -55,7 +55,11 @@ public class ReadAssignmentIO {
                         String[] assignmentParts = assignmentString.split(":");
                         int taxId = Integer.parseInt(assignmentParts[0]);
                         int count = Integer.parseInt(assignmentParts[1]);
-                        kmerMatches[lineNumber].add(new ReadAssignment.KmerCount<>(taxId, count));
+                        if (tree.hasNode(taxId)) {
+                            kmerMatches[lineNumber].add(new ReadAssignment.KmerCount<>(taxId, count));
+                        } else {
+                            missingTaxIds.add(taxId);
+                        }
                     }
                 }
                 readHeaderMapping[lineNumber] = read[0];
@@ -65,7 +69,56 @@ public class ReadAssignmentIO {
         } catch (IOException e) {
             throw new RuntimeException("Error parsing read assignment file: " + readAssignmentFile, e);
         }
+        if (!missingTaxIds.isEmpty()) logger.logWarning("Could not find " + missingTaxIds.size() + " tax IDs in the tree.");
         return new ReadAssignment(tree, readHeaderMapping, kmerMatches, settings);
+    }
+
+    public static ReadAssignment readRawKrakenAssignment(Tree tree, Path readAssignmentFile, GlobalSettings settings) {
+        Logger logger = new Logger("ReadAssignmentIO");
+        logger.addElement(new Time());
+        logger.logInfo("Reading read assignments from " + readAssignmentFile);
+        ArrayList<String> readHeaderMapping = new ArrayList<>();
+        ArrayList<ArrayList<ReadAssignment.KmerCount<Integer>>> kmerCounts = new ArrayList<>();
+        ArrayList<ArrayList<Integer>> taxonAssignments = new ArrayList<>();
+        HashSet<Integer> missingTaxIds = new HashSet<>();
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(readAssignmentFile.toString()));
+                BufferedReader reader = new BufferedReader(new InputStreamReader(cis))) {
+            ProgressBar progressBar = new ProgressBar(readAssignmentFile.toFile().length(), 20);
+            new OneLineLogger("ReadAssignmentIO", 500).addElement(progressBar);
+
+            String line;
+            while ((line = reader.readLine()) != null) {
+                progressBar.setProgress(cis.getBytesRead());
+                String[] read = line.split("\t");
+                readHeaderMapping.add(read[1]);
+                ArrayList<ReadAssignment.KmerCount<Integer>> kmerMatch = new ArrayList<>();
+                ArrayList<Integer> taxonAssignment = new ArrayList<>();
+                if (read.length == 5) {
+                    String[] assignmentStrings = read[4].split(" ");
+                    int assignment = Integer.parseInt(read[2]);
+                    taxonAssignment.add(assignment == 0 || !tree.hasNode(assignment) ? -1 : assignment);
+                    for (String assignmentString : assignmentStrings) {
+                        String[] assignmentParts = assignmentString.split(":");
+                        try {
+                            int taxId = Integer.parseInt(assignmentParts[0]);
+                            int count = Integer.parseInt(assignmentParts[1]);
+                            if (tree.hasNode(taxId)) {
+                                kmerMatch.add(new ReadAssignment.KmerCount<>(taxId, count));
+                            } else {
+                                missingTaxIds.add(taxId);
+                            }
+                        } catch (NumberFormatException _) {}
+                    }
+                    kmerCounts.add(kmerMatch);
+                    taxonAssignments.add(taxonAssignment);
+                }
+            }
+            if (!missingTaxIds.isEmpty()) logger.logWarning("Could not find " + missingTaxIds.size() + " tax IDs in the tree.");
+            progressBar.finish();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return new ReadAssignment(tree, readHeaderMapping.toArray(new String[0]), kmerCounts.toArray(new ArrayList[0]), new ArrayList<>(List.of("kraken2")), taxonAssignments.toArray(new ArrayList[0]), settings);
     }
 
     /**

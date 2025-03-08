@@ -283,7 +283,7 @@ public class Main {
         }
         int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : maxThreads;
         return new GlobalSettings(
-                args, cli, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"));
+                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"));
     }
 
     private static void preprocess(GlobalSettings globalSettings, CommandLine cli) {
@@ -505,8 +505,10 @@ public class Main {
         readAssignment.normalizeKmerCounts();
 
         for (AssignmentAlgorithm algorithm : algorithms) {
-            readAssignment.runAssignmentAlgorithm(algorithm);
+            readAssignment.runAssignmentAlgorithmOnKmerCounts(algorithm);
+            readAssignment.runAssignmentAlgorithmOnNormalizedKmerCounts(algorithm);
         }
+        readAssignment.addReadCountsToTree();
 
         runInfo = runInfo + "\n\n" + ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, globalSettings);
         TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));

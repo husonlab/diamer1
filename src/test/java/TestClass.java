@@ -1,21 +1,36 @@
+import org.husonlab.diamer2.io.ReadAssignmentIO;
+import org.husonlab.diamer2.io.taxonomy.TreeIO;
+import org.husonlab.diamer2.main.GlobalSettings;
+import org.husonlab.diamer2.readAssignment.ReadAssignment;
+import org.husonlab.diamer2.readAssignment.algorithms.OVA;
+import org.husonlab.diamer2.readAssignment.algorithms.OVO;
+import org.husonlab.diamer2.taxonomy.Tree;
 import org.junit.Test;
 
-import static org.husonlab.diamer2.seq.converter.Utilities.generateToAAAndBase11AndNumberFR;
+import java.nio.file.Path;
+import java.util.List;
+
+import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
+import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
 
 public class TestClass {
     @Test
     public void test() {
-        generateToAAAndBase11AndNumberFR();
-    }
-
-    @Test
-    public void test2() {
-        try {
-            throw new RuntimeException("Test exception");
-        } catch (Exception e) {
-            System.out.println("Catch block");
-        } finally {
-            System.out.println("Finally block");
-        }
+        Path output = Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr_processed");
+        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, 3, false, true, true);
+        Tree tree = readTaxonomy(Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxdmp\\nodes.dmp"), Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxdmp\\names.dmp"), true);
+        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr\\output.txt"), settings);
+        readAssignment.addKmerCountsToTree();
+        readAssignment.sortKmerCounts();
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.2f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.5f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.6f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.8f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.9f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(1.0f));
+        readAssignment.addReadCountsToTree();
+        ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, settings);
+        TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
+        TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
     }
 }

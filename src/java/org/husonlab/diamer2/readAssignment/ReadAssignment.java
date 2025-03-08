@@ -79,6 +79,16 @@ public class ReadAssignment {
         }
     }
 
+    public ReadAssignment(Tree tree, String[] readHeaderMapping, ArrayList<KmerCount<Integer>>[] kmerCounts, ArrayList<String> assignmentAlgorithms, ArrayList<Integer>[] taxonAssignments, GlobalSettings settings) {
+        this(tree, readHeaderMapping, kmerCounts, settings);
+        this.assignmentAlgorithms.addAll(assignmentAlgorithms);
+        for (int i = 0; i < size; i++) {
+            for (int readAssignment : taxonAssignments[i]) {
+                this.taxonAssignments[i].add(readAssignment);
+            }
+        }
+    }
+
     /**
      * @return the number of reads
      */
@@ -133,7 +143,7 @@ public class ReadAssignment {
                 tree.addToProperty(kmerCount.getTaxId(), "kmer count", kmerCount.getCount());
             }
         }
-        logger.logInfo("Accumulating and saving weights on the tree ...");
+        logger.logInfo("Accumulating kmer counts ...");
         tree.accumulateLongProperty("kmer count", "kmer count (accumulated)");
     }
 
@@ -165,40 +175,68 @@ public class ReadAssignment {
      * <p>The results will be added to the {@link ReadAssignment} as well as the nodes of the tree.</p>
      * @param algorithm Assignment algorithm to run
      */
-    public void runAssignmentAlgorithm(AssignmentAlgorithm algorithm) {
+    public void runAssignmentAlgorithmOnKmerCounts(AssignmentAlgorithm algorithm) {
         ProgressBar progressBar = new ProgressBar(size, 20);
         try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 settings.MAX_THREADS,
                 settings.MAX_THREADS, settings.QUEUE_SIZE,
                 1, logger)) {
-            logger.logInfo("Running assignment algorithm: " + algorithm.getName());
+            logger.logInfo("Running assignment algorithm on kmer counts: " + algorithm.getName());
             new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
 
             assignmentAlgorithms.add(algorithm.getName() + " read count");
-            assignmentAlgorithms.add(algorithm.getName() + " read count (norm. kmers)");
-            tree.addLongProperty(algorithm.getName() + " read count", 0);
-            tree.addLongProperty(algorithm.getName() + " read count (norm. kmers)", 0);
             for (int i = 0; i < size; i++) {
                 int finalI = i;
                 threadPoolExecutor.submit(() -> {
                     progressBar.incrementProgress();
-                    int taxId = algorithm.assignKmerCounts(tree, kmerCounts[finalI]);
-                    int taxIdNormalized = algorithm.assignNormalizedKmerCounts(tree, normalizedKmerCounts[finalI]);
-                    if (taxId != -1) {
-                        tree.addToProperty(taxId, algorithm.getName() + " read count", 1);
-                    }
-                    if (taxIdNormalized != -1) {
-                        tree.addToProperty(taxIdNormalized, algorithm.getName() + " read count (norm. kmers)", 1);
-                    }
-                    taxonAssignments[finalI].add(taxId);
-                    taxonAssignments[finalI].add(taxIdNormalized);
+                    taxonAssignments[finalI].add(algorithm.assignKmerCounts(tree, kmerCounts[finalI]));
                 });
             }
         }
         progressBar.finish();
-        logger.logInfo("Accumulating and saving weights on the tree ...");
-        tree.accumulateLongProperty(algorithm.getName() + " read count", algorithm.getName() + " cumulative read count");
-        tree.accumulateLongProperty(algorithm.getName() + " read count (norm. kmers)", algorithm.getName() + " cumulative read count (norm. kmers)");
+    }
+
+    /**
+     * Run an assignment algorithm on the raw read assignments.
+     * <p>The results will be added to the {@link ReadAssignment} as well as the nodes of the tree.</p>
+     * @param algorithm Assignment algorithm to run
+     */
+    public void runAssignmentAlgorithmOnNormalizedKmerCounts(AssignmentAlgorithm algorithm) {
+        ProgressBar progressBar = new ProgressBar(size, 20);
+        try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
+                settings.MAX_THREADS,
+                settings.MAX_THREADS, settings.QUEUE_SIZE,
+                1, logger)) {
+            logger.logInfo("Running assignment algorithm on normalized kmer counts: " + algorithm.getName());
+            new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
+
+            assignmentAlgorithms.add(algorithm.getName() + " read count (norm. kmers)");
+            for (int i = 0; i < size; i++) {
+                int finalI = i;
+                threadPoolExecutor.submit(() -> {
+                    progressBar.incrementProgress();
+                    taxonAssignments[finalI].add(algorithm.assignNormalizedKmerCounts(tree, normalizedKmerCounts[finalI]));
+                });
+            }
+        }
+        progressBar.finish();
+    }
+
+    /**
+     * Adds the number of reads assigned by each assignment algorithm to the corresponding taxonomic node.
+     */
+    public void addReadCountsToTree() {
+        logger.logInfo("Adding read counts to the tree ...");
+        for (String algorithm: assignmentAlgorithms) {
+            tree.addLongProperty(algorithm, 0);
+            for (int i = 0; i < size; i++) {
+                int taxId = taxonAssignments[i].get(assignmentAlgorithms.indexOf(algorithm));
+                if (taxId != -1) {
+                    tree.addToProperty(taxId, algorithm, 1);
+                }
+            }
+            tree.accumulateLongProperty(algorithm, algorithm + " cumulative");
+        }
     }
 
     /**
