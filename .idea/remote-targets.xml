@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RemoteTargetsManager">
+    <targets>
+      <target name="kubach@localhost:22" type="ssh/sftp" uuid="64989dad-6c33-4abc-a090-43b6669f6f05">
+        <config>
+          <option name="projectRootOnTarget" value="/beegfs/HPCscratch/noel/intellij" />
+          <option name="serverName" value="kubach@localhost:22 password" />
+        </config>
+      </target>
+    </targets>
+  </component>
+</project>

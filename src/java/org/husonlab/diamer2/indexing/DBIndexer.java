@@ -97,7 +97,7 @@ public class DBIndexer<A extends Alphabet<Byte>> {
 
                 if (!settings.DEBUG) {
                     for (int j = 0; j < settings.BUCKETS_PER_CYCLE; j++) {
-                        bucketMaps[j] = new ConcurrentHashMap<Long, Integer>(57000000); // initial capacity 57000000
+                        bucketMaps[j] = new ConcurrentHashMap<Long, Integer>(57000000, 0.75f, settings.MAX_THREADS); // initial capacity 57000000
                     }
                 } else {
                     for (int j = 0; j < settings.BUCKETS_PER_CYCLE; j++) {

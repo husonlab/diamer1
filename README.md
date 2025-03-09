@@ -4,6 +4,12 @@
 * 28.02.2025:
   * Fixed bug in Compressed4BitSequence that did not properly store -1 values.
 
+````shell
+ssh -L 9000:ibminode06.cs.uni-tuebingen.de:9000 kubach@sshgw.cs.uni-tuebingen.de -N -L 9000:localhost:9000 -v
+java -Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9000 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Xmx1500g -jar diamer2.jar --indexdb --statistics --keep-in-memory -t 128 -b 64 --mask 111111111111111 -no data/ncbi/taxdmp/nodes.dmp -na data/ncbi/taxdmp/names.dmp data/ncbi/nr/nr_preprocessed_ncbi/nr_preprocessed_ncbi.gz data/ncbi/nr/nr_preprocessed_ncbi/index_test
+-Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9001 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.host=127.0.0.1 -Djava.rmi.server.hostname=127.0.0.1 -Djava.rmi.server.hostname=ibminode06.cs.uni-tuebingen.de
+````
+
 # Changes since last meeting:
 * Added spaced seeds
 * Added support for the megan mapping file
