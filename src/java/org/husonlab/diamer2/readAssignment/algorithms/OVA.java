@@ -15,13 +15,13 @@ public class OVA extends AssignmentAlgorithmOnWeightedSubtree {
     }
 
     @Override
-    protected int RecursiveLong(Tree subTree, Node root, float ratio) {
+    protected int recursiveLong(Tree subTree, Node root, float ratio) {
         if (root.isLeaf()){
             return root.getTaxId();
 
             // Directly jump to child if it is the only one
         } else if (root.getChildren().size() == 1) {
-            return RecursiveLong(subTree, root.getChildren().getFirst(), ratio);
+            return recursiveLong(subTree, root.getChildren().getFirst(), ratio);
         }
 
         // find child with the highest weight and sum up all weights
@@ -39,20 +39,20 @@ public class OVA extends AssignmentAlgorithmOnWeightedSubtree {
 
         // if the highest weight is not much higher (dependent on the ratio), the current node is returned
         if (highestWeight * ratio > sumWeight) {
-            return RecursiveLong(subTree, highestNode, ratio);
+            return recursiveLong(subTree, highestNode, ratio);
         } else {
             return root.getTaxId();
         }
     }
 
     @Override
-    protected int RecursiveDouble(Tree subTree, Node root, float ratio) {
+    protected int recursiveDouble(Tree subTree, Node root, float ratio) {
         if (root.isLeaf()){
             return root.getTaxId();
 
             // Directly jump to child if it is the only one
         } else if (root.getChildren().size() == 1) {
-            return RecursiveLong(subTree, root.getChildren().getFirst(), ratio);
+            return recursiveDouble(subTree, root.getChildren().getFirst(), ratio);
         }
 
         // find child with the highest weight and sum up all weights
@@ -70,7 +70,7 @@ public class OVA extends AssignmentAlgorithmOnWeightedSubtree {
 
         // if the highest weight is not much higher (dependent on the ratio), the current node is returned
         if (highestWeight * ratio > sumWeight) {
-            return RecursiveLong(subTree, highestNode, ratio);
+            return recursiveDouble(subTree, highestNode, ratio);
         } else {
             return root.getTaxId();
         }

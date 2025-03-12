@@ -72,7 +72,7 @@ public class KmerEncoder {
      * @return the new encoding of the kmer
      */
     public long addBack(short value) {
-        int last = (int)value;
+        int last = value;
         System.arraycopy(kmer, 1, kmer, 0, k - 1);
         kmer[k - 1] = 0;
         multiply();

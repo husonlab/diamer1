@@ -9,7 +9,7 @@ public class CustomThreadPoolExecutor extends ThreadPoolExecutor {
     private final Logger logger;
     private final int waitBeforeShutdown;
     public CustomThreadPoolExecutor(int corePoolSize, int maximumPoolSize, int queueSize, int waitBeforeShutdown, Logger logger) {
-        super(corePoolSize,
+        super(1,
                 maximumPoolSize,
                 1, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(queueSize),

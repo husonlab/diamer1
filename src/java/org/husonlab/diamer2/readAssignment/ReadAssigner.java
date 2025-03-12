@@ -71,8 +71,8 @@ public class ReadAssigner<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<S
         int bucketsSkipped = 0;
         try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 settings.MAX_THREADS,
-                settings.MAX_THREADS, settings.QUEUE_SIZE,
-                60, logger)) {
+                settings.MAX_THREADS, encoder.getNrOfBuckets(),
+                Integer.MAX_VALUE, logger)) {
 
             for (int i = 0; i < encoder.getNrOfBuckets(); i++) {
                 if (dbIndex.isBucketAvailable(i) && readsIndex.isBucketAvailable(i)) {

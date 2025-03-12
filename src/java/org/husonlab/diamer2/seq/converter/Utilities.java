@@ -1,29 +1,31 @@
 package org.husonlab.diamer2.seq.converter;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedList;
 
 public class Utilities {
 
-    public static byte encodeAABase11(char aa) {
-        switch (aa) {
-            // X unknown, B aspartate/asparagine, Z glutamate/glutamine, O pyrrolysine
-            case 'B', 'D', 'E', 'K', 'N', 'O', 'Q', 'R', 'X', 'Z' -> { return 0; }
-            case 'A', 'S', 'T' -> { return 1; }
-            // J leucine/isoleucine
-            case 'I', 'J', 'L', 'V' -> { return 2; }
-            case 'G' -> { return 3; }
-            case 'P' -> { return 4; }
-            case 'F' -> { return 5; }
-            case 'Y' -> { return 6; }
-            // U selenocysteine
-            case 'C', 'U' -> { return 7; }
-            case 'H' -> { return 8; }
-            case 'M' -> { return 9; }
-            case 'W' -> { return 10; }
-            default -> throw new IllegalArgumentException("Invalid amino acid: " + aa);
+    public static String[] codons = {"AAA", "AAC", "AAG", "AAT", "ACA", "ACC", "ACG", "ACT", "AGA", "AGC", "AGG", "AGT",
+            "ATA", "ATC", "ATG", "ATT", "CAA", "CAC", "CAG", "CAT", "CCA", "CCC", "CCG", "CCT", "CGA", "CGC",
+            "CGG", "CGT", "CTA", "CTC", "CTG", "CTT", "GAA", "GAC", "GAG", "GAT", "GCA", "GCC", "GCG", "GCT",
+            "GGA", "GGC", "GGG", "GGT", "GTA", "GTC", "GTG", "GTT", "TAA", "TAC", "TAG", "TAT", "TCA", "TCC",
+            "TCG", "TCT", "TGA", "TGC", "TGG", "TGT", "TTA", "TTC", "TTG", "TTT"};
+
+    public static String reverseComplement(String sequence) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = sequence.length() - 1; i >= 0; i--) {
+            char c = sequence.charAt(i);
+            switch (c) {
+                case 'A' -> { sb.append('T'); }
+                case 'T' -> { sb.append('A'); }
+                case 'G' -> { sb.append('C'); }
+                case 'C' -> { sb.append('G'); }
+                default -> throw new IllegalArgumentException("Invalid character: " + c);
+            }
         }
+        return sb.toString();
     }
 
     /**
@@ -75,6 +77,73 @@ public class Utilities {
             case "ATG" -> { return 'M'; }  // Methionine
             case "TGG" -> { return 'W'; }  // Tryptophan
             case "TAA", "TAG", "TGA" -> { return '*'; }  // Stop codons
+            default -> throw new IllegalArgumentException("Invalid codon: " + codon);
+        }
+    }
+
+    /**
+     * Translated a DNA codon to an amino acid in forward and reverse reading direction.
+     * @param codon DNA codon
+     * @return amino acids in forward and reverse reading direction
+     */
+    public static char[] codonToAAFR(String codon) {
+        switch (codon) {
+            case "CCG", "CCT" -> { return new char[]{'P', 'R'}; }
+            case "CAT" -> { return new char[]{'H', 'M'}; }
+            case "CTG", "TTG" -> { return new char[]{'L', 'Q'}; }
+            case "GAT" -> { return new char[]{'D', 'I'}; }
+            case "CCA" -> { return new char[]{'P', 'W'}; }
+            case "CAC" -> { return new char[]{'H', 'V'}; }
+            case "TAT" -> { return new char[]{'Y', 'I'}; }
+            case "GAC" -> { return new char[]{'D', 'V'}; }
+            case "ATC" -> { return new char[]{'I', 'D'}; }
+            case "ATG" -> { return new char[]{'M', 'H'}; }
+            case "CAA", "CAG" -> { return new char[]{'Q', 'L'}; }
+            case "TAC" -> { return new char[]{'Y', 'V'}; }
+            case "GAA" -> { return new char[]{'E', 'F'}; }
+            case "GCA" -> { return new char[]{'A', 'C'}; }
+            case "ATT" -> { return new char[]{'I', 'N'}; }
+            case "GCC" -> { return new char[]{'A', 'G'}; }
+            case "GAG" -> { return new char[]{'E', 'L'}; }
+            case "GTC" -> { return new char[]{'V', 'D'}; }
+            case "CGC" -> { return new char[]{'R', 'A'}; }
+            case "ATA" -> { return new char[]{'I', 'Y'}; }
+            case "GCG" -> { return new char[]{'A', 'R'}; }
+            case "GCT" -> { return new char[]{'A', 'S'}; }
+            case "GTG" -> { return new char[]{'V', 'H'}; }
+            case "TCA" -> { return new char[]{'S', '*'}; }
+            case "GTT" -> { return new char[]{'V', 'N'}; }
+            case "AAT" -> { return new char[]{'N', 'I'}; }
+            case "AGG", "CGG" -> { return new char[]{'R', 'P'}; }
+            case "TTC" -> { return new char[]{'F', 'E'}; }
+            case "AGA", "CGA" -> { return new char[]{'R', 'S'}; }
+            case "CGT" -> { return new char[]{'R', 'T'}; }
+            case "GTA" -> { return new char[]{'V', 'Y'}; }
+            case "TTT" -> { return new char[]{'F', 'K'}; }
+            case "AAC" -> { return new char[]{'N', 'V'}; }
+            case "AGC" -> { return new char[]{'S', 'A'}; }
+            case "TCC" -> { return new char[]{'S', 'G'}; }
+            case "TGG" -> { return new char[]{'W', 'P'}; }
+            case "GGC" -> { return new char[]{'G', 'A'}; }
+            case "AAA" -> { return new char[]{'K', 'F'}; }
+            case "CTA", "TTA" -> { return new char[]{'L', '*'}; }
+            case "TGC" -> { return new char[]{'C', 'A'}; }
+            case "TCG", "TCT" -> { return new char[]{'S', 'R'}; }
+            case "AAG" -> { return new char[]{'K', 'L'}; }
+            case "AGT" -> { return new char[]{'S', 'T'}; }
+            case "TAA", "TAG" -> { return new char[]{'*', 'L'}; }
+            case "GGG" -> { return new char[]{'G', 'P'}; }
+            case "TGA" -> { return new char[]{'*', 'S'}; }
+            case "GGA" -> { return new char[]{'G', 'S'}; }
+            case "GGT" -> { return new char[]{'G', 'T'}; }
+            case "ACA" -> { return new char[]{'T', 'C'}; }
+            case "TGT" -> { return new char[]{'C', 'T'}; }
+            case "ACC" -> { return new char[]{'T', 'G'}; }
+            case "CCC" -> { return new char[]{'P', 'G'}; }
+            case "CTC" -> { return new char[]{'L', 'E'}; }
+            case "ACG" -> { return new char[]{'T', 'R'}; }
+            case "ACT" -> { return new char[]{'T', 'S'}; }
+            case "CTT" -> { return new char[]{'L', 'K'}; }
             default -> throw new IllegalArgumentException("Invalid codon: " + codon);
         }
     }
@@ -136,5 +205,23 @@ public class Utilities {
             }
         }
         return sequencesArrayList.toArray(Byte[][]::new);
+    }
+
+    public static byte[][] splitAtMinus1(byte[] sequence) {
+        ArrayList<byte[]> sequences = new ArrayList<>();
+        int i = 0;
+        int j = 0;
+        for (; j < sequence.length; j++) {
+            if (sequence[j] == -1) {
+                if (i != j) {
+                    sequences.add(Arrays.copyOfRange(sequence, i, j));
+                }
+                i = 1 + j;
+            }
+        }
+        if (i != j) {
+            sequences.add(Arrays.copyOfRange(sequence, i, j));
+        }
+        return sequences.toArray(byte[][]::new);
     }
 }

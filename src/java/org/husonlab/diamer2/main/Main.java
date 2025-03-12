@@ -452,7 +452,7 @@ public class Main {
         if (cli.hasOption("ova")) {
             String[] thresholds = cli.getOptionValue("ova").split(",");
             for (String threshold : thresholds) {
-                algorithms.add(new OVO(Float.parseFloat(threshold)));
+                algorithms.add(new OVA(Float.parseFloat(threshold)));
             }
         } else {
             algorithms.add(new OVA(0.7f));
@@ -592,7 +592,7 @@ public class Main {
      * @param mask mask string
      * @return boolean array
      */
-    private static boolean[] parseMask(String mask) {
+    public static boolean[] parseMask(String mask) {
         mask = mask.replaceAll("^0+", "").replaceAll("0+$", "");
         boolean[] result = new boolean[mask.length()];
         for (int i = 0; i < mask.length(); i++) {

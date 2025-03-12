@@ -21,7 +21,7 @@ public abstract class AssignmentAlgorithmOnWeightedSubtree implements Assignment
         }
         Tree subTree = tree.getWeightedSubTreeInt(kmerCounts, "weight");
         subTree.accumulateLongProperty("weight", "weight (accumulated)");
-        return RecursiveLong(subTree, subTree.getRoot(), ratio);
+        return recursiveLong(subTree, subTree.getRoot(), ratio);
     }
 
     @Override
@@ -31,10 +31,10 @@ public abstract class AssignmentAlgorithmOnWeightedSubtree implements Assignment
         }
         Tree subTree = tree.getWeightedSubTreeDouble(normalizedKmerCounts, "weight");
         subTree.accumulateDoubleProperty("weight", "weight (accumulated)");
-        return RecursiveDouble(subTree, subTree.getRoot(), ratio);
+        return recursiveDouble(subTree, subTree.getRoot(), ratio);
     }
 
-    protected abstract int RecursiveLong(Tree subTree, Node root, float ratio);
+    protected abstract int recursiveLong(Tree subTree, Node root, float ratio);
 
-    protected abstract int RecursiveDouble(Tree subTree, Node root, float ratio);
+    protected abstract int recursiveDouble(Tree subTree, Node root, float ratio);
 }

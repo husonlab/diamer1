@@ -1,11 +1,14 @@
 package org.husonlab.diamer2.io.taxonomy;
 
+import org.husonlab.diamer2.io.CountingInputStream;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.util.logging.Logger;
+import org.husonlab.diamer2.util.logging.OneLineLogger;
+import org.husonlab.diamer2.util.logging.ProgressBar;
+import org.husonlab.diamer2.util.logging.ProgressLogger;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
+import java.io.*;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -101,8 +104,13 @@ public class TreeIO {
      * Load a tree from a connection table.
      */
     public static Tree loadTree(Path file) {
+        Logger logger = new Logger("TreeIO");
+        logger.logInfo("Loading tree from " + file);
         Tree tree = new Tree();
-        try (BufferedReader br = new BufferedReader(new FileReader(file.toString()))) {
+        try (CountingInputStream cis = new CountingInputStream(new FileInputStream(file.toString()));
+                BufferedReader br = new BufferedReader(new InputStreamReader(cis))) {
+            ProgressBar progressBar = new ProgressBar(file.toFile().length(), 20);
+            new OneLineLogger("TreeIO", 100).addElement(progressBar);
             // parse header
             String[] header = br.readLine().split("\t");
             for (int i = 4; i < header.length; i++) {
@@ -111,6 +119,7 @@ public class TreeIO {
             // parse content
             String line;
             while ((line = br.readLine()) != null) {
+                progressBar.setProgress(cis.getBytesRead());
                 String[] values = line.split("\t");
                 Node parent = values[0].isEmpty() ? null : tree.idMap.get(Integer.parseInt(values[0]));
                 int taxId = Integer.parseInt(values[1]);
@@ -122,6 +131,7 @@ public class TreeIO {
                     tree.setProperty(taxId, header[i], Long.parseLong(values[i]));
                 }
             }
+            progressBar.finish();
         } catch (Exception e) {
             throw new RuntimeException("Could not load tree.", e);
         }

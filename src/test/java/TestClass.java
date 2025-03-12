@@ -7,6 +7,8 @@ import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.net.Socket;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -32,5 +34,17 @@ public class TestClass {
         ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, settings);
         TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
         TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
+    }
+
+    @Test
+    public void portTest() {
+        String host = "localhost";
+        int port = 9000; // Change to 9001 if needed
+
+        try (Socket socket = new Socket(host, port)) {
+            System.out.println("✅ Successfully connected to " + host + ":" + port);
+        } catch (IOException e) {
+            System.out.println("❌ Connection failed: " + e.getMessage());
+        }
     }
 }

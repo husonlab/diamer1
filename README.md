@@ -5,9 +5,9 @@
   * Fixed bug in Compressed4BitSequence that did not properly store -1 values.
 
 ````shell
-ssh -L 9000:ibminode06.cs.uni-tuebingen.de:9000 kubach@sshgw.cs.uni-tuebingen.de -N -L 9000:localhost:9000 -v
-java -Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9000 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Xmx1500g -jar diamer2.jar --indexdb --statistics --keep-in-memory -t 128 -b 64 --mask 111111111111111 -no data/ncbi/taxdmp/nodes.dmp -na data/ncbi/taxdmp/names.dmp data/ncbi/nr/nr_preprocessed_ncbi/nr_preprocessed_ncbi.gz data/ncbi/nr/nr_preprocessed_ncbi/index_test
--Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9001 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote.host=127.0.0.1 -Djava.rmi.server.hostname=127.0.0.1 -Djava.rmi.server.hostname=ibminode06.cs.uni-tuebingen.de
+-Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9001 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Djava.rmi.server.hostname=127.0.0.1
+ssh -J kubach@sshgw.cs.uni-tuebingen.de kubach@ibminode06.cs.uni-tuebingen.de -L 9000:localhost:9000 -L 9001:localhost:9001 -N -v
+service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 ````
 
 # Changes since last meeting:
@@ -27,6 +27,10 @@ java -Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi
 * -: 111111111111111
 * longspaced: 11111101101100111000100001
 * [Zhang et al.](https://doi.org/10.1093/bioinformatics/bth037): 11110010101011001101111
+
+# Alphabets
+* DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
+* Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
 
 # Future:
 * Refactor SequenceSupplier
@@ -292,7 +296,8 @@ zip -r output.zip input/
   * B: aspartic acid or asparagine: together with D and N
   * J: leucine or isoleucine: together with L and I
   * Z: glutamic acid or glutamine: together with E and Q
-  * O: pyrrolysine: together with lysine
+  * O: pyrrolysine: together with lysine K
+
 
 # alternative reduced alphabet
 1. L
