@@ -1,4 +1,4 @@
---indexreads --debug --statistics --encoder base11nuc C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
+--indexreads --debug --statistics --alphabet base11nuc C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
 MAX_THREADS:	16
 MAX_MEMORY:	3
 KEEP_IN_MEMORY:	false
@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-03-10T11:02:58.373690900
-End: 2025-03-10T11:02:58.747018800
+Start: 2025-03-15T13:40:47.549879700
+End: 2025-03-15T13:40:48.116275500
 
 Processed Reads: 6
 Processed translations: 36

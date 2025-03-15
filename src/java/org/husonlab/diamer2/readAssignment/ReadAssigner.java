@@ -17,20 +17,20 @@ import java.util.concurrent.*;
 /**
  * Class to handle the process of matching kmers between the index of the database and the index of the reads.
  */
-public class ReadAssigner<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<SR>, T extends Alphabet<Byte>> {
+public class ReadAssigner {
     private final Logger logger;
     private final int progressBarStepsPerBucket;
     private final ProgressBar progressBar;
     private final DBIndexIO dbIndex;
     private final ReadIndexIO readsIndex;
     final ReadAssignment readAssignment;
-    private final Encoder<SD, AD, SR, AR, T> encoder;
+    private final Encoder encoder;
     private final GlobalSettings settings;
 
     /**
      * @param encoder encoder with the settings used for encoding the kmers
      */
-    public ReadAssigner(Encoder<SD, AD, SR, AR, T> encoder, GlobalSettings settings) {
+    public ReadAssigner(Encoder encoder, GlobalSettings settings) {
         this.logger = new Logger("ReadAssigner").addElement(new Time());
         progressBarStepsPerBucket = 100;
         progressBar = new ProgressBar((long) encoder.getNrOfBuckets() * progressBarStepsPerBucket, 20);

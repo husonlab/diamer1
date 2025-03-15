@@ -4,28 +4,16 @@ import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
-import org.husonlab.diamer2.io.seq.HeaderToIdReader;
-import org.husonlab.diamer2.io.seq.SequenceReader;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.converter.Converter;
+import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
 
 import java.nio.file.Path;
 
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
- * @param <SD> the type of the database sequences
- * @param <AD> the alphabet of the database sequences
- * @param <SR> the type of the query sequences
- * @param <AR> the alphabet of the query sequences
- * @param <T> the target alphabet
  */
-public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphabet<SR>, T extends Alphabet<Byte>> {
+public abstract class Encoder {
 
-    protected final AD sourceDBAlphabet;
-    protected final AR sourceReadAlphabet;
-    protected final T targetAlphabet;
-    protected final Path db;
-    protected final Path reads;
+    protected final ReducedAlphabet targetAlphabet;
     protected final Path dbIndex;
     protected final Path readsIndex;
     /**
@@ -45,15 +33,11 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
     /**
      * @param targetAlphabet the alphabet used to encode the kmers of database and query (probably a reduced protein
      *                       alphabet)
-     * @param mask bit mask to use for spaced kmer extraction
-     * @param bitsForIds number of bits required to represent the ids of the sequences (taxon ids or read ids)
+     * @param mask           bit mask to use for spaced kmer extraction
+     * @param bitsForIds     number of bits required to represent the ids of the sequences (taxon ids or read ids)
      */
-    public Encoder(AD sourceDBAlphabet, AR sourceReadAlphabet, T targetAlphabet, Path db, Path reads, Path dbIndex, Path readsIndex, boolean[] mask, int bitsForIds) {
-        this.sourceDBAlphabet = sourceDBAlphabet;
-        this.sourceReadAlphabet = sourceReadAlphabet;
+    public Encoder(ReducedAlphabet targetAlphabet, Path dbIndex, Path readsIndex, boolean[] mask, int bitsForIds) {
         this.targetAlphabet = targetAlphabet;
-        this.db = db;
-        this.reads = reads;
         this.dbIndex = dbIndex;
         this.readsIndex = readsIndex;
         this.mask = mask;
@@ -128,44 +112,11 @@ public abstract class Encoder<SD, AD extends Alphabet<SD>, SR, AR extends Alphab
     }
 
     /**
-     * @return a reader to read the database sequences.
-     */
-    public abstract SequenceReader<Integer,SD,AD> getDBReader();
-
-    /**
-     * @return a reader to read the database sequences.
-     */
-    public abstract SequenceReader<Integer, SR, AR> getReadReader();
-
-    /**
-     * @return a reader to read the query sequences.
-     */
-    public abstract  HeaderToIdReader getHeaderToIdReader();
-
-    /**
-     * @return converter to convert amino acid sequences to base 11 sequences
-     */
-    public abstract Converter<SD, AD, Byte, T> getDBConverter();
-
-    /**
-     * @return converter to convert DNA sequences to base 11 sequences
-     */
-    public abstract Converter<SR, AR, Byte, T> getReadConverter();
-
-    /**
-     * @return the alphabet of the database sequences
-     */
-    public abstract AD getDBAlphabet();
-
-    /**
-     * @return the alphabet of the read (query) sequences
-     */
-    public abstract AR getReadAlphabet();
-
-    /**
      * @return the alphabet used to encode the kmers
      */
-    public abstract T getTargetAlphabet();
+    public ReducedAlphabet getTargetAlphabet() {
+        return targetAlphabet;
+    }
 
     /**
      * @return the mask used to extract kmers

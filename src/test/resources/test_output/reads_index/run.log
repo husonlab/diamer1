@@ -7,12 +7,12 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	1024
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-10T11:02:56.568078100
-End: 2025-03-10T11:02:56.835252500
+Start: 2025-03-15T13:40:46.156084100
+End: 2025-03-15T13:40:46.382411200
 
 Processed Reads: 6
 Processed translations: 90
-Skipped translations because length < 15: 0
+Skipped translations because length < 15: 118
 total extracted kmers: 1709
 bucket sizes: 
 0	0

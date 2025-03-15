@@ -1,7 +1,5 @@
 package org.husonlab.diamer2.indexing.kmers;
 
-import org.husonlab.diamer2.seq.Sequence;
-
 /**
  * Class to extract and encode of kmers from a sequence.
  */
@@ -40,20 +38,20 @@ public class KmerExtractor {
      * @param sequence the sequence to extract the kmers from
      * @return the extracted kmers
      */
-    public long[] extractKmers(Sequence<Byte, ?> sequence) {
-        int seqLength = sequence.length();
+    public long[] extractKmers(byte[] sequence) {
+        int seqLength = sequence.length;
         if (seqLength < k) {
             return new long[0];
         }
         kmerEncoder.reset();
         // add the first k-1 characters to the encoder
-        long[] kmers = new long[sequence.length() - k + 1];
+        long[] kmers = new long[sequence.length - k + 1];
         for (int i = 0; i < k - 1; i++) {
-            kmerEncoder.addBack(sequence.get(i));
+            kmerEncoder.addBack(sequence[i]);
         }
         // add the remaining characters to the encoder and store the resulting encoding
         for (int i = k - 1; i < seqLength; i++) {
-            kmers[i - k + 1] = kmerEncoder.addBack(sequence.get(i));
+            kmers[i - k + 1] = kmerEncoder.addBack(sequence[i]);
         }
         return kmers;
     }

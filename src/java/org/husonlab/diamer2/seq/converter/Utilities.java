@@ -144,7 +144,7 @@ public class Utilities {
             case "ACG" -> { return new char[]{'T', 'R'}; }
             case "ACT" -> { return new char[]{'T', 'S'}; }
             case "CTT" -> { return new char[]{'L', 'K'}; }
-            default -> throw new IllegalArgumentException("Invalid codon: " + codon);
+            default -> { return new char[]{'*', '*'}; }
         }
     }
 

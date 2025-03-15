@@ -55,7 +55,7 @@ public class CompleteRunTest {
         // Generate DB index
         Main.main(new String[]{
                 "--indexdb", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
-                "-no", nodesDmp.toString(), "-na", namesDmp.toString(), "--encoder", "base11",
+                "-no", nodesDmp.toString(), "-na", namesDmp.toString(), "--alphabet", "base11",
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {
             exclusionRules = new ArrayList<>();
@@ -72,7 +72,7 @@ public class CompleteRunTest {
         }
 
         Main.main(new String[]{
-                "--indexdb", "--debug", "--statistics", "--encoder", "base11nuc",
+                "--indexdb", "--debug", "--statistics", "--alphabet", "base11nuc",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbPreprocessedNTExpected.toString(), dbIndexNT.toString()});
         if (assertInbetween) {
@@ -99,7 +99,7 @@ public class CompleteRunTest {
         }
 
         args = new String[]{
-                "--indexreads", "--debug", "--statistics", "--encoder", "base11nuc",
+                "--indexreads", "--debug", "--statistics", "--alphabet", "base11nuc",
                 reads.toString(), readsIndexNuc.toString()};
         Main.main(args);
         if (assertInbetween) {
@@ -108,7 +108,7 @@ public class CompleteRunTest {
 
         // Assign reads
         args = new String[]{
-                "--assignreads", "-t", "12", "-b", "12", "--debug", "--statistics", "--encoder", "base11",
+                "--assignreads", "-t", "12", "-b", "12", "--debug", "--statistics",
                 "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndex.toString(), readsIndex.toString(), output.toString()};
@@ -126,7 +126,7 @@ public class CompleteRunTest {
             assertDirectoriesEqual(outputSpaced.toFile(), outputSpacedExpected.toFile(), exclusionRules);
         }
         args = new String[]{
-                "--assignreads", "--debug", "--statistics", "--encoder", "base11nuc",
+                "--assignreads", "--debug", "--statistics",
                 "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndexNT.toString(), readsIndexNuc.toString(), outputNT.toString()};

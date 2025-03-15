@@ -7,13 +7,13 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-03-08T10:31:28.550887700
-End: 2025-03-08T10:31:28.756613800
+Start: 2025-03-15T12:06:11.305783
+End: 2025-03-15T12:06:11.896790800
 
 Buckets skipped: 0
 Reads with matches: 2
 Reads without matches: 4
-Matching kmers: 78
+Matching kmers: 79
 
 OVO (0.20) read count
 Total assignments: 2 (33.33%)

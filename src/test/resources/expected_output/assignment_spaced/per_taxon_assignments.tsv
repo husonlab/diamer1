@@ -1,7 +1,7 @@
 node id	rank	label	kmers in database	kmer count	kmer count (accumulated)	OVO (0.20) read count	OVO (0.20) read count cumulative	OVO (0.20) read count (norm. kmers)	OVO (0.20) read count (norm. kmers) cumulative	OVO (0.50) read count	OVO (0.50) read count cumulative	OVO (0.50) read count (norm. kmers)	OVO (0.50) read count (norm. kmers) cumulative	OVO (0.60) read count	OVO (0.60) read count cumulative	OVO (0.60) read count (norm. kmers)	OVO (0.60) read count (norm. kmers) cumulative	OVO (0.80) read count	OVO (0.80) read count cumulative	OVO (0.80) read count (norm. kmers)	OVO (0.80) read count (norm. kmers) cumulative	OVO (0.90) read count	OVO (0.90) read count cumulative	OVO (0.90) read count (norm. kmers)	OVO (0.90) read count (norm. kmers) cumulative	OVO (1.00) read count	OVO (1.00) read count cumulative	OVO (1.00) read count (norm. kmers)	OVO (1.00) read count (norm. kmers) cumulative	OVA (0.70) read count	OVA (0.70) read count cumulative	OVA (0.70) read count (norm. kmers)	OVA (0.70) read count (norm. kmers) cumulative	normalized kmer count
 0	no rank	root	0	0	86	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0	2	0.0
 1	1 from root	rank1	162	13	13	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0.08024691358024691
-2	1 from root	rank2	273	73	73	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0.2673992673992674
+2	1 from root	rank2	260	73	73	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	1	0.28076923076923077
 4	2 from root	organism2	438	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0.0
 5	2 from root	organism3	323	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0.0
 3	2 from root	organism1	87	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0	0.0

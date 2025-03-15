@@ -8,7 +8,6 @@ import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
@@ -22,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.husonlab.diamer2.indexing.Utilities.writeKmerStatistics;
 
-public class DBIndexer<A extends Alphabet<Byte>> {
+public class DBIndexer {
 
     private final Logger logger;
     private final Phaser phaser;
@@ -33,17 +32,17 @@ public class DBIndexer<A extends Alphabet<Byte>> {
     private final ConcurrentHashMap<Long, Integer> kmerCounts;
     private final StringBuilder report;
 
-    private final SequenceSupplier<Integer, ?, ?, Byte, A> sup;
+    private final SequenceSupplier<Integer, byte[]> sup;
     private final Path indexDir;
     private final DBIndexIO dbIndexIO;
     private final Tree tree;
-    private final Encoder<?, ?, ?, ?, A> encoder;
+    private final Encoder encoder;
     private final GlobalSettings settings;
 
-    public DBIndexer(SequenceSupplier<Integer, ?, ?, Byte, A> sup,
+    public DBIndexer(SequenceSupplier<Integer, byte[]> sup,
                      Path indexDir,
                      Tree tree,
-                     Encoder<?, ?, ?, ?, A> encoder,
+                     Encoder encoder,
                      GlobalSettings settings) {
         this.logger = new Logger("DBIndexer");
         logger.addElement(new Time());
@@ -59,7 +58,7 @@ public class DBIndexer<A extends Alphabet<Byte>> {
         this.encoder = encoder;
         this.settings = settings;
         this.indexDir = indexDir;
-        this.dbIndexIO = new DBIndexIO(indexDir, encoder.getNrOfBuckets());
+        this.dbIndexIO = encoder.getDBIndexIO();
         this.tree = tree;
     }
 
@@ -104,8 +103,8 @@ public class DBIndexer<A extends Alphabet<Byte>> {
                         bucketMaps[j] = new ConcurrentHashMap<Long, Integer>();
                     }
                 }
-                FutureSequenceRecords<Integer, Byte, A>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
-                FutureSequenceRecords<Integer, Byte, A> futureSequenceRecords;
+                FutureSequenceRecords<Integer, byte[]>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
+                FutureSequenceRecords<Integer, byte[]> futureSequenceRecords;
                 while ((futureSequenceRecords = sup.next()) != null) {
                     batch[nrOfProcessedFutureSequenceRecords % settings.SEQUENCE_BATCH_SIZE] = futureSequenceRecords;
                     progressBar.setProgress(sup.getBytesRead());
@@ -182,7 +181,7 @@ public class DBIndexer<A extends Alphabet<Byte>> {
      * Runnable to compare a read- and a database bucket.
      */
     private class FastaProteinProcessor implements Runnable {
-        private final FutureSequenceRecords<Integer, Byte, A>[] containers;
+        private final FutureSequenceRecords<Integer, byte[]>[] containers;
         private final KmerExtractor kmerExtractor;
         private final ConcurrentHashMap<Long, Integer>[] bucketMaps;
         private final int rangeStart;
@@ -193,7 +192,7 @@ public class DBIndexer<A extends Alphabet<Byte>> {
          * @param containers Array of Sequence sequences to process.
          * @param bucketMaps Array of ConcurrentHashMaps to store the kmers.
          */
-        public FastaProteinProcessor(FutureSequenceRecords<Integer, Byte, A>[] containers, ConcurrentHashMap<Long, Integer>[] bucketMaps, int rangeStart, int rangeEnd) {
+        public FastaProteinProcessor(FutureSequenceRecords<Integer, byte[]>[] containers, ConcurrentHashMap<Long, Integer>[] bucketMaps, int rangeStart, int rangeEnd) {
             this.containers = containers;
             this.kmerExtractor = encoder.getKmerExtractor();
             this.bucketMaps = bucketMaps;
@@ -204,9 +203,9 @@ public class DBIndexer<A extends Alphabet<Byte>> {
         @Override
         public void run() {
             try {
-                for (FutureSequenceRecords<Integer, Byte, A> container : containers) {
-                    for (SequenceRecord<Integer, Byte, A> record: container.getSequenceRecords()) {
-                        if (record == null || record.length() < kmerExtractor.getK() || !tree.hasNode(record.id())) {
+                for (FutureSequenceRecords<Integer, byte[]> container : containers) {
+                    for (SequenceRecord<Integer, byte[]> record: container.getSequenceRecords()) {
+                        if (record == null || record.sequence().length < kmerExtractor.getK() || !tree.hasNode(record.id())) {
                             continue;
                         }
                         int taxId = record.id();

@@ -1,9 +1,7 @@
 package org.husonlab.diamer2.io.seq;
 
 import org.husonlab.diamer2.io.Utilities;
-import org.husonlab.diamer2.seq.CharSequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.DNA;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -11,17 +9,17 @@ import java.nio.file.Path;
 /**
  * Class to read the header and the sequence (not the quality) as {@link SequenceRecord}s from a FASTQ file.
  */
-public class FastqReader extends SequenceReader<String, Character, DNA> {
+public class FastqReader extends SequenceReader<String> {
 
     /**
      * @param file Path to the FASTQ file to read from
      */
     public FastqReader(Path file) {
-        super(file, new DNA());
+        super(file);
     }
 
     @Override
-    public SequenceRecord<String, Character, DNA> next() throws IOException {
+    public SequenceRecord<String, String> next() throws IOException {
         sequencesRead++;
         if (line != null && line.startsWith("@")) {
             id = line;
@@ -29,7 +27,7 @@ public class FastqReader extends SequenceReader<String, Character, DNA> {
             br.readLine();
             br.readLine();
             line = br.readLine();
-            return new SequenceRecord<>(id, new CharSequence<>(alphabet, sequence.toString().toCharArray()));
+            return new SequenceRecord<>(id, sequence.toString());
         } else {
             while ((line = br.readLine()) != null) {
                 if (line.startsWith("@")) {

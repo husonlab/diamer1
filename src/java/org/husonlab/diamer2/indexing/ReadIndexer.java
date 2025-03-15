@@ -8,7 +8,6 @@ import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 
@@ -24,7 +23,7 @@ import static org.husonlab.diamer2.indexing.Utilities.writeKmerStatistics;
 /**
  * Class to create an index for sequencing reads.
  */
-public class ReadIndexer<A extends Alphabet<Byte>> {
+public class ReadIndexer {
 
     private final Logger logger;
     private final Phaser phaser;
@@ -35,10 +34,10 @@ public class ReadIndexer<A extends Alphabet<Byte>> {
     private final ConcurrentHashMap<Long, Integer> kmerCounts;
     private final StringBuilder report;
 
-    private final SequenceSupplier<Integer, ?, ?, Byte, A> sup;
+    private final SequenceSupplier<Integer, byte[]> sup;
     private final HeaderToIdReader fastqIdReader;
     private final ReadIndexIO readIndexIO;
-    private final Encoder<?, ?, ?, ?, A> encoder;
+    private final Encoder encoder;
     private final GlobalSettings settings;
 
     /**
@@ -47,9 +46,10 @@ public class ReadIndexer<A extends Alphabet<Byte>> {
      * @param encoder The {@link Encoder} used to encode the reads.
      * @param settings The {@link GlobalSettings} object containing the settings for the indexing process.
      */
-    public ReadIndexer(SequenceSupplier<Integer, ?, ?, Byte, A> sup,
+    public ReadIndexer(SequenceSupplier<Integer, byte[]> sup,
+                       HeaderToIdReader fastqIdReader,
                        Path indexDir,
-                       Encoder<?, ?, ?, ?, A> encoder,
+                       Encoder encoder,
                        GlobalSettings settings) {
         logger = new Logger("ReadIndexer");
         logger.addElement(new Time());
@@ -61,7 +61,7 @@ public class ReadIndexer<A extends Alphabet<Byte>> {
         report = new StringBuilder();
 
         this.sup = sup;
-        this.fastqIdReader = encoder.getHeaderToIdReader();
+        this.fastqIdReader = fastqIdReader;
         this.readIndexIO = new ReadIndexIO(indexDir, encoder.getNrOfBuckets());
         this.encoder = encoder;
         this.settings = settings;
@@ -108,9 +108,9 @@ public class ReadIndexer<A extends Alphabet<Byte>> {
 
                 // initialize batch of FutureSequenceRecords
                 // each batch is processed in a separate thread
-                FutureSequenceRecords<Integer, Byte, A>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
+                FutureSequenceRecords<Integer, byte[]>[] batch = new FutureSequenceRecords[settings.SEQUENCE_BATCH_SIZE];
 
-                FutureSequenceRecords<Integer, Byte, A> futureSequenceRecords;
+                FutureSequenceRecords<Integer, byte[]> futureSequenceRecords;
                 while ((futureSequenceRecords = sup.next()) != null) {
                     batch[nrOfProcessedFurutreSequenceRecords % settings.SEQUENCE_BATCH_SIZE] = futureSequenceRecords;
                     progressBar.setProgress(sup.getBytesRead());
@@ -196,7 +196,7 @@ public class ReadIndexer<A extends Alphabet<Byte>> {
      */
     private class ReadProcessor implements Runnable {
 
-        private final FutureSequenceRecords<Integer, Byte, A>[] batch;
+        private final FutureSequenceRecords<Integer, byte[]>[] batch;
         private final KmerExtractor kmerExtractor;
         private final ConcurrentLinkedQueue<Long>[] bucketLists;
         private final int rangeStart;
@@ -209,7 +209,7 @@ public class ReadIndexer<A extends Alphabet<Byte>> {
          * @param rangeEnd    end of the range of buckets to process
          */
         public ReadProcessor(
-                FutureSequenceRecords<Integer, Byte, A>[] batch,
+                FutureSequenceRecords<Integer, byte[]>[] batch,
                 ConcurrentLinkedQueue<Long>[] bucketLists,
                 int rangeStart,
                 int rangeEnd) {
@@ -223,10 +223,10 @@ public class ReadIndexer<A extends Alphabet<Byte>> {
         @Override
         public void run() {
             try {
-                for (FutureSequenceRecords<Integer, Byte, A> futureSequenceRecords : batch) {
-                    for (SequenceRecord<Integer, Byte, A> record: futureSequenceRecords.getSequenceRecords()) {
+                for (FutureSequenceRecords<Integer, byte[]> futureSequenceRecords : batch) {
+                    for (SequenceRecord<Integer, byte[]> record: futureSequenceRecords.getSequenceRecords()) {
                         // skip empty or too short sequences
-                        if (record == null || record.length() < encoder.getK()) {
+                        if (record == null || record.sequence().length < encoder.getK()) {
                             nrOfSkippedTranslations.incrementAndGet();
                         } else {
                             nrOfProcessedTranslations.incrementAndGet();

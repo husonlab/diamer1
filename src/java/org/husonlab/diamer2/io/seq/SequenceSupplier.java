@@ -1,11 +1,7 @@
 package org.husonlab.diamer2.io.seq;
 
-import org.husonlab.diamer2.seq.Sequence;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
-import org.husonlab.diamer2.seq.converter.Converter;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -23,19 +19,18 @@ import java.util.LinkedList;
  *     sequences.
  * </p>
  * @param <H> Type of the header of the sequence (determined by the {@link SequenceReader})
- * @param <C> Type of the sequence (determined by the {@link Converter} or the {@link SequenceReader} if no converter is
- *           supplied)
  */
-public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alphabet<S2>> implements AutoCloseable {
+public class SequenceSupplier<H, S> implements AutoCloseable {
+
     /**
      * List to keep the (future) sequence records in memory.
      */
-    private final LinkedList<MemoryEntry<H, S2, A2>> FutureSequenceBuffer;
-    private final SequenceReader<H, S1, A1> sequenceReader;
-    private final Converter<S1, A1, S2, A2> converter;
+    private final LinkedList<MemoryEntry<H, S>> sequenceMemory;
+    private final SequenceReader<H> sequenceReader;
+    private final Converter<S> converter;
     private final boolean keepInMemory;
     private boolean finishedReading;
-    private Iterator<MemoryEntry<H, S2, A2>> iterator;
+    private Iterator<MemoryEntry<H, S>> iterator;
     private long bytesRead;
     private int sequencesRead;
 
@@ -44,11 +39,11 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
      * @param converter Converter to convert the sequences to a different alphabet
      * @param keepInMemory Whether to keep the sequences in memory or not
      */
-    public SequenceSupplier(@NotNull SequenceReader<H, S1, A1> sequenceReader, @Nullable Converter<S1, A1, S2, A2> converter, boolean keepInMemory) {
+    public SequenceSupplier(@NotNull SequenceReader<H> sequenceReader, @NotNull Converter<S> converter, boolean keepInMemory) {
         this.sequenceReader = sequenceReader;
         this.converter = converter;
         this.keepInMemory = keepInMemory;
-        this.FutureSequenceBuffer = new LinkedList<>();
+        this.sequenceMemory = new LinkedList<>();
         this.finishedReading = false;
         this.bytesRead = 0;
         this.sequencesRead = 0;
@@ -66,12 +61,12 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
      * @return {@link FutureSequenceRecords} containing potentially multiple {@link SequenceRecord}s depending on the
      *         {@link Converter} or {@code null} if one iteration over the sequences is finished.
      */
-    public FutureSequenceRecords<H, S2, A2> next() throws IOException {
+    public FutureSequenceRecords<H, S> next() throws IOException {
         if (keepInMemory) {
             if (iterator != null) {
                 if (iterator.hasNext()) {
                     // case: All sequences are already in memory
-                    MemoryEntry<H, S2, A2> entry = iterator.next();
+                    MemoryEntry<H, S> entry = iterator.next();
                     sequencesRead = entry.sequencesRead;
                     bytesRead = entry.bytesRead;
                     return entry.futureSequenceRecords;
@@ -85,14 +80,14 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
                     // but the reset() method has not been called.
                     return null;
                 } else {
-                    SequenceRecord<H, S1, A1> sequenceRecord;
+                    SequenceRecord<H, String> sequenceRecord;
                     if ((sequenceRecord = sequenceReader.next()) != null) {
                         // case: First iteration
                         bytesRead = sequenceReader.getBytesRead();
                         sequencesRead++;
-                        MemoryEntry<H, S2, A2> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
-                        FutureSequenceBuffer.add(entry);
-                        FutureSequenceRecords<H, S2, A2> futureSequenceRecords = getToBeTranslatedContainer(converter, sequenceRecord, entry);
+                        MemoryEntry<H, S> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
+                        sequenceMemory.add(entry);
+                        FutureSequenceRecords<H, S> futureSequenceRecords = getFutureSequenceRecords(converter, sequenceRecord, entry);
                         entry.futureSequenceRecords = futureSequenceRecords;
                         return futureSequenceRecords;
                     } else {
@@ -103,7 +98,7 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
                 }
             }
         } else {
-            SequenceRecord<H, S1, A1> sequenceRecord;
+            SequenceRecord<H, String> sequenceRecord;
             if ((sequenceRecord = sequenceReader.next()) == null) {
                 // case: End of file
                 return null;
@@ -111,7 +106,7 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
                 // case: Read next sequence
                 bytesRead = sequenceReader.getBytesRead();
                 sequencesRead++;
-                return getToBeTranslatedContainer(converter, sequenceRecord, null);
+                return getFutureSequenceRecords(converter, sequenceRecord, null);
             }
 
         }
@@ -128,24 +123,19 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
      *              stored after conversion
      * @return {@link FutureSequenceRecords} containing the input {@link SequenceRecord}.
      */
-    private FutureSequenceRecords<H, S2, A2> getToBeTranslatedContainer(
-            Converter<S1, A1, S2, A2> converter, SequenceRecord<H, S1, A1> sequenceRecord, MemoryEntry<H, S2, A2> entry) {
-        return new FutureSequenceRecords<H, S2, A2>() {
+    private FutureSequenceRecords<H, S> getFutureSequenceRecords(
+            Converter<S> converter, SequenceRecord<H, String> sequenceRecord, MemoryEntry<H, S> entry) {
+        return new FutureSequenceRecords<H, S>() {
             @Override
-            public LinkedList<SequenceRecord<H, S2, A2>> getSequenceRecords() {
-                LinkedList<SequenceRecord<H, S2, A2>> sequenceRecords = new LinkedList<>();
-                if (converter != null) {
-                    H header = sequenceRecord.id();
-                    for (Sequence<S2, A2> sequence : converter.convert(sequenceRecord.sequence())) {
-                        sequenceRecords.add(new SequenceRecord<>(header, sequence));
-                    }
-                } else {
-                    sequenceRecords.add((SequenceRecord<H, S2, A2>) sequenceRecord);
+            public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
+                LinkedList<SequenceRecord<H, S>> sequenceRecords = new LinkedList<>();
+                for (S sequence : converter.convert(sequenceRecord.sequence())) {
+                    sequenceRecords.add(new SequenceRecord<>(sequenceRecord.id(), sequence));
                 }
                 if (entry != null) {
-                    entry.futureSequenceRecords = new FutureSequenceRecords<H, S2, A2>() {
+                    entry.futureSequenceRecords = new FutureSequenceRecords<>() {
                         @Override
-                        public LinkedList<SequenceRecord<H, S2, A2>> getSequenceRecords() {
+                        public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
                             return sequenceRecords;
                         }
                     };
@@ -163,9 +153,9 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
         sequencesRead = 0;
         bytesRead = 0;
         if (keepInMemory && finishedReading) {
-            iterator = FutureSequenceBuffer.iterator();
+            iterator = sequenceMemory.iterator();
         } else {
-            FutureSequenceBuffer.clear();
+            sequenceMemory.clear();
             finishedReading = false;
             sequenceReader.reset();
         }
@@ -212,15 +202,23 @@ public class SequenceSupplier<H, S1, A1 extends Alphabet<S1>, S2, A2 extends Alp
      * Class to store the sequences in memory during the first iteration. To be able to return some kind of progress
      * status during further iterations, the sequencesRead and bytesRead are stored together with the sequences.
      */
-    private static class MemoryEntry<H, S2, A2 extends Alphabet<S2>>{
-        public final int sequencesRead;
-        public final long bytesRead;
-        public FutureSequenceRecords<H, S2, A2> futureSequenceRecords;
+    private static class MemoryEntry<H, S>{
+        protected final int sequencesRead;
+        protected final long bytesRead;
+        protected FutureSequenceRecords<H, S> futureSequenceRecords;
 
-        public MemoryEntry(int sequencesRead, long bytesRead, FutureSequenceRecords<H, S2, A2> futureSequenceRecords) {
+        public MemoryEntry(int sequencesRead, long bytesRead, FutureSequenceRecords<H, S> futureSequenceRecords) {
             this.sequencesRead = sequencesRead;
             this.bytesRead = bytesRead;
             this.futureSequenceRecords = futureSequenceRecords;
         }
+    }
+
+    public interface Converter<S> {
+        S[] convert(String sequence);
+    }
+
+    public static Converter<String> getEmptyConverter() {
+        return sequence -> new String[]{sequence};
     }
 }

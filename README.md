@@ -30,6 +30,7 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 
 # Alphabets
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
+* Base11Uniform: [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
 * Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
 
 # Future:

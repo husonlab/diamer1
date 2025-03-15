@@ -6,20 +6,22 @@ import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
+import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.FastaReader;
+import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
-import org.husonlab.diamer2.main.encoders.K15Base11Nuc;
-import org.husonlab.diamer2.main.encoders.K15Base11Uniform;
 import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.readAssignment.algorithms.OVA;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.main.encoders.Encoder;
-import org.husonlab.diamer2.main.encoders.K15Base11;
-import org.husonlab.diamer2.seq.alphabet.*;
-import org.husonlab.diamer2.seq.converter.EnforceAA;
+import org.husonlab.diamer2.main.encoders.W15;
+import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.alphabet.Base11Uniform;
+import org.husonlab.diamer2.seq.alphabet.Base11WithStop;
+import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
@@ -176,30 +178,33 @@ public class Main {
         );
         options.addOption(
                 Option.builder()
-                        .longOpt("encoder")
-                        .argName("encoder")
+                        .longOpt("alphabet")
                         .desc("""
-                                base11 (default) \
+                                diamond (default) \
                                 
-                                DB: protein\
-                                
-                                Encoding: DIAMOND's base 11 alphabet with a maximum kmer weight of 15\
+                                Encoding: DIAMOND's base 11 alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]\
                                 
                                 -
                                 
                                 base11uniform\
                                 
-                                DB: protein\
-                                
-                                Encoding: a base 11 alphabet in which the likelihood of each amino acid is about the same\
+                                Encoding: a base 11 alphabet in which the likelihood of each amino acid is about the
+                                same [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]\
                                 
                                 -
                                 
                                 base11nuc\
                                 
-                                DB: nucleotide\
+                                For nucleotide databases\
                                 
-                                Encoding: DIAMOND's base 11 alphabet but with stop codons encoded as 0.""")
+                                Encoding: DIAMOND's base 11 alphabet but with stop codons encoded as 0.
+                                [BDEKNOQRXZ*][AST][IJLV][G][P][F][Y][CU][H][M][W]\
+                                
+                                -
+                                
+                                custom\
+                                
+                                Encoding: user-defined alphabet""")
                         .hasArg()
                         .type(Path.class)
                         .build()
@@ -302,8 +307,8 @@ public class Main {
         for (int i = 2; i < cli.getArgs().length; i++) {
             mappingFiles.add(getFile(cli.getArgs()[i], true));
         }
-        try (SequenceSupplier<String, Character, AAWithLowerAndStop, Character, AA> sequenceSupplier = new SequenceSupplier<>(
-                new FastaReader<>(database, new AAWithLowerAndStop()), new EnforceAA(), globalSettings.KEEP_IN_MEMORY)) {
+        try (SequenceSupplier<String, String> sequenceSupplier = new SequenceSupplier<>(
+                new FastaReader(database), SequenceSupplier.getEmptyConverter(), globalSettings.KEEP_IN_MEMORY)) {
             Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
             if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
                 accessionMapping = new MeganMapping(mappingFiles.getFirst());
@@ -340,47 +345,17 @@ public class Main {
             writeLogEnd(e.toString(), output.resolve("run.log"));
             throw new RuntimeException(e);
         }
-        // run indexing with specified encoder
-        if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
-            Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
-                    database, null, null, null, mask, globalSettings.BITS_FOR_IDS);
-            try (SequenceSupplier<Integer, Character, AA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(
-                    encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
-                DBIndexer<Base11Alphabet> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
-                String runInfo = dbIndexer.index();
-                writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
-            Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
-                    database, null, null, null, mask, globalSettings.BITS_FOR_IDS);
-            try (SequenceSupplier<Integer, Character, AA, Byte, Base11Uniform> sup = new SequenceSupplier<>(
-                    encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
-                DBIndexer<Base11Uniform> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
-                String runInfo = dbIndexer.index();
-                writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
-            Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
-                    database, null, null, null, mask, globalSettings.BITS_FOR_IDS);
-            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11WithStop> sup = new SequenceSupplier<>(
-                    encoder.getDBReader(), encoder.getDBConverter(), globalSettings.KEEP_IN_MEMORY)) {
-                DBIndexer<Base11WithStop> dbIndexer = new DBIndexer<>(sup, output, tree, encoder, globalSettings);
-                String runInfo = dbIndexer.index();
-                writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-
-        } else {
-            System.err.println("Invalid encoder: " + cli.getOptionValue("encoder"));
-            System.exit(1);
+        // run indexing with specified alphabet
+        ReducedAlphabet alphabet = getAlphabet(cli);
+        Encoder encoder = new W15(output, null, mask, globalSettings.BITS_FOR_IDS);
+        try (SequenceSupplier<Integer,byte[]> sup = new SequenceSupplier<>(
+                new FastaIdReader(database), alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
+            DBIndexer dbIndexer = new DBIndexer(sup, output, tree, encoder, globalSettings);
+            String runInfo = dbIndexer.index();
+            writeLogEnd(runInfo, output.resolve("run.log"));
+        } catch (Exception e) {
+            writeLogEnd(e.toString(), output.resolve("run.log"));
+            throw new RuntimeException(e);
         }
     }
 
@@ -391,46 +366,17 @@ public class Main {
         Path output = getFolder(cli.getArgs()[1], false);
         writeLogBegin(globalSettings, output.resolve("run.log"));
 
-        // todo: use encoder.getReadsIndexIO instead of output directly
-        if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
-            Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
-                    null, reads, null, output, mask, globalSettings.BITS_FOR_IDS);
-            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Alphabet> sup = new SequenceSupplier<>(
-                    encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
-                ReadIndexer<Base11Alphabet> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
-                String runInfo = readIndexer.index();
-                writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
-            Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
-                    null, reads, null, output, mask, globalSettings.BITS_FOR_IDS);
-            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11Uniform> sup = new SequenceSupplier<>(
-                    encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
-                ReadIndexer<Base11Uniform> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
-                String runInfo = readIndexer.index();
-                writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
-            Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
-                    null, reads, null, output, mask, globalSettings.BITS_FOR_IDS);
-            try (SequenceSupplier<Integer, Character, DNA, Byte, Base11WithStop> sup = new SequenceSupplier<>(
-                    encoder.getReadReader(), encoder.getReadConverter(), globalSettings.KEEP_IN_MEMORY)) {
-                ReadIndexer<Base11WithStop> readIndexer = new ReadIndexer<>(sup, output, encoder, globalSettings);
-                String runInfo = readIndexer.index();
-                writeLogEnd(runInfo, output.resolve("run.log"));
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else {
-            System.err.println("Invalid encoder: " + cli.getOptionValue("encoder"));
-            System.exit(1);
+        ReducedAlphabet alphabet = getAlphabet(cli);
+        Encoder encoder = new W15(null, output, mask, globalSettings.BITS_FOR_IDS);
+        try (   FastqIdReader fastqIdReader = new FastqIdReader(reads);
+                SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<>(
+                        fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
+            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
+            String runInfo = readIndexer.index();
+            writeLogEnd(runInfo, output.resolve("run.log"));
+        } catch (Exception e) {
+            writeLogEnd(e.toString(), output.resolve("run.log"));
+            throw new RuntimeException(e);
         }
     }
 
@@ -462,42 +408,16 @@ public class Main {
         ReadAssignment readAssignment = null;
 
         String runInfo = "";
-        if (!cli.hasOption("encoder") || cli.getOptionValue("encoder").equals("base11")) {
-            Encoder<Character, AA, Character, DNA, Base11Alphabet> encoder = new K15Base11(
-                    null, null, dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
-            ReadAssigner<Character, AA, Character, DNA, Base11Alphabet> readAssigner = new ReadAssigner<>(encoder, globalSettings);
-            try {
-                runInfo = readAssigner.assignReads();
-                readAssignment = readAssigner.getReadAssignment();
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else if (cli.getOptionValue("encoder").equals("base11uniform")) {
-            Encoder<Character, AA, Character, DNA, Base11Uniform> encoder = new K15Base11Uniform(
-                    null, null, dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
-            ReadAssigner<Character, AA, Character, DNA, Base11Uniform> readAssigner = new ReadAssigner<>(encoder, globalSettings);
-            try {
-                runInfo = readAssigner.assignReads();
-                readAssignment = readAssigner.getReadAssignment();
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else if (cli.getOptionValue("encoder").equals("base11nuc")) {
-            Encoder<Character, DNA, Character, DNA, Base11WithStop> encoder = new K15Base11Nuc(
-                    null, null, dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
-            ReadAssigner<Character, DNA, Character, DNA, Base11WithStop> readAssigner = new ReadAssigner<>(encoder, globalSettings);
-            try {
-                runInfo = readAssigner.assignReads();
-                readAssignment = readAssigner.getReadAssignment();
-            } catch (Exception e) {
-                writeLogEnd(e.toString(), output.resolve("run.log"));
-                throw new RuntimeException(e);
-            }
-        } else {
-            System.err.println("Invalid encoder: " + cli.getOptionValue("encoder"));
-            System.exit(1);
+        Encoder encoder = new W15(
+                dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
+        ReadAssigner readAssigner = new ReadAssigner(encoder, globalSettings);
+
+        try {
+            runInfo = readAssigner.assignReads();
+            readAssignment = readAssigner.getReadAssignment();
+        } catch (Exception e) {
+            writeLogEnd(e.toString(), output.resolve("run.log"));
+            throw new RuntimeException(e);
         }
 
         ReadAssignmentIO.writeRawAssignment(readAssignment, output.resolve("raw_assignments.tsv"));
@@ -599,5 +519,23 @@ public class Main {
             result[i] = mask.charAt(i) == '1';
         }
         return result;
+    }
+
+    /**
+     * Get the alphabet specified in the command line arguments.
+     */
+    public static ReducedAlphabet getAlphabet(CommandLine cli) {
+        ReducedAlphabet alphabet = new Base11Alphabet();
+        if (!cli.hasOption("alphabet") || cli.getOptionValue("alphabet").equals("base11")) {
+            alphabet = new Base11Alphabet();
+        } else if (cli.getOptionValue("alphabet").equals("base11uniform")) {
+            alphabet = new Base11Uniform();
+        } else if (cli.getOptionValue("alphabet").equals("base11nuc")) {
+            alphabet = new Base11WithStop();
+        } else {
+            System.err.println("Invalid alphabet: " + cli.getOptionValue("alphabet"));
+            System.exit(1);
+        }
+        return alphabet;
     }
 }
