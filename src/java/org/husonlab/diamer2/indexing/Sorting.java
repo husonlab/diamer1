@@ -35,12 +35,18 @@ public class Sorting {
     public static long[] countingSort(@NotNull long[] input, int shift) {
         final int[] count = new int[65536];
         final long[] output = new long[input.length];
+
+        // count occurrences
         for (long l : input) {
             count[applyMask(l, shift)]++;
         }
+
+        // compute prefix sums
         for (int i = 1; i < count.length; i++) {
             count[i] += count[i - 1];
         }
+
+        // sorting
         for (int i = input.length - 1; i >= 0; i--) {
             output[--count[applyMask(input[i], shift)]] = input[i];
         }

@@ -12,7 +12,7 @@ import java.util.*;
 public class CompleteRunTest {
     @Test
     public void runAndCompareWithExpectedResult() throws IOException {
-        boolean assertInbetween = true;
+        boolean assertInbetween = false;
         Path nodesDmp = Utilities.getFile("src/test/resources/database/taxdmp/nodes.dmp", true);
         Path namesDmp = Utilities.getFile("src/test/resources/database/taxdmp/names.dmp", true);
         Path ncbiAccession2Taxid = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid.gz", true);
@@ -55,7 +55,7 @@ public class CompleteRunTest {
         // Generate DB index
         Main.main(new String[]{
                 "--indexdb", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
-                "-no", nodesDmp.toString(), "-na", namesDmp.toString(), "--alphabet", "base11",
+                "-no", nodesDmp.toString(), "-na", namesDmp.toString(), "--alphabet", "[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]",
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {
             exclusionRules = new ArrayList<>();

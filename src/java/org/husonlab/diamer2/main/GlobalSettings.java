@@ -42,7 +42,9 @@ public class GlobalSettings {
 
     public final boolean COLLECT_STATS;
 
-    public GlobalSettings(String[] args, int MAX_THREADS, int BUCKETS_PER_CYCLE, int MAX_MEMORY, boolean KEEP_IN_MEMORY, boolean DEBUG, boolean COLLECT_STATS) {
+    public final boolean ONLY_STANDARD_RANKS;
+
+    public GlobalSettings(String[] args, int MAX_THREADS, int BUCKETS_PER_CYCLE, int MAX_MEMORY, boolean KEEP_IN_MEMORY, boolean DEBUG, boolean COLLECT_STATS, boolean onlyStandardRanks) {
         this.args = args;
         this.MAX_THREADS = MAX_THREADS;
         this.BUCKETS_PER_CYCLE = BUCKETS_PER_CYCLE;
@@ -51,6 +53,7 @@ public class GlobalSettings {
         this.QUEUE_SIZE = MAX_THREADS * 2;
         this.DEBUG = DEBUG;
         this.COLLECT_STATS = COLLECT_STATS;
+        ONLY_STANDARD_RANKS = onlyStandardRanks;
     }
 
     @Override

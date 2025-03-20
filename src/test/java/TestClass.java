@@ -1,25 +1,26 @@
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
+import org.husonlab.diamer2.main.Main;
+import org.husonlab.diamer2.main.encoders.W15;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.readAssignment.algorithms.OVA;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer2.util.DBIndexAnalyzer;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.net.Socket;
 import java.nio.file.Path;
 import java.util.List;
 
 import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
 import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
+import static org.husonlab.diamer2.main.Main.parseMask;
 
 public class TestClass {
     @Test
     public void test() {
         Path output = Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr_processed");
-        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, 3, false, true, true);
+        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, 3, false, true, true, false);
         Tree tree = readTaxonomy(Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxdmp\\nodes.dmp"), Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxdmp\\names.dmp"), true);
         ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr\\output.txt"), settings);
         readAssignment.addKmerCountsToTree();
@@ -37,14 +38,12 @@ public class TestClass {
     }
 
     @Test
-    public void portTest() {
-        String host = "localhost";
-        int port = 9000; // Change to 9001 if needed
-
-        try (Socket socket = new Socket(host, port)) {
-            System.out.println("✅ Successfully connected to " + host + ":" + port);
-        } catch (IOException e) {
-            System.out.println("❌ Connection failed: " + e.getMessage());
-        }
+    public void analyseDBIndex() {
+        String args[] = new String[]{
+                "--analyze-db-index", "--only-standard-ranks",
+                "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\index_longspaced",
+                "C:\\Users\\noel\\Documents\\diamer2\\statistics\\KmerHistogramPerRankNr100Longspaced"
+        };
+        Main.main(args);
     }
 }

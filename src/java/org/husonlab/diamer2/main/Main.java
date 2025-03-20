@@ -18,13 +18,11 @@ import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.main.encoders.W15;
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-import org.husonlab.diamer2.seq.alphabet.Base11Uniform;
-import org.husonlab.diamer2.seq.alphabet.Base11WithStop;
-import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
+import org.husonlab.diamer2.seq.alphabet.*;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
+import org.husonlab.diamer2.util.DBIndexAnalyzer;
 import org.husonlab.diamer2.util.Pair;
 
 import java.io.*;
@@ -96,6 +94,19 @@ public class Main {
                                 Required options: <input> <output>\
                                 
                                 <input>: database index folder and reads index folder\
+                                
+                                <output>: output path""")
+                        .build()
+        );
+        computationOptions.addOption(
+                Option.builder()
+                        .longOpt("analyze-db-index")
+                        .desc("""
+                                Generate statistics for a DB Index.\
+                                
+                                Required options: <input> <output>\
+                                
+                                <input>: database index folder\
                                 
                                 <output>: output path""")
                         .build()
@@ -178,6 +189,13 @@ public class Main {
         );
         options.addOption(
                 Option.builder()
+                        .longOpt("only-standard-ranks")
+                        .desc("Reduce the taxonomic tree to only include standard ranks" +
+                                "(superkingdom, kingdom, phylum, class, order, family, genus, species).")
+                        .build()
+        );
+        options.addOption(
+                Option.builder()
                         .longOpt("alphabet")
                         .desc("""
                                 diamond (default) \
@@ -256,6 +274,8 @@ public class Main {
             indexreads(globalSettings, cli);
         } else if (cli.hasOption("assignreads")) {
             assignreads(globalSettings, cli);
+        } else if (cli.hasOption("analyze-db-index")) {
+            analyzeDBIndex(globalSettings, cli);
         } else {
             System.err.println("No computation option selected");
             printHelp(options);
@@ -288,7 +308,7 @@ public class Main {
         }
         int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : maxThreads;
         return new GlobalSettings(
-                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"));
+                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"), cli.hasOption("only-standard-ranks"));
     }
 
     private static void preprocess(GlobalSettings globalSettings, CommandLine cli) {
@@ -435,6 +455,19 @@ public class Main {
         TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
         writeLogEnd(runInfo, output.resolve("run.log"));
     }
+    
+    private static void analyzeDBIndex(GlobalSettings globalSettings, CommandLine cli) {
+        checkNumberOfPositionalArguments(cli, 2);
+        Path dbIndex = getFolder(cli.getArgs()[0], true);
+        Path output = getFolder(cli.getArgs()[1], false);
+        writeLogBegin(globalSettings, output.resolve("db-analyze-run.log"));
+
+        boolean[] mask = getMask(cli);
+        Encoder encoder = new W15(dbIndex, null, mask, globalSettings.BITS_FOR_IDS);
+        DBIndexAnalyzer dbIndexAnalyzer = new DBIndexAnalyzer(output, encoder, globalSettings);
+        String runInfo = dbIndexAnalyzer.analyze();
+        writeLogEnd(runInfo, output.resolve("db-analyze-run.log"));
+    }
 
     /**
      * Print help message.
@@ -471,7 +504,6 @@ public class Main {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     /**
@@ -533,8 +565,7 @@ public class Main {
         } else if (cli.getOptionValue("alphabet").equals("base11nuc")) {
             alphabet = new Base11WithStop();
         } else {
-            System.err.println("Invalid alphabet: " + cli.getOptionValue("alphabet"));
-            System.exit(1);
+            alphabet = new Base11Custom(cli.getOptionValue("alphabet"));
         }
         return alphabet;
     }

@@ -609,6 +609,13 @@ public class Tree {
                 while (parent.hasParent() && !standardRanks.contains(parent.getRank())) {
                     parent = parent.getParent();
                 }
+                // add properties to new node
+                for (int i = 0; i < node.longProperties.size(); i++) {
+                    parent.longProperties.set(i, parent.longProperties.get(i) + node.longProperties.get(i));
+                }
+                for (int i = 0; i < node.doubleProperties.size(); i++) {
+                    parent.doubleProperties.set(i, parent.doubleProperties.get(i) + node.doubleProperties.get(i));
+                }
                 // add children to the standard-rank parent
                 node.getParent().getChildren().remove(node);
                 for (Node child : node.getChildren()) {

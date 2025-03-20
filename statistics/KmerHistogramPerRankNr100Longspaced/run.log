@@ -1,0 +1,12 @@
+--analyze-db-index --only-standard-ranks F:\Studium\Master\semester5\thesis\data\NCBI\100\index_longspaced C:\Users\noel\Documents\diamer2\statistics\KmerHistogramPerRankNr100Longspaced
+MAX_THREADS:	16
+MAX_MEMORY:	3
+KEEP_IN_MEMORY:	false
+BITS_FOR_IDS:	22
+SEQUENCE_BATCH_SIZE:	1000
+BUCKETS_PER_CYCLE:	16
+QUEUE_SIZE:	32
+DEBUG:	false
+Start: 2025-03-16T13:45:38.418023300
+End: 2025-03-16T13:46:59.668888900
+

@@ -19,8 +19,6 @@ import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.husonlab.diamer2.indexing.Utilities.writeKmerStatistics;
-
 public class DBIndexer {
 
     private final Logger logger;
@@ -29,7 +27,6 @@ public class DBIndexer {
     private final AtomicInteger nrOfProcessedSequenceRecords;
     private final AtomicInteger nrOfSkippedSequenceRecords;
     private final ArrayList<Pair<Integer, Integer>> bucketSizes;
-    private final ConcurrentHashMap<Long, Integer> kmerCounts;
     private final StringBuilder report;
 
     private final SequenceSupplier<Integer, byte[]> sup;
@@ -38,6 +35,8 @@ public class DBIndexer {
     private final Tree tree;
     private final Encoder encoder;
     private final GlobalSettings settings;
+    private final StatisticsCollector statisticsCollector;
+    private static final int  bucketsToCollectStatistics = 8;
 
     public DBIndexer(SequenceSupplier<Integer, byte[]> sup,
                      Path indexDir,
@@ -51,8 +50,8 @@ public class DBIndexer {
         nrOfProcessedSequenceRecords = new AtomicInteger(0);
         nrOfSkippedSequenceRecords = new AtomicInteger(0);
         this.bucketSizes = new ArrayList<>();
-        this.kmerCounts = new ConcurrentHashMap<>();
         report = new StringBuilder();
+        this.statisticsCollector = new StatisticsCollector(encoder.getMaxKmerValue(), 1000);
 
         this.sup = sup;
         this.encoder = encoder;
@@ -152,6 +151,12 @@ public class DBIndexer {
                         }
                     });
                 }
+
+                // write kmer frequency early to allow cancelling the process if only statistics are needed
+                if (settings.COLLECT_STATS && i + settings.BUCKETS_PER_CYCLE >= bucketsToCollectStatistics && i < bucketsToCollectStatistics) {
+                    statisticsCollector.writeKmerFrequency(dbIndexIO.getIndexFolder().resolve("kmer_frequency.tsv"));
+                }
+
                 phaser.arriveAndAwaitAdvance();
                 sup.reset();
             }
@@ -173,7 +178,8 @@ public class DBIndexer {
         report.append("total extracted kmers: ").append(totalKmers).append("\n");
         report.append(bucketSizesString);
 
-        if (settings.COLLECT_STATS) writeKmerStatistics(kmerCounts, dbIndexIO.getIndexFolder());
+        statisticsCollector.writeKmerHistogram(dbIndexIO.getIndexFolder().resolve("kmer_histogram.tsv"));
+
         return report.toString();
     }
 
@@ -213,7 +219,13 @@ public class DBIndexer {
                         for (long kmerEnc : kmers) {
                             int bucketName = encoder.getBucketNameFromKmer(kmerEnc);
                             if (bucketName >= rangeStart && bucketName < rangeEnd) {
-                                if (settings.COLLECT_STATS) kmerCounts.put(kmerEnc, kmerCounts.getOrDefault(kmerEnc, 0) + 1);
+                                if (settings.COLLECT_STATS && bucketName < bucketsToCollectStatistics) {
+                                        statisticsCollector.addToKmerCounts(kmerEnc);
+                                }
+//                                if (settings.COLLECT_STATS) {
+//                                    // slows indexing down by about 20%
+//                                    statisticsCollector.addToHistogram(kmerEnc);
+//                                }
                                 bucketMaps[bucketName - rangeStart].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
                                 bucketMaps[bucketName - rangeStart].computeIfAbsent(kmerEnc, k -> taxId);
                             }

@@ -154,6 +154,10 @@ public abstract class Encoder {
      */
     public abstract int getIdFromIndexEntry(long kmerIndex);
 
+    public long getMaxKmerValue() {
+        return (long) Math.pow(targetAlphabet.getBase(), getW()) - 1;
+    }
+
     /**
      * Combines a bucket name and a kmerIndex index entry to the number representing the kmer.
      * @param bucketName the bucket name

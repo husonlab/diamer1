@@ -1,6 +1,7 @@
 import static org.husonlab.diamer2.indexing.Sorting.radixSortNBits;
 import org.junit.Test;
 
+import static org.husonlab.diamer2.indexing.Sorting2.radixInPlace;
 import static org.junit.Assert.*;
 
 public class SortingTest {
@@ -49,5 +50,27 @@ public class SortingTest {
             System.out.println(Long.toBinaryString(l));
         }
         assertArrayEquals(expected, radixSortNBits(input, 44));
+    }
+
+    @Test
+    public void compare() {
+        long[] input = new long[100_000_000];
+        for (int i = 0; i < input.length; i++) {
+            input[i] = (long) (Math.random() * Long.MAX_VALUE);
+        }
+
+        long start = System.currentTimeMillis();
+        long[] result = radixSortNBits(input, 64);
+        System.out.println("Time: " + (System.currentTimeMillis() - start));
+        for (int i = 1; i < result.length; i++) {
+            assertTrue(result[i] >= result[i - 1]);
+        }
+
+        start = System.currentTimeMillis();
+        radixInPlace(input, 61);
+        System.out.println("Time inplace: " + (System.currentTimeMillis() - start));
+        for (int i = 1; i < input.length; i++) {
+            assertTrue(input[i] >= input[i - 1]);
+        }
     }
 }
