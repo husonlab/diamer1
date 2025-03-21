@@ -1,7 +1,9 @@
 import static org.husonlab.diamer2.indexing.Sorting.radixSortNBits;
 import org.junit.Test;
 
-import static org.husonlab.diamer2.indexing.Sorting2.radixInPlace;
+import java.util.concurrent.ThreadLocalRandom;
+
+import static org.husonlab.diamer2.indexing.Sorting2.radixInPlaceParallel;
 import static org.junit.Assert.*;
 
 public class SortingTest {
@@ -54,23 +56,41 @@ public class SortingTest {
 
     @Test
     public void compare() {
-        long[] input = new long[100_000_000];
+        int size = 300_000_000;
+        long[] input = new long[size];
+        int[] ids = new int[size];
         for (int i = 0; i < input.length; i++) {
-            input[i] = (long) (Math.random() * Long.MAX_VALUE);
+            input[i] = ThreadLocalRandom.current().nextLong() >>> 1;
+            ids[i] = (int) (input[i] >>> 32);
         }
+//        input[0] = 0;
+//        input[1] = 2;
+//        input[2] = 1;
+//        input[3] = 3;
+//        input[4] = 0;
+//        input[5] = 4;
+//        input[6] = 0;
 
         long start = System.currentTimeMillis();
         long[] result = radixSortNBits(input, 64);
         System.out.println("Time: " + (System.currentTimeMillis() - start));
         for (int i = 1; i < result.length; i++) {
+//            System.out.println(result[i] + " " + result[i - 1]);
             assertTrue(result[i] >= result[i - 1]);
         }
 
         start = System.currentTimeMillis();
-        radixInPlace(input, 61);
-        System.out.println("Time inplace: " + (System.currentTimeMillis() - start));
+        radixInPlaceParallel(input, ids, 12);
+        System.out.println("Time inplace parallel: " + (System.currentTimeMillis() - start));
         for (int i = 1; i < input.length; i++) {
             assertTrue(input[i] >= input[i - 1]);
+            assertEquals(input[i], result[i]);
+        }
+        for (int i = 0; i < ids.length; i++) {
+            if (ids[i] != (int) (input[i] >>> 32)) {
+                System.out.println(ids[i] + " " + (int) (input[i] >>> 32));
+            }
+            assertTrue(ids[i] ==  (int) (input[i] >>> 32));
         }
     }
 }
