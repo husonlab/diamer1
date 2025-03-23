@@ -2,6 +2,7 @@ package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
 import org.husonlab.diamer2.indexing.DBIndexer;
+import org.husonlab.diamer2.indexing.DBIndexer2;
 import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
@@ -370,7 +371,7 @@ public class Main {
         Encoder encoder = new W15(output, null, mask, globalSettings.BITS_FOR_IDS);
         try (SequenceSupplier<Integer,byte[]> sup = new SequenceSupplier<>(
                 new FastaIdReader(database), alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
-            DBIndexer dbIndexer = new DBIndexer(sup, output, tree, encoder, globalSettings);
+            DBIndexer2 dbIndexer = new DBIndexer2(sup, tree, encoder, globalSettings);
             String runInfo = dbIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
         } catch (Exception e) {

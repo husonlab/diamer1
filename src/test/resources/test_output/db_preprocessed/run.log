@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	12
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-15T20:00:32.459209
-End: 2025-03-15T20:00:32.578659600
+Start: 2025-03-22T22:17:58.160175200
+End: 2025-03-22T22:17:58.273945
 
 input file	C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa
 output file	C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz

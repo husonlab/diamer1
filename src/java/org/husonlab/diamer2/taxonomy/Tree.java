@@ -178,6 +178,33 @@ public class Tree {
         return mrca;
     }
 
+    public Node findLCAByNodes(Node[] nodes) {
+        ArrayList<ArrayList<Node>> pathsToRoot = new ArrayList<>();
+        for (Node node : nodes) {
+            if (node != null) {
+                pathsToRoot.add(pathToRoot(node));
+            }
+        }
+        if (pathsToRoot.isEmpty()) {
+            return null;
+        }
+        int[] differences = new int[pathsToRoot.size()];
+        for (int i = 0; i < pathsToRoot.size(); i++) {
+            differences[i] = pathsToRoot.get(i).size() - pathsToRoot.getFirst().size();
+        }
+        Node mrca = null;
+        for (int i = pathsToRoot.getFirst().size() - 1; i >= 0; i--) {
+            for (int j = 1; j < pathsToRoot.size(); j++) {
+                if (i + differences[j] < 0 ||
+                    !pathsToRoot.get(j).get(i + differences[j]).equals(pathsToRoot.getFirst().get(i))) {
+                    return mrca;
+                }
+            }
+            mrca = pathsToRoot.getFirst().get(i);
+        }
+        return mrca;
+    }
+
     /**
      * Finds the lowest common ancestor of two nodes given their taxonomic IDs.
      * @param taxId1 the first taxonomic ID
@@ -186,6 +213,15 @@ public class Tree {
      */
     public int findLCA(int taxId1, int taxId2) {
         Node lca = findLCA(getNode(taxId1), getNode(taxId2));
+        return lca == null ? -1 : lca.getTaxId();
+    }
+
+    public int findLCA(int[] taxIds) {
+        Node[] nodes = new Node[taxIds.length];
+        for (int i = 0; i < taxIds.length; i++) {
+            nodes[i] = getNode(taxIds[i]);
+        }
+        Node lca = findLCAByNodes(nodes);
         return lca == null ? -1 : lca.getTaxId();
     }
 

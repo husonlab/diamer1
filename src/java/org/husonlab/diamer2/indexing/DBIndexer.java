@@ -30,8 +30,8 @@ public class DBIndexer {
     private final StringBuilder report;
 
     private final SequenceSupplier<Integer, byte[]> sup;
-    private final Path indexDir;
     private final DBIndexIO dbIndexIO;
+    private final Path indexDir;
     private final Tree tree;
     private final Encoder encoder;
     private final GlobalSettings settings;
@@ -39,7 +39,6 @@ public class DBIndexer {
     private static final int  bucketsToCollectStatistics = 8;
 
     public DBIndexer(SequenceSupplier<Integer, byte[]> sup,
-                     Path indexDir,
                      Tree tree,
                      Encoder encoder,
                      GlobalSettings settings) {
@@ -56,8 +55,8 @@ public class DBIndexer {
         this.sup = sup;
         this.encoder = encoder;
         this.settings = settings;
-        this.indexDir = indexDir;
         this.dbIndexIO = encoder.getDBIndexIO();
+        this.indexDir = dbIndexIO.getIndexFolder();
         this.tree = tree;
     }
 

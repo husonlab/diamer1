@@ -70,6 +70,13 @@ public class BucketIO {
     }
 
     /**
+     * Returns a new {@link BucketWriter} object for writing the content of the bucket vale by value.
+     */
+    public BucketWriter getBucketWriter() {
+        return new BucketWriter(file);
+    }
+
+    /**
      * Reader to read a bucket file long by long.
      */
     public static class BucketReader implements AutoCloseable {
@@ -123,6 +130,51 @@ public class BucketIO {
         /**
          * @return the number of longs in the bucket.
          */
+        public int getLength() {
+            return length;
+        }
+    }
+
+    public static class BucketWriter implements AutoCloseable {
+        private final Path file;
+        private final FileOutputStream fos;
+        private final DataOutputStream dos;
+        private int length = 0;
+
+        public BucketWriter(Path file) {
+            this.file = file;
+            try {
+                fos = new FileOutputStream(file.toString());
+                dos = new DataOutputStream(new BufferedOutputStream(fos));
+                dos.writeInt(0);
+            } catch (Exception e) {
+                throw new RuntimeException("Could not open bucket file " + file.toFile().getName(), e);
+            }
+        }
+
+        public void write(long l) {
+            try {
+                dos.writeLong(l);
+                length++;
+            } catch (Exception e) {
+                throw new RuntimeException("Could not write long to bucket file", e);
+            }
+        }
+
+        @Override
+        public void close() {
+            try {
+                dos.flush();
+                dos.close();
+                fos.close();
+                try (RandomAccessFile raf = new RandomAccessFile(file.toString(), "rw")) {
+                    raf.writeInt(length);
+                }
+            } catch (Exception e) {
+                throw new RuntimeException("Could not close bucket file", e);
+            }
+        }
+
         public int getLength() {
             return length;
         }
