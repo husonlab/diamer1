@@ -24,7 +24,7 @@ import static org.husonlab.diamer2.indexing.Sorting2.radixInPlaceParallel;
 
 public class DBIndexer2 {
 
-    private final static int expectedKmerCount = 400_000_000;
+    private final static int expectedKmerCount = 300_000_000;
     private final static int contingentSizes = 100_000;
     private final SequenceSupplier<Integer, byte[]> sup;
     private final Tree tree;
@@ -174,6 +174,7 @@ public class DBIndexer2 {
                     }
                     if (lastTaxId != -1) {
                         bucketWriter.write(encoder.getIndex(lastTaxId, lastKmer));
+                        tree.addToProperty(lastTaxId, "kmers in database", 1);
                     }
                     lastKmerStartIndex = i;
                     lastKmer = kmers[i];
@@ -185,6 +186,7 @@ public class DBIndexer2 {
             }
             if (lastTaxId != -1) {
                 bucketWriter.write(encoder.getIndex(lastTaxId, lastKmer));
+                tree.addToProperty(lastTaxId, "kmers in database", 1);
             }
 
             bucketSizes[bucketIO.getName()] = bucketWriter.getLength();
@@ -290,7 +292,6 @@ public class DBIndexer2 {
                                     int nextFreeIndex = getNextIndexInBucket(currentIndexOfMatchingBucket);
                                     kmers[currentIndexOfMatchingBucket][nextFreeIndex] = kmer;
                                     taxIds[currentIndexOfMatchingBucket][nextFreeIndex] = taxId;
-                                    tree.addToProperty(taxId, "kmers in database", 1);
                                 }
                             }
                         }

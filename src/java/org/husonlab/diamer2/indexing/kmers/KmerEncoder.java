@@ -20,6 +20,10 @@ public class KmerEncoder {
     private final boolean[] mask;
     // array to store the addends of the encoding
     private final long[] kmer;
+    // array to store the individual letters that are part of the kmer (before multiplication)
+    private final short[] kmerLetters;
+    // array to store the likelihood of each letter of the alphabet in the kmer
+    private final double[] letterLikelihoods;
     // current encoding of the kmer
     private long encoding;
 
@@ -28,7 +32,7 @@ public class KmerEncoder {
      * @param base base of the alphabet to encode the kmer in
      * @param mask bitmask
      */
-    public KmerEncoder(int base, boolean[] mask) {
+    public KmerEncoder(int base, boolean[] mask, double[] letterLikelihoods) {
         this.base = base;
         // remove trailing zeros (the least significant bits with value 0)
         this.mask = mask;
@@ -46,6 +50,8 @@ public class KmerEncoder {
         for (int i = 0; i < k; i++) {
             kmer[i] = 0;
         }
+        kmerLetters = new short[k];
+        this.letterLikelihoods = letterLikelihoods;
         encoding = 0;
     }
 
@@ -59,7 +65,9 @@ public class KmerEncoder {
     public long addFront(short value) {
         int first = (int)(value * Math.pow(base, k - s - 1));
         System.arraycopy(kmer, 0, kmer, 1, k - 1);
+        System.arraycopy(kmerLetters, 0, kmerLetters, 1, k - 1);
         kmer[0] = 0;
+        kmerLetters[0] = value;
         divide();
         kmer[0] = first;
         encoding = encode();
@@ -74,7 +82,9 @@ public class KmerEncoder {
     public long addBack(short value) {
         int last = value;
         System.arraycopy(kmer, 1, kmer, 0, k - 1);
+        System.arraycopy(kmerLetters, 1, kmerLetters, 0, k - 1);
         kmer[k - 1] = 0;
+        kmerLetters[k - 1] = value;
         multiply();
         kmer[k - 1] = last;
         encoding = encode();
@@ -162,5 +172,15 @@ public class KmerEncoder {
      */
     public long getEncoding() {
         return encoding;
+    }
+
+    public double getLikelihood() {
+        double likelihood = 1;
+        for (int i = 0; i < k; i++) {
+            if (mask[i]) {
+                likelihood *= letterLikelihoods[kmerLetters[i]];
+            }
+        }
+        return likelihood;
     }
 }

@@ -31,6 +31,23 @@ public class W15 extends Encoder {
     }
 
     @Override
+    protected double[] getLetterLikelihoods() {
+        return new double[] {
+                0.29923406,
+                0.216387433,
+                0.223466117,
+                0.07384495,
+                0.048369393,
+                0.038860925,
+                0.030088765,
+                0.012823821,
+                0.021374994,
+                0.022660274,
+                0.012889268,
+        };
+    }
+
+    @Override
     public long getIndex(int id, long kmer) {
         return getBucketPartFromKmer(kmer) << bitsForIds | id;
     }
