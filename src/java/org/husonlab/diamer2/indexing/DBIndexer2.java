@@ -24,7 +24,7 @@ import static org.husonlab.diamer2.indexing.Sorting2.radixInPlaceParallel;
 
 public class DBIndexer2 {
 
-    private final static int expectedKmerCount = 300_000_000;
+    private final static int expectedKmerCount = 100_000_000;
     private final static int contingentSizes = 100_000;
     private final SequenceSupplier<Integer, byte[]> sup;
     private final Tree tree;
@@ -168,7 +168,7 @@ public class DBIndexer2 {
         int lastTaxId = taxIds[0];
         try (BucketIO.BucketWriter bucketWriter = bucketIO.getBucketWriter()) {
             for (int i = 1; i < kmers.length; i++) {
-                if (lastKmer != kmers[i]) {
+                if (lastKmer != kmers[i] || taxIds[i] == -1) {
                     if (i - lastKmerStartIndex > 1) {
                         lastTaxId = tree.findLCA(Arrays.copyOfRange(taxIds, lastKmerStartIndex, i));
                     }
