@@ -1,16 +1,25 @@
 import org.husonlab.diamer2.io.ReadAssignmentIO;
+import org.husonlab.diamer2.io.seq.FastaIdReader;
+import org.husonlab.diamer2.io.seq.SequenceReader;
+import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.Main;
 import org.husonlab.diamer2.main.encoders.W15;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
+import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.DBIndexAnalyzer;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.zip.GZIPInputStream;
 
 import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
 import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
@@ -45,5 +54,9 @@ public class TestClass {
                 "C:\\Users\\noel\\Documents\\diamer2\\statistics\\KmerHistogramPerRankNr100Longspaced"
         };
         Main.main(args);
+    }
+
+    @Test
+    public void testReadSpeed() throws IOException {
     }
 }

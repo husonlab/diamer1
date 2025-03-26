@@ -11,6 +11,7 @@ import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
+import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
 import org.husonlab.diamer2.util.logging.ProgressBar;
 import org.husonlab.diamer2.util.logging.RunningTime;
@@ -24,7 +25,8 @@ import static org.husonlab.diamer2.indexing.Sorting2.radixInPlaceParallel;
 
 public class DBIndexer2 {
 
-    private final static int expectedKmerCount = 100_000_000;
+    private final Logger logger;
+    private final static int expectedKmerCount = 300_000_000;
     private final static int contingentSizes = 100_000;
     private final SequenceSupplier<Integer, byte[]> sup;
     private final Tree tree;
@@ -45,13 +47,15 @@ public class DBIndexer2 {
                      Tree tree,
                      Encoder encoder,
                      GlobalSettings settings) {
+        logger = new Logger("DBIndexer2");
+        logger.addElement(new RunningTime());
         this.sup = sup;
         this.tree = tree;
         this.encoder = encoder;
         dbIndexIO = encoder.getDBIndexIO();
         this.settings = settings;
         parallelism = Math.min(settings.MAX_THREADS, Math.min(settings.BUCKETS_PER_CYCLE, encoder.getNrOfBuckets()));
-        queue = new ArrayBlockingQueue<>(settings.QUEUE_SIZE, false);
+        queue = new ArrayBlockingQueue<>(parallelism * 10, false);
         distributor = new ContingentDistributor(parallelism, expectedKmerCount, contingentSizes);
         kmers = new long[settings.BUCKETS_PER_CYCLE][];
         taxIds = new int[settings.BUCKETS_PER_CYCLE][];
@@ -72,7 +76,7 @@ public class DBIndexer2 {
             int rangeEnd = Math.min(i + settings.BUCKETS_PER_CYCLE, encoder.getNrOfBuckets());
             int indexEnd = rangeEnd - i;
 
-            System.out.println("Indexing buckets " + i + " to " + (rangeEnd - 1));
+            logger.logInfo("Indexing buckets " + i + " to " + (rangeEnd - 1));
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             new OneLineLogger("DBIndexer2", 0).addElement(new RunningTime()).addElement(progressBar);
 
@@ -111,7 +115,7 @@ public class DBIndexer2 {
                     throw new RuntimeException(e);
                 }
             }
-            System.out.println("Sorting");
+            logger.logInfo("Sorting");
             Thread[] sortingThreads = new Thread[indexEnd];
             for (int j = 0; j < indexEnd; j++) {
                 int finalJ = j;
@@ -127,7 +131,7 @@ public class DBIndexer2 {
                 }
             }
 
-            System.out.println("Writing");
+            logger.logInfo("Writing");
             Thread[] writingThreads = new Thread[indexEnd];
             for (int j = 0; j < indexEnd; j++) {
                 int finalJ = j;

@@ -71,9 +71,9 @@ public abstract class SequenceReader<H> implements AutoCloseable {
         try {
             this.cis = new CountingInputStream(new FileInputStream(file.toString()));
             if (file.toFile().getName().endsWith(".gz")) {
-                this.br = new BufferedReader(new InputStreamReader(new GZIPInputStream(cis)));
+                this.br = new BufferedReader(new InputStreamReader(new GZIPInputStream(cis, 131072)), 131072);
             } else {
-                this.br = new BufferedReader(new InputStreamReader(cis));
+                this.br = new BufferedReader(new InputStreamReader(cis), 131072);
             }
             this.fileSize = Files.size(Paths.get(file.toString()));
         } catch (IOException e) {

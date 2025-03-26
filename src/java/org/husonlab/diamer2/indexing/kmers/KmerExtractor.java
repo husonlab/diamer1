@@ -54,7 +54,7 @@ public class KmerExtractor {
         // add the remaining characters to the encoder and store the resulting encoding
         for (int i = k - 1; i < seqLength; i++) {
             long kmerEncoding = kmerEncoder.addBack(sequence[i]);
-            if (kmerEncoder.getLikelihood() < 1.0E-11) {
+            if (kmerEncoder.getLikelihood() < 1E-13) {
                 kmers.add(kmerEncoding);
             }
         }

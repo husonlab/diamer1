@@ -177,7 +177,7 @@ public class DBIndexer {
         report.append("total extracted kmers: ").append(totalKmers).append("\n");
         report.append(bucketSizesString);
 
-        statisticsCollector.writeKmerHistogram(dbIndexIO.getIndexFolder().resolve("kmer_histogram.tsv"));
+//        statisticsCollector.writeKmerHistogram(dbIndexIO.getIndexFolder().resolve("kmer_histogram.tsv"));
 
         return report.toString();
     }

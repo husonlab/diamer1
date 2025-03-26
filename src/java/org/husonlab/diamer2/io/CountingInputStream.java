@@ -2,6 +2,7 @@ package org.husonlab.diamer2.io;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -14,7 +15,7 @@ public class CountingInputStream extends InputStream {
     private long readBytes;
 
     public CountingInputStream(InputStream inputStream) {
-        this.inputStream = inputStream;
+        this.inputStream = new BufferedInputStream(inputStream, 131072);;
         this.readBytes = 0;
     }
 
