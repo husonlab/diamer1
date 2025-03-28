@@ -16,7 +16,8 @@ import java.util.LinkedList;
  *     A List of the original headers can be obtained with {@link #getHeaders()}.
  * </p>
  */
-public class FastqIdReader extends SequenceReader<Integer> implements HeaderToIdReader {
+public class FastqIdReader extends SequenceReader<Integer, char[]> implements HeaderToIdReader {
+    private String line;
 
     /**
      * List to store the headers of the sequences during reading.
@@ -33,12 +34,18 @@ public class FastqIdReader extends SequenceReader<Integer> implements HeaderToId
      */
     public FastqIdReader(Path file) {
         super(file);
+        try {
+            this.line = br.readLine();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read from sequence file: " + file);
+        }
         headers = new LinkedList<>();
         collectHeaders = true;
     }
 
+    // todo: change to use read(char[]) instead of readLine()
     @Override
-    public SequenceRecord<Integer, String> next() throws IOException {
+    public SequenceRecord<Integer, char[]> next() throws IOException {
         if (line != null && line.startsWith("@")) {
             id = sequencesRead++;
             headers.add(line);
@@ -46,7 +53,9 @@ public class FastqIdReader extends SequenceReader<Integer> implements HeaderToId
             br.readLine();
             br.readLine();
             line = br.readLine();
-            return new SequenceRecord<>(id, sequence.toString());
+            char[] sequence = new char[this.sequence.length()];
+            this.sequence.getChars(0, this.sequence.length(), sequence, 0);
+            return new SequenceRecord<>(id, sequence);
         } else {
             while ((line = br.readLine()) != null) {
                 if (line.startsWith("@")) {

@@ -6,7 +6,7 @@
 
 ````shell
 -Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9001 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Djava.rmi.server.hostname=127.0.0.1
-ssh -J kubach@sshgw.cs.uni-tuebingen.de kubach@ibminode06.cs.uni-tuebingen.de -L 9000:localhost:9000 -L 9001:localhost:9001 -N -v
+ssh -J kubach@sshgw.cs.uni-tuebingen.de kubach@ibminode06.cs.uni-tuebingen.de -L 9000:localhost:9000 -L 9001:localhost:9001 -N
 service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 ````
 

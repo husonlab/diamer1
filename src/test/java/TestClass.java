@@ -13,11 +13,9 @@ import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.DBIndexAnalyzer;
 import org.junit.Test;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.zip.GZIPInputStream;
 
@@ -57,6 +55,25 @@ public class TestClass {
     }
 
     @Test
-    public void testReadSpeed() throws IOException {
+    public void averageDBProteinLength() throws IOException {
+        HashMap<Integer, Long> lengths = new HashMap<>();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100_preprocessed.fsa")))) {
+            String line;
+            StringBuilder sb = new StringBuilder();
+            while ((line = br.readLine()) != null) {
+                if (line.startsWith(">") && !sb.isEmpty()) {
+                    lengths.put(sb.length(), lengths.getOrDefault(sb.length(), 0L) + 1);
+                    sb.setLength(0);
+                } else if (!line.startsWith(">")) {
+                    sb.append(line);
+                }
+            }
+        }
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\nk035\\Documents\\diamer2\\statistics\\protein_lengths.tsv"))) {
+            bw.write("length\tcount\n");
+            for (Integer length : lengths.keySet()) {
+                bw.write(length + "\t" + lengths.get(length) + "\n");
+            }
+        }
     }
 }

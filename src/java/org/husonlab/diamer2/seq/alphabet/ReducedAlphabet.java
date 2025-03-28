@@ -20,10 +20,10 @@ public abstract class ReducedAlphabet extends Alphabet<Byte> {
      * @param dna DNA sequence to translate (upper case)
      * @return array of arrays with all translated sequences.
      */
-    public byte[][] translateRead(String dna){
+    public byte[][] translateRead(char[] dna){
 
         // The sequence is too short to be translated
-        if (dna.length() < 3) {
+        if (dna.length < 3) {
             return new byte[0][];
         }
 
@@ -32,15 +32,15 @@ public abstract class ReducedAlphabet extends Alphabet<Byte> {
         byte[][] translations = new byte[6][];
         int[] sequenceLengths = new int[3];
         for (int i = 0; i < 3; i++) {
-            int len = (dna.length()-i)/3;
+            int len = (dna.length-i)/3;
             sequenceLengths[i] = len;
             translations[i*2] = new byte[len];
             translations[i*2+1] = new byte[len];
         }
-        triplet.append(dna.charAt(0)).append(dna.charAt(1));
+        triplet.append(dna[0]).append(dna[1]);
 
-        for (int i = 2; i < dna.length(); i++) {
-            triplet.append(dna.charAt(i));
+        for (int i = 2; i < dna.length; i++) {
+            triplet.append(dna[i]);
             byte[] encoding = translateCodon(triplet.toString());
             int i2 = i*2-4;
             // Forward reading frame
@@ -73,10 +73,10 @@ public abstract class ReducedAlphabet extends Alphabet<Byte> {
      * @param peptide protein sequence (upper case)
      * @return array of all fragments encoded in the alphabet.
      */
-    public byte[][] translateDBSequence(String peptide) {
-        byte[] result = new byte[peptide.length()];
-        for (int i = 0; i < peptide.length(); i++) {
-            result[i] = translateAA(peptide.charAt(i));
+    public byte[][] translateDBSequence(char[] peptide) {
+        byte[] result = new byte[peptide.length];
+        for (int i = 0; i < peptide.length; i++) {
+            result[i] = translateAA(peptide[i]);
         }
         return splitAtMinus1(result);
     }

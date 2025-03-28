@@ -12,9 +12,9 @@ import java.util.LinkedList;
  * Class for iterating over sequence files multiple times. After each iteration, the {@link #reset()} method must be
  * called to start from the beginning again.
  * <p>
- *     The most important feature is, that it can keep the sequences in memory, so that all but the first iteration
+ *     The most important feature is that it can keep the sequences in memory, so that all but the first iteration
  *     don't need another IO operation. Additionally, a converter can be supplied to convert the sequences in a different
- *     alphabet, that might require less memory. The conversion to a different alphabet is thereby only performed, when
+ *     alphabet that might require less memory. The conversion to a different alphabet is thereby only performed, when
  *     the sequence is actually requested, so that the computation is performed on the threads that process the
  *     sequences.
  * </p>
@@ -26,7 +26,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      * List to keep the (future) sequence records in memory.
      */
     private final LinkedList<MemoryEntry<H, S>> sequenceMemory;
-    private final SequenceReader<H> sequenceReader;
+    private final SequenceReader<H, char[]> sequenceReader;
     private final Converter<S> converter;
     private final boolean keepInMemory;
     private boolean finishedReading;
@@ -39,7 +39,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      * @param converter Converter to convert the sequences to a different alphabet
      * @param keepInMemory Whether to keep the sequences in memory or not
      */
-    public SequenceSupplier(@NotNull SequenceReader<H> sequenceReader, @NotNull Converter<S> converter, boolean keepInMemory) {
+    public SequenceSupplier(@NotNull SequenceReader<H, char[]> sequenceReader, @NotNull Converter<S> converter, boolean keepInMemory) {
         this.sequenceReader = sequenceReader;
         this.converter = converter;
         this.keepInMemory = keepInMemory;
@@ -80,7 +80,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                     // but the reset() method has not been called.
                     return null;
                 } else {
-                    SequenceRecord<H, String> sequenceRecord;
+                    SequenceRecord<H, char[]> sequenceRecord;
                     if ((sequenceRecord = sequenceReader.next()) != null) {
                         // case: First iteration
                         bytesRead = sequenceReader.getBytesRead();
@@ -98,7 +98,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                 }
             }
         } else {
-            SequenceRecord<H, String> sequenceRecord;
+            SequenceRecord<H, char[]> sequenceRecord;
             if ((sequenceRecord = sequenceReader.next()) == null) {
                 // case: End of file
                 return null;
@@ -124,7 +124,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      * @return {@link FutureSequenceRecords} containing the input {@link SequenceRecord}.
      */
     private FutureSequenceRecords<H, S> getFutureSequenceRecords(
-            Converter<S> converter, SequenceRecord<H, String> sequenceRecord, MemoryEntry<H, S> entry) {
+            Converter<S> converter, SequenceRecord<H, char[]> sequenceRecord, MemoryEntry<H, S> entry) {
         return new FutureSequenceRecords<H, S>() {
             @Override
             public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
@@ -215,10 +215,10 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     }
 
     public interface Converter<S> {
-        S[] convert(String sequence);
+        S[] convert(char[] sequence);
     }
 
     public static Converter<String> getEmptyConverter() {
-        return sequence -> new String[]{sequence};
+        return sequence -> new String[]{new String(sequence)};
     }
 }

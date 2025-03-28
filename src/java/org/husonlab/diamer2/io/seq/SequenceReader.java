@@ -18,7 +18,7 @@ import java.util.zip.GZIPInputStream;
  * </p>
  * @param <H> Type of the header
  */
-public abstract class SequenceReader<H> implements AutoCloseable {
+public abstract class SequenceReader<H, S> implements AutoCloseable {
 
     protected final Path file;
     protected long fileSize;
@@ -26,7 +26,6 @@ public abstract class SequenceReader<H> implements AutoCloseable {
     protected StringBuilder sequence;
     private CountingInputStream cis;
     protected BufferedReader br;
-    protected String line;
     protected int sequencesRead;
 
     /**
@@ -44,18 +43,18 @@ public abstract class SequenceReader<H> implements AutoCloseable {
      * Reads over the file until the next sequence is found and returns it.
      * @return SequenceRecord with the header and the sequence
      */
-    public abstract SequenceRecord<H, String> next() throws IOException;
+    public abstract SequenceRecord<H, S> next() throws IOException;
 
     /**
      * Reads the next n sequences from the file and returns them.
      * @param n Number of sequences to read
      * @return List of {@link SequenceRecord}s
      */
-    public ArrayList<SequenceRecord<H, String>> next(int n) throws IOException {
+    public ArrayList<SequenceRecord<H, S>> next(int n) throws IOException {
         sequencesRead += n;
-        ArrayList<SequenceRecord<H, String>> sequenceRecords = new ArrayList<>();
+        ArrayList<SequenceRecord<H, S>> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
-            SequenceRecord<H, String> seq = next();
+            SequenceRecord<H, S> seq = next();
             if (seq == null) {
                 break;
             }
@@ -78,11 +77,6 @@ public abstract class SequenceReader<H> implements AutoCloseable {
             this.fileSize = Files.size(Paths.get(file.toString()));
         } catch (IOException e) {
             throw new RuntimeException("Could not find sequence file: " + file);
-        }
-        try {
-            this.line = br.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not read from sequence file: " + file);
         }
     }
 
