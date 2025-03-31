@@ -1,5 +1,7 @@
 package org.husonlab.diamer2.indexing.kmers;
 
+import java.util.Arrays;
+
 /**
  * Class to encode and update a kmer of the shape defined by a bitmask as a number of a given base.
  * <p>Bytes passed to the addFront or addBack methods get added the respective side of an array initialized with zeros.
@@ -22,6 +24,8 @@ public class KmerEncoder {
     private final int[] maskIndices;
     // array to store the individual letters that are part of the kmer (before multiplication)
     private final short[] kmerLetters;
+    // array to store whether a letter is part of the kmer to count the number of different letters
+    private final boolean[] letterInKmer;
     // array to precalculate and store the letters with base^n
     private final long[][] letterMultiples;
     // array to store the likelihood of each letter of the alphabet in the kmer
@@ -56,6 +60,7 @@ public class KmerEncoder {
         }
         this.s = sTemp;
         kmerLetters = new short[k];
+        letterInKmer = new boolean[base];
         letterMultiples = new long[base][k - s];
         for (int i = 0; i < base; i++) {
             for (int j = 0; j < k - s; j++) {
@@ -175,5 +180,17 @@ public class KmerEncoder {
             }
         }
         return likelihood;
+    }
+
+    public int getComplexity() {
+        int complexity = 0;
+        Arrays.fill(letterInKmer, false);
+        for (short kmerLetter : kmerLetters) {
+            if (!letterInKmer[kmerLetter]) {
+                letterInKmer[kmerLetter] = true;
+                complexity++;
+            }
+        }
+        return complexity;
     }
 }

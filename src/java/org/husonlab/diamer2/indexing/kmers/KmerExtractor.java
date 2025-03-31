@@ -56,7 +56,7 @@ public class KmerExtractor {
         int kmersIndex = 0;
         for (int i = k - 1; i < seqLength; i++) {
             kmerEncoding = kmerEncoder.addBack(sequence[i]);
-            if (kmerEncoder.getLikelihood() < 1E-11) {
+            if (kmerEncoder.getLikelihood() < 1e-11) {
                 kmers[kmersIndex++] = kmerEncoding;
             }
         }
