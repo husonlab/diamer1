@@ -208,20 +208,31 @@ public class Utilities {
     }
 
     public static byte[][] splitAtMinus1(byte[] sequence) {
-        ArrayList<byte[]> sequences = new ArrayList<>();
-        int i = 0;
-        int j = 0;
-        for (; j < sequence.length; j++) {
-            if (sequence[j] == -1) {
-                if (i != j) {
-                    sequences.add(Arrays.copyOfRange(sequence, i, j));
-                }
-                i = 1 + j;
+        if (sequence.length == 0) {
+            return new byte[0][0];
+        }
+        // count the number of resulting sequences
+        int numSequences = sequence[sequence.length - 1] == -1 ? 0 : 1;
+        for (int i = 1; i < sequence.length; i++) {
+            if (sequence[i] == -1 && sequence[i - 1] != -1) {
+                numSequences++;
             }
         }
-        if (i != j) {
-            sequences.add(Arrays.copyOfRange(sequence, i, j));
+        byte[][] sequences = new byte[numSequences][];
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        for (; k < sequence.length; k++) {
+            if (sequence[k] == -1) {
+                if (j != k) {
+                    sequences[i++] = Arrays.copyOfRange(sequence, j, k);
+                }
+                j = 1 + k;
+            }
         }
-        return sequences.toArray(byte[][]::new);
+        if (j != k) {
+            sequences[i] = Arrays.copyOfRange(sequence, j, k);
+        }
+        return sequences;
     }
 }

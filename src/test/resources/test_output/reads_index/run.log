@@ -1,14 +1,14 @@
---indexreads -t 12 -b 1024 --mask 111111111111111 --debug --statistics C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index
+--indexreads -t 12 -b 1024 --mask 111111111111111 --debug --statistics C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
 MAX_THREADS:	12
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	1024
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-15T20:00:33.773871300
-End: 2025-03-15T20:00:34.037370700
+Start: 2025-03-28T13:37:24.170413500
+End: 2025-03-28T13:37:24.637838300
 
 Processed Reads: 6
 Processed translations: 90

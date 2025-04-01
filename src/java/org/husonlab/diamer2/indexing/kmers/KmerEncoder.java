@@ -1,5 +1,7 @@
 package org.husonlab.diamer2.indexing.kmers;
 
+import java.util.Arrays;
+
 /**
  * Class to encode and update a kmer of the shape defined by a bitmask as a number of a given base.
  * <p>Bytes passed to the addFront or addBack methods get added the respective side of an array initialized with zeros.
@@ -18,10 +20,14 @@ public class KmerEncoder {
     private final int s;
     // bitmask, most significant bit is the first (leftmost) bit of the mask
     private final boolean[] mask;
-    // array to store the addends of the encoding
-    private final long[] kmer;
+    // array with the indices of true values in the mask
+    private final int[] maskIndices;
     // array to store the individual letters that are part of the kmer (before multiplication)
     private final short[] kmerLetters;
+    // array to store whether a letter is part of the kmer to count the number of different letters
+    private final boolean[] letterInKmer;
+    // array to precalculate and store the letters with base^n
+    private final long[][] letterMultiples;
     // array to store the likelihood of each letter of the alphabet in the kmer
     private final double[] letterLikelihoods;
     // current encoding of the kmer
@@ -45,12 +51,22 @@ public class KmerEncoder {
                 sTemp++;
             }
         }
-        this.s = sTemp;
-        kmer = new long[k];
-        for (int i = 0; i < k; i++) {
-            kmer[i] = 0;
+        this.maskIndices = new int[k - sTemp];
+        for (int i = 0, j = 0; i < k; i++) {
+            if (mask[i]) {
+                maskIndices[j] = i;
+                j++;
+            }
         }
+        this.s = sTemp;
         kmerLetters = new short[k];
+        letterInKmer = new boolean[base];
+        letterMultiples = new long[base][k - s];
+        for (int i = 0; i < base; i++) {
+            for (int j = 0; j < k - s; j++) {
+                letterMultiples[i][j] = (long) (i * Math.pow(base, j));
+            }
+        }
         this.letterLikelihoods = letterLikelihoods;
         encoding = 0;
     }
@@ -63,13 +79,8 @@ public class KmerEncoder {
      * @return the new encoding of the kmer
      */
     public long addFront(short value) {
-        int first = (int)(value * Math.pow(base, k - s - 1));
-        System.arraycopy(kmer, 0, kmer, 1, k - 1);
         System.arraycopy(kmerLetters, 0, kmerLetters, 1, k - 1);
-        kmer[0] = 0;
         kmerLetters[0] = value;
-        divide();
-        kmer[0] = first;
         encoding = encode();
         return encoding;
     }
@@ -80,39 +91,10 @@ public class KmerEncoder {
      * @return the new encoding of the kmer
      */
     public long addBack(short value) {
-        int last = value;
-        System.arraycopy(kmer, 1, kmer, 0, k - 1);
         System.arraycopy(kmerLetters, 1, kmerLetters, 0, k - 1);
-        kmer[k - 1] = 0;
         kmerLetters[k - 1] = value;
-        multiply();
-        kmer[k - 1] = last;
         encoding = encode();
         return encoding;
-    }
-
-    /**
-     * Multiplies each element in the kmer array that is in the mask by the base of the alphabet.
-     * <p>Used to update the encoding of the kmer after adding a value to the back (right side) of the kmer.</p>
-     */
-    private void multiply() {
-        for (int i = 0; i < k; i++) {
-            if (mask[i]) {
-                kmer[i] *= base;
-            }
-        }
-    }
-
-    /**
-     * Divides each element in the kmer array that is in the mask by the base of the alphabet.
-     * <p>Used to update the encoding of the kmer after adding a value to the front (left side) of the kmer.</p>
-     */
-    private void divide() {
-        for (int i = 0; i < k; i++) {
-            if (mask[i]) {
-                kmer[i] /= base;
-            }
-        }
     }
 
     /**
@@ -120,13 +102,29 @@ public class KmerEncoder {
      * @return the encoding of the kmer
      */
     private long encode() {
-        long result = 0;
-        for (int i = 0; i < k; i++) {
-            if (mask[i]) {
-                result += kmer[i];
+        if (k - s == 15) {
+            return letterMultiples[kmerLetters[maskIndices[0]]][14]
+                   + letterMultiples[kmerLetters[maskIndices[1]]][13]
+                   + letterMultiples[kmerLetters[maskIndices[2]]][12]
+                   + letterMultiples[kmerLetters[maskIndices[3]]][11]
+                   + letterMultiples[kmerLetters[maskIndices[4]]][10]
+                   + letterMultiples[kmerLetters[maskIndices[5]]][9]
+                   + letterMultiples[kmerLetters[maskIndices[6]]][8]
+                   + letterMultiples[kmerLetters[maskIndices[7]]][7]
+                   + letterMultiples[kmerLetters[maskIndices[8]]][6]
+                   + letterMultiples[kmerLetters[maskIndices[9]]][5]
+                   + letterMultiples[kmerLetters[maskIndices[10]]][4]
+                   + letterMultiples[kmerLetters[maskIndices[11]]][3]
+                   + letterMultiples[kmerLetters[maskIndices[12]]][2]
+                   + letterMultiples[kmerLetters[maskIndices[13]]][1]
+                   + letterMultiples[kmerLetters[maskIndices[14]]][0];
+        } else {
+            long result = 0;
+            for (int i = 0, j = maskIndices.length - 1; i < maskIndices.length; i++, j--) {
+                result += letterMultiples[kmerLetters[maskIndices[i]]][j];
             }
+            return result;
         }
-        return result;
     }
 
     /**
@@ -134,7 +132,7 @@ public class KmerEncoder {
      */
     public void reset() {
         for (int i = 0; i < k; i++) {
-            kmer[i] = 0;
+            kmerLetters[i] = 0;
         }
         encoding = 0;
     }
@@ -182,5 +180,17 @@ public class KmerEncoder {
             }
         }
         return likelihood;
+    }
+
+    public int getComplexity() {
+        int complexity = 0;
+        Arrays.fill(letterInKmer, false);
+        for (short kmerLetter : kmerLetters) {
+            if (!letterInKmer[kmerLetter]) {
+                letterInKmer[kmerLetter] = true;
+                complexity++;
+            }
+        }
+        return complexity;
     }
 }

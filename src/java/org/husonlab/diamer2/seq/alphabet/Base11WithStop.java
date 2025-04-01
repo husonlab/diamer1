@@ -2,6 +2,8 @@ package org.husonlab.diamer2.seq.alphabet;
 
 import org.husonlab.diamer2.util.logging.Logger;
 
+import java.util.Arrays;
+
 import static org.husonlab.diamer2.seq.converter.Utilities.splitAtMinus1;
 
 /**
@@ -58,13 +60,14 @@ public class Base11WithStop extends Base11Alphabet {
      * Translates DNA but only to the first reading frame.
      */
     @Override
-    public byte[][] translateDBSequence(String seq) {
-        if (seq.length() < 3) {
+    public byte[][] translateDBSequence(char[] seq) {
+        if (seq.length < 3) {
             return new byte[0][];
         }
-        byte[] translation = new byte[seq.length()/3];
-        for (int i = 2; i < seq.length(); i += 3) {
-            String triplet = seq.substring(i-2, i+1);
+        byte[] translation = new byte[seq.length/3];
+        for (int i = 2; i < seq.length; i += 3) {
+            // todo: should work without the creation of a string
+            String triplet = new String(Arrays.copyOfRange(seq, i-2, i+1));
             byte[] encoding = translateCodon(triplet);
             translation[i/3] = encoding[0];
         }

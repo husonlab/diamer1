@@ -1,14 +1,14 @@
---indexreads -t 1 -b 127 --keep-in-memory --mask 111111011110011100011 --debug --statistics C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
+--indexreads -t 1 -b 127 --keep-in-memory --mask 111111011110011100011 --debug --statistics C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
 MAX_THREADS:	1
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	true
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	127
 QUEUE_SIZE:	2
 DEBUG:	true
-Start: 2025-03-15T20:00:34.037370700
-End: 2025-03-15T20:00:34.297805200
+Start: 2025-03-28T13:37:25.178329900
+End: 2025-03-28T13:37:25.585700600
 
 Processed Reads: 6
 Processed translations: 73

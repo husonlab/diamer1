@@ -24,7 +24,7 @@ import static org.husonlab.diamer2.indexing.Sorting2.radixInPlaceParallel;
 
 public class DBIndexer2 {
 
-    private final static int expectedKmerCount = 400_000_000;
+    private final static int expectedKmerCount = 100_000_000;
     private final static int contingentSizes = 100_000;
     private final SequenceSupplier<Integer, byte[]> sup;
     private final Tree tree;

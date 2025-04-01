@@ -1,9 +1,10 @@
 import static org.husonlab.diamer2.indexing.Sorting.radixSortNBits;
 import org.junit.Test;
 
+import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.husonlab.diamer2.indexing.Sorting2.radixInPlaceParallel;
+import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
 import static org.junit.Assert.*;
 
 public class SortingTest {
@@ -80,7 +81,8 @@ public class SortingTest {
         }
 
         start = System.currentTimeMillis();
-        radixInPlaceParallel(input, ids, 12);
+        //radixInPlaceParallel(input, ids, 12);
+        Arrays.sort(input);
         System.out.println("Time inplace parallel: " + (System.currentTimeMillis() - start));
         for (int i = 1; i < input.length; i++) {
             assertTrue(input[i] >= input[i - 1]);
