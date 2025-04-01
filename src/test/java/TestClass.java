@@ -131,9 +131,11 @@ public class TestClass {
     @Test
     public void compareWithKraken() throws FileNotFoundException {
         Path krakenAssignment = Path.of("F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_kraken2_nr/output.txt");
-        Path assignmentFolder = Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_nr_diamond_filteredE-12");
+        Path assignmentFolder = Path.of("F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_diamond_filteredE-12");
 
         int nrOfReads;
+        int cols = 15;
+        int colIndex = 0;
 
         try (BufferedReader br = new BufferedReader(new FileReader(assignmentFolder.resolve("raw_assignment.tsv").toString()))) {
             nrOfReads = Integer.parseInt(br.readLine());

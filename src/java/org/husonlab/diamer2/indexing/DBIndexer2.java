@@ -11,26 +11,24 @@ import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
-import org.husonlab.diamer2.util.logging.OneLineLogger;
-import org.husonlab.diamer2.util.logging.ProgressBar;
-import org.husonlab.diamer2.util.logging.RunningTime;
+import org.husonlab.diamer2.util.logging.*;
 
 import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.husonlab.diamer2.indexing.Sorting2.radixInPlaceParallel;
+import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
 
 public class DBIndexer2 {
 
-    private final static int expectedKmerCount = 100_000_000;
+    private final Logger logger;
+    private final static int expectedKmerCount = 200_000_000;
     private final static int contingentSizes = 100_000;
     private final SequenceSupplier<Integer, byte[]> sup;
     private final Tree tree;
     private final Encoder encoder;
     private final GlobalSettings settings;
-    private final int parallelism;
     BlockingQueue<FutureSequenceRecords<Integer, byte[]>[]> queue;
     private final ContingentDistributor distributor;
     private long[][] kmers;
@@ -42,17 +40,18 @@ public class DBIndexer2 {
     private static final AtomicInteger skippedSequenceRecords = new AtomicInteger(0);
 
     public DBIndexer2(SequenceSupplier<Integer, byte[]> sup,
-                     Tree tree,
-                     Encoder encoder,
-                     GlobalSettings settings) {
+                      Tree tree,
+                      Encoder encoder,
+                      GlobalSettings settings) {
+        logger = new Logger("DBIndexer2");
+        logger.addElement(new Time());
         this.sup = sup;
         this.tree = tree;
         this.encoder = encoder;
         dbIndexIO = encoder.getDBIndexIO();
         this.settings = settings;
-        parallelism = Math.min(settings.MAX_THREADS, Math.min(settings.BUCKETS_PER_CYCLE, encoder.getNrOfBuckets()));
-        queue = new ArrayBlockingQueue<>(settings.QUEUE_SIZE, false);
-        distributor = new ContingentDistributor(parallelism, expectedKmerCount, contingentSizes);
+        queue = new ArrayBlockingQueue<>(settings.MAX_THREADS * 10, false);
+        distributor = new ContingentDistributor(settings.BUCKETS_PER_CYCLE, expectedKmerCount, contingentSizes);
         kmers = new long[settings.BUCKETS_PER_CYCLE][];
         taxIds = new int[settings.BUCKETS_PER_CYCLE][];
         for (int i = 0; i < settings.BUCKETS_PER_CYCLE; i++) {
@@ -72,7 +71,7 @@ public class DBIndexer2 {
             int rangeEnd = Math.min(i + settings.BUCKETS_PER_CYCLE, encoder.getNrOfBuckets());
             int indexEnd = rangeEnd - i;
 
-            System.out.println("Indexing buckets " + i + " to " + (rangeEnd - 1));
+            logger.logInfo("Indexing buckets " + i + " to " + (rangeEnd - 1));
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
             new OneLineLogger("DBIndexer2", 0).addElement(new RunningTime()).addElement(progressBar);
 
@@ -111,7 +110,7 @@ public class DBIndexer2 {
                     throw new RuntimeException(e);
                 }
             }
-            System.out.println("Sorting");
+            logger.logInfo("Sorting");
             Thread[] sortingThreads = new Thread[indexEnd];
             for (int j = 0; j < indexEnd; j++) {
                 int finalJ = j;
@@ -127,7 +126,7 @@ public class DBIndexer2 {
                 }
             }
 
-            System.out.println("Writing");
+            logger.logInfo("Writing");
             Thread[] writingThreads = new Thread[indexEnd];
             for (int j = 0; j < indexEnd; j++) {
                 int finalJ = j;
@@ -260,6 +259,7 @@ public class DBIndexer2 {
         @Override
         public void run() {
             try {
+                long[] extractKmers;
                 while (true) {
                     FutureSequenceRecords<Integer, byte[]>[] batch = queue.poll(2, TimeUnit.SECONDS);
                     if (batch == null) {
@@ -285,7 +285,8 @@ public class DBIndexer2 {
                                 skippedSequenceRecords.incrementAndGet();
                                 break;
                             }
-                            for (long kmer : kmerExtractor.extractKmers(sequenceRecord.sequence())) {
+                            extractKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
+                            for (long kmer : extractKmers) {
                                 int bucketOfKmer = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketInRange(bucketOfKmer)) {
                                     int currentIndexOfMatchingBucket = bucketOfKmer - startBucket;
