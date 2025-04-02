@@ -13,6 +13,7 @@ public class GlobalSettings {
      * Maximum number of threads to use
      */
     public final int MAX_THREADS;
+    public final int MAX_WRITE_THREADS = 16;
     /**
      * Maximum memory to use
      */

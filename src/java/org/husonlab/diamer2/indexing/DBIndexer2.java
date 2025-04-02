@@ -127,19 +127,12 @@ public class DBIndexer2 {
             }
 
             logger.logInfo("Writing");
-            Thread[] writingThreads = new Thread[indexEnd];
-            for (int j = 0; j < indexEnd; j++) {
-                int finalJ = j;
-                writingThreads[j] = new Thread(() -> writeBucket(kmers[finalJ], taxIds[finalJ], tree, encoder, dbIndexIO.getBucketIO(rangeStart + finalJ), bucketSizes));
-                writingThreads[j].start();
-//                writingThreads[j] = Thread.startVirtualThread(() -> writeBucket(kmers[finalJ], taxIds[finalJ], tree, encoder, dbIndexIO.getBucketIO(rangeStart + finalJ), bucketSizes));
-            }
 
-            for (int j = 0; j < indexEnd; j++) {
-                try {
-                    writingThreads[j].join();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+            try (CustomThreadPoolExecutor executor = new CustomThreadPoolExecutor(
+                    Math.min(settings.MAX_THREADS, settings.MAX_WRITE_THREADS), Math.min(settings.MAX_THREADS, settings.MAX_WRITE_THREADS), indexEnd + 1, 3600, logger)) {
+                for (int j = 0; j < indexEnd; j++) {
+                    int finalJ = j;
+                    executor.submit(() -> writeBucket(kmers[finalJ], taxIds[finalJ], tree, encoder, dbIndexIO.getBucketIO(rangeStart + finalJ), bucketSizes));
                 }
             }
         }
@@ -344,7 +337,6 @@ public class DBIndexer2 {
             }
             return new Pair<>(leftIndex, count * contingentSizes + contingentSizes);
         }
-
         public void reset() {
             Arrays.fill(counters, 0);
         }

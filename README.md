@@ -161,23 +161,8 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 
 # TODO
 * try to use duskmaster to mask low complexity regions
-* 
-* make radix sort flexible with respect to the bits that are used for sorting
-* make sequence readers deal with ids
-* Use ArrayList to store Kmers rather than HashMaps and collapse kmers with same taxid later
-* Change Sequence record header to an ID as soon as possible to drop the strings
-  * Use the same classes from there on to treat encoded protein and dna
-  * Reduce KmerExtractor to one class for both DNA and protein since there will not be a difference anymore
-* Make FASTAReader support input of "*" character
-* batch requests for megan mapping file
-* Abstract bucket encoding so that it can be changed by supplying another class
 * Use higher level than sequenceRecord to store sequenceRecords in memory for all but the first run to save computation
 * Bloom filter for usefull kmers
-* Keep nr in memory during indexing
-  * maybe in a compressed form (11 letter binary?)
-    * 3 bases -> 24 bit
-    * 2 amino acids in base 11 for every reading frame -> 8 bit * 3 = 24 bit
-* Filter out low complexity regions?
 * use weight for OVO that consinders the total amino acids in the database per rank to account for database bias
   * At least for composition estimates based on the total kmer assignments that should make sense.
 
