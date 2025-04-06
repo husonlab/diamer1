@@ -1,19 +1,19 @@
---indexdb --debug --statistics --encoder base11nuc -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt
-MAX_THREADS:	16
-MAX_MEMORY:	3
+--indexdb --debug --statistics --alphabet base11nuc -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
+MAX_THREADS:	12
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
-BUCKETS_PER_CYCLE:	16
-QUEUE_SIZE:	32
+BUCKETS_PER_CYCLE:	12
+QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-15T12:08:43.204389100
-End: 2025-03-15T12:08:43.760007900
+Start: 2025-04-05T18:12:35.196347700
+End: 2025-04-05T18:12:46.102269700
 
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
-output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
 processed sequenceRecords: 7
-total extracted kmers: 1084
+total extracted kmers:	1084
 bucket sizes: 
 0	2
 1	0

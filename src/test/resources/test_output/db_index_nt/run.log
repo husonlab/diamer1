@@ -7,13 +7,13 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	12
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-28T13:34:30.086512500
-End: 2025-03-28T13:37:23.612905600
+Start: 2025-04-05T18:15:40.742873500
+End: 2025-04-05T18:15:51.649976100
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
 processed sequenceRecords: 7
-total extracted kmers: 1084
+total extracted kmers:	1084
 bucket sizes: 
 0	2
 1	0

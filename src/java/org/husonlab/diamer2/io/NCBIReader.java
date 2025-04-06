@@ -439,7 +439,7 @@ public class NCBIReader {
         rankMapping.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                 .forEach(entry -> {
-                    report.append(entry.getKey()).append(entry.getValue()).append("\n");
+                    report.append(entry.getKey()).append("\t").append(entry.getValue()).append("\n");
                 });
 
         logger.logInfo("Finished preprocessing NR database.\n" + report);

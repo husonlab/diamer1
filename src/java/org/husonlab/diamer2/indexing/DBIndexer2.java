@@ -23,8 +23,8 @@ import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
 public class DBIndexer2 {
 
     private final Logger logger;
-    private final static int expectedKmerCount = 200_000_000;
-    private final static int contingentSizes = 100_000;
+    private final int expectedBucketSize;
+    private final static int contingentSizes = 1_000;
     private final SequenceSupplier<Integer, byte[]> sup;
     private final Tree tree;
     private final Encoder encoder;
@@ -40,30 +40,33 @@ public class DBIndexer2 {
     private static final AtomicInteger skippedSequenceRecords = new AtomicInteger(0);
 
     public DBIndexer2(SequenceSupplier<Integer, byte[]> sup,
+                      long maxBucketSize,
                       Tree tree,
                       Encoder encoder,
                       GlobalSettings settings) {
         logger = new Logger("DBIndexer2");
-        logger.addElement(new Time());
+        logger.addElement(new Time()).addElement(new RunningTime());
+        this.expectedBucketSize = (int) maxBucketSize + contingentSizes * settings.MAX_THREADS;
         this.sup = sup;
         this.tree = tree;
         this.encoder = encoder;
         dbIndexIO = encoder.getDBIndexIO();
         this.settings = settings;
         queue = new ArrayBlockingQueue<>(settings.MAX_THREADS * 10, false);
-        distributor = new ContingentDistributor(settings.BUCKETS_PER_CYCLE, expectedKmerCount, contingentSizes);
+        distributor = new ContingentDistributor(settings.BUCKETS_PER_CYCLE, expectedBucketSize, contingentSizes);
         kmers = new long[settings.BUCKETS_PER_CYCLE][];
         taxIds = new int[settings.BUCKETS_PER_CYCLE][];
+        logger.logInfo("Allocating memory ...");
         for (int i = 0; i < settings.BUCKETS_PER_CYCLE; i++) {
-            kmers[i] = new long[expectedKmerCount];
-            taxIds[i] = new int[expectedKmerCount];
+            kmers[i] = new long[expectedBucketSize];
+            taxIds[i] = new int[expectedBucketSize];
         }
         bucketSizes = new int[encoder.getNrOfBuckets()];
     }
 
     public String index() {
+        logger.logInfo("Expected bucket size: " + expectedBucketSize);
         tree.addLongProperty("kmers in database", 0);
-
         for (int i = 0; i < encoder.getNrOfBuckets(); i += settings.BUCKETS_PER_CYCLE) {
             processedSequenceRecords.set(0);
             skippedSequenceRecords.set(0);
@@ -149,7 +152,7 @@ public class DBIndexer2 {
             bucketSizesString.append(i).append("\t").append(bucketSizes[i]).append("\n");
             totalKmers += bucketSizes[i];
         }
-        report.append("total extracted kmers: ").append(totalKmers).append("\n");
+        report.append("total extracted kmers:\t").append(totalKmers).append("\n");
         report.append(bucketSizesString);
         return report.toString();
     }
@@ -219,7 +222,7 @@ public class DBIndexer2 {
     }
 
     private static class BatchProcessor implements Runnable {
-
+        private final Logger logger;
         private final BlockingQueue<FutureSequenceRecords<Integer, byte[]>[]> queue;
         private final long[][] kmers;
         private final int[][] taxIds;
@@ -235,6 +238,7 @@ public class DBIndexer2 {
         private int pollFailCount;
 
         private BatchProcessor(BlockingQueue<FutureSequenceRecords<Integer, byte[]>[]> queue, long[][] kmers, int[][] taxIds, ContingentDistributor contingentDistributor, Tree tree, Encoder encoder, AtomicBoolean finished, int startBucket, int bucketsPerCycel) {
+            this.logger = new Logger("BatchProcessor");
             this.queue = queue;
             this.kmers = kmers;
             this.taxIds = taxIds;
@@ -254,14 +258,17 @@ public class DBIndexer2 {
             try {
                 long[] extractKmers;
                 while (true) {
-                    FutureSequenceRecords<Integer, byte[]>[] batch = queue.poll(2, TimeUnit.SECONDS);
+                    FutureSequenceRecords<Integer, byte[]>[] batch = queue.poll(100, TimeUnit.MILLISECONDS);
                     if (batch == null) {
                         if (finished.get()) {
                             break;
                         } else {
+                            if (pollFailCount > 0 && pollFailCount % 500 == 0) {
+                                logger.logWarning("BatchProcessor: Polling failed (" + pollFailCount + " ms)");
+                            }
                             pollFailCount++;
-                            if (pollFailCount++ > 10) {
-                                throw new RuntimeException("Polling failed too many times. Supplier too slow?");
+                            if (pollFailCount++ > 30000) {
+                                throw new RuntimeException("Polling failed for 5 minutes. Supplier too slow?");
                             }
                             continue;
                         }

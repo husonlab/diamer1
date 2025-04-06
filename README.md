@@ -10,6 +10,17 @@ ssh -J kubach@sshgw.cs.uni-tuebingen.de kubach@ibminode06.cs.uni-tuebingen.de -L
 service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 ````
 
+| Index                | Size (gb) |
+|----------------------|-----------|
+| nr90 DIAMOND         | 195       |
+| nr90 DIAMOND c>4     | 181       |
+| nr90 DIAMOND c>5     | 127       |
+| nr90 DIAMOND k<1e-11 | 171       |
+| nr90 Etchebest       | 268       |
+| nr90 kraken2         | 269       |
+| nr90 Solis           | 261       |
+
+
 # Changes since last meeting:
 * Added spaced seeds
 * Added support for the megan mapping file
@@ -32,6 +43,9 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 * Base11Uniform: [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
 * Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
+* Solis: [ILMVJ][NPQSXB][DEZ][A][HR][G][T][KO][WY][F][CU]
+* kraken2 (15): [ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W][CU]
+* all 20: [LXJ][A][G][V][S][EZ][T][R][DB][I][P][KO][F][N][Q][Y][M][H][W][CU]
 
 # Future:
 * Refactor SequenceSupplier
@@ -42,7 +56,7 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 
 # Process:
 ## 1. Annotating nr database with taxon ids
-* Started 28.11.2024 12:20
+* ~ 600 gb is enough (05.04.2025)
 ````shell
 java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings="/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2;/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1"
 ````
@@ -153,11 +167,6 @@ kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 ````
 
 # Questions:
-
-* How to add analysis stuff to code without breaking it?
-* What output format do I need to display the result in Megan?
-* WIFI / LAN
-* Spain
 
 # TODO
 * try to use duskmaster to mask low complexity regions

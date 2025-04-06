@@ -1,7 +1,7 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.indexing.DBIndexer;
+import org.husonlab.diamer2.indexing.DBAnalyzer;
 import org.husonlab.diamer2.indexing.DBIndexer2;
 import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
@@ -368,11 +368,24 @@ public class Main {
         }
         // run indexing with specified alphabet
         ReducedAlphabet alphabet = getAlphabet(cli);
-        Encoder encoder = new W15(output, null, mask, globalSettings.BITS_FOR_IDS);
+        Encoder encoder = new W15(alphabet, output, null, mask, globalSettings.BITS_FOR_IDS);
         try (SequenceSupplier<Integer,byte[]> sup = new SequenceSupplier<>(
                 new FastaIdReader(database), alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
-            DBIndexer2 dbIndexer = new DBIndexer2(sup, tree, encoder, globalSettings);
-            String runInfo = dbIndexer.index();
+            DBAnalyzer dbAnalyzer = new DBAnalyzer(sup, tree, encoder, globalSettings);
+            String runInfo = dbAnalyzer.analyze();
+            writeLogEnd(runInfo, output.resolve("run.log"));
+            if (!cli.hasOption("b")) {
+                int suggestedNrOfBuckets = dbAnalyzer.suggestNrOfBuckets();
+                if (suggestedNrOfBuckets < 1) {
+                    System.err.println("Indexing one bucket could exceed the available memory." +
+                            "\nIf --keep-in-memory is set, consider removing it or increase the maximum heap size.");
+                    suggestedNrOfBuckets = 1;
+                }
+                System.out.printf("Suggested number of buckets: %d\n", suggestedNrOfBuckets);
+                globalSettings.setBUCKETS_PER_CYCLE(suggestedNrOfBuckets);
+            }
+            DBIndexer2 dbIndexer = new DBIndexer2(sup, dbAnalyzer.getMaxBucketSize(), tree, encoder, globalSettings);
+            runInfo = dbIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
         } catch (Exception e) {
             writeLogEnd(e.toString(), output.resolve("run.log"));
@@ -388,7 +401,7 @@ public class Main {
         writeLogBegin(globalSettings, output.resolve("run.log"));
 
         ReducedAlphabet alphabet = getAlphabet(cli);
-        Encoder encoder = new W15(null, output, mask, globalSettings.BITS_FOR_IDS);
+        Encoder encoder = new W15(alphabet, null, output, mask, globalSettings.BITS_FOR_IDS);
         try (   FastqIdReader fastqIdReader = new FastqIdReader(reads);
                 SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<>(
                         fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
@@ -429,7 +442,8 @@ public class Main {
         ReadAssignment readAssignment = null;
 
         String runInfo = "";
-        Encoder encoder = new W15(
+        ReducedAlphabet alphabet = getAlphabet(cli);
+        Encoder encoder = new W15(alphabet,
                 dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
         ReadAssigner readAssigner = new ReadAssigner(encoder, globalSettings);
 
@@ -464,7 +478,8 @@ public class Main {
         writeLogBegin(globalSettings, output.resolve("db-analyze-run.log"));
 
         boolean[] mask = getMask(cli);
-        Encoder encoder = new W15(dbIndex, null, mask, globalSettings.BITS_FOR_IDS);
+        ReducedAlphabet alphabet = getAlphabet(cli);
+        Encoder encoder = new W15(alphabet, dbIndex, null, mask, globalSettings.BITS_FOR_IDS);
         DBIndexAnalyzer dbIndexAnalyzer = new DBIndexAnalyzer(output, encoder, globalSettings);
         String runInfo = dbIndexAnalyzer.analyze();
         writeLogEnd(runInfo, output.resolve("db-analyze-run.log"));
@@ -558,7 +573,7 @@ public class Main {
      * Get the alphabet specified in the command line arguments.
      */
     public static ReducedAlphabet getAlphabet(CommandLine cli) {
-        ReducedAlphabet alphabet = new Base11Alphabet();
+        ReducedAlphabet alphabet;
         if (!cli.hasOption("alphabet") || cli.getOptionValue("alphabet").equals("base11")) {
             alphabet = new Base11Alphabet();
         } else if (cli.getOptionValue("alphabet").equals("base11uniform")) {
@@ -566,7 +581,7 @@ public class Main {
         } else if (cli.getOptionValue("alphabet").equals("base11nuc")) {
             alphabet = new Base11WithStop();
         } else {
-            alphabet = new Base11Custom(cli.getOptionValue("alphabet"));
+            alphabet = new CustomAlphabet(cli.getOptionValue("alphabet"));
         }
         return alphabet;
     }

@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	12
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-28T13:34:07.222669100
-End: 2025-03-28T13:34:07.383816900
+Start: 2025-04-05T18:15:35.999868700
+End: 2025-04-05T18:15:36.167533700
 
 input file	C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa
 output file	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
@@ -16,5 +16,5 @@ processed sequenceRecords	7
 kept sequenceRecords	6
 skipped sequenceRecords without accession	1
 skipped sequenceRecords with rank too high (superkingdom, phylum, family, kingdom, class, order)	0
-2 from root4
-1 from root2
+2 from root	4
+1 from root	2

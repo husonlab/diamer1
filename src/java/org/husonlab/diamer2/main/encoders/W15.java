@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
 
 import java.nio.file.Path;
 
@@ -18,10 +19,11 @@ public class W15 extends Encoder {
     private final int nrOfBitsBucketNames;
     private final int nrOfBuckets;
 
-    public W15(Path dbIndex, Path readsIndex, boolean[] mask, int bitsIds) {
-        super(new Base11Alphabet(), dbIndex, readsIndex, mask, bitsIds);
-        nrOfBitsRequiredForKmer = bitsRequired(targetAlphabet.getBase(), k - s);
-        nrOfBitsBucketNames = nrOfBitsRequiredForKmer - (64 - bitsIds);
+    public W15(ReducedAlphabet targetAlphabet, Path dbIndex, Path readsIndex, boolean[] mask, int bitsIds) {
+        super(targetAlphabet, dbIndex, readsIndex, mask, bitsIds);
+        nrOfBitsRequiredForKmer = bitsRequired(this.targetAlphabet.getBase(), k - s);
+        //nrOfBitsBucketNames = nrOfBitsRequiredForKmer - (64 - bitsIds);
+        nrOfBitsBucketNames = 10;
         nrOfBuckets = (int)Math.pow(2, nrOfBitsBucketNames);
     }
 

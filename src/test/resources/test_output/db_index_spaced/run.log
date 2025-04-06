@@ -7,13 +7,13 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	127
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-03-28T13:34:10.775939600
-End: 2025-03-28T13:34:29.534584700
+Start: 2025-04-05T18:15:38.293489300
+End: 2025-04-05T18:15:40.740871700
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 processed sequenceRecords: 6
-total extracted kmers: 1270
+total extracted kmers:	1270
 bucket sizes: 
 0	1
 1	2

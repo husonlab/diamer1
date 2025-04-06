@@ -89,7 +89,7 @@ public class BucketIO {
         public BucketReader(Path file) {
             try {
                 fis = new FileInputStream(file.toString());
-                dis = new DataInputStream(new BufferedInputStream(fis));
+                dis = new DataInputStream(new BufferedInputStream(fis, 65_536));
             } catch (Exception e) {
                 throw new RuntimeException("Could not open bucket file " + file.toFile().getName(), e);
             }

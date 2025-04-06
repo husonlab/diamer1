@@ -33,7 +33,7 @@ public class GlobalSettings {
     /**
      * Buckets to process in one cycle
      */
-    public final int BUCKETS_PER_CYCLE;
+    public int BUCKETS_PER_CYCLE;
     /**
      * How large the queues for thread pools should be
      */
@@ -68,5 +68,9 @@ public class GlobalSettings {
                 "BUCKETS_PER_CYCLE:\t" + BUCKETS_PER_CYCLE + "\n" +
                 "QUEUE_SIZE:\t" + QUEUE_SIZE + "\n" +
                 "DEBUG:\t" + DEBUG + "\n";
+    }
+
+    public void setBUCKETS_PER_CYCLE(int BUCKETS_PER_CYCLE) {
+        this.BUCKETS_PER_CYCLE = BUCKETS_PER_CYCLE;
     }
 }
