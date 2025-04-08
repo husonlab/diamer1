@@ -23,7 +23,7 @@ public class KmerEncoder {
     // array with the indices of true values in the mask
     private final int[] maskIndices;
     // array to store the individual letters that are part of the kmer (before multiplication)
-    private final short[] kmerLetters;
+    private final byte[] kmerLetters;
     // array to store whether a letter is part of the kmer to count the number of different letters
     private final boolean[] letterInKmer;
     // array to precalculate and store the letters with base^n
@@ -59,7 +59,7 @@ public class KmerEncoder {
             }
         }
         this.s = sTemp;
-        kmerLetters = new short[k];
+        kmerLetters = new byte[k];
         letterInKmer = new boolean[base];
         letterMultiples = new long[base][k - s];
         for (int i = 0; i < base; i++) {
@@ -78,7 +78,7 @@ public class KmerEncoder {
      * @param value short to add to the front (left side) of the kmer
      * @return the new encoding of the kmer
      */
-    public long addFront(short value) {
+    public long addFront(byte value) {
         System.arraycopy(kmerLetters, 0, kmerLetters, 1, k - 1);
         kmerLetters[0] = value;
         encoding = encode();
@@ -90,7 +90,7 @@ public class KmerEncoder {
      * @param value short to add to the back (right side) of the kmer
      * @return the new encoding of the kmer
      */
-    public long addBack(short value) {
+    public long addBack(byte value) {
         System.arraycopy(kmerLetters, 1, kmerLetters, 0, k - 1);
         kmerLetters[k - 1] = value;
         encoding = encode();
@@ -172,7 +172,7 @@ public class KmerEncoder {
         return encoding;
     }
 
-    public double getLikelihood() {
+    public double getProbability() {
         double likelihood = 1;
         for (int i = 0; i < k; i++) {
             if (mask[i]) {

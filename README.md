@@ -4,6 +4,9 @@
 * 28.02.2025:
   * Fixed bug in Compressed4BitSequence that did not properly store -1 values.
 
+mbac26
+2024
+
 ````shell
 -Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9001 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Djava.rmi.server.hostname=127.0.0.1
 ssh -J kubach@sshgw.cs.uni-tuebingen.de kubach@ibminode06.cs.uni-tuebingen.de -L 9000:localhost:9000 -L 9001:localhost:9001 -N
@@ -19,6 +22,12 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 | nr90 Etchebest       | 268       |
 | nr90 kraken2         | 269       |
 | nr90 Solis           | 261       |
+| nr90 Segmasker       | 171       |
+| nr Etchebest         | 581       |
+| nr DIAMOND Solis15   | 581       |
+| nr DIAMOND           | 381       |
+| nr DIAMOND p<1e-11   | 347       |
+|                      |           |
 
 
 # Changes since last meeting:

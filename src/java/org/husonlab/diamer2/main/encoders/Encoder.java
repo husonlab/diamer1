@@ -95,7 +95,7 @@ public abstract class Encoder {
      * @return a KmerExtractor that can be used to extract kmers from sequences
      */
     public KmerExtractor getKmerExtractor(){
-        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods()));
+        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods()), (kmer) -> true);
     }
 
     public int getNrOfKmerBitsInBucketEntry() {
