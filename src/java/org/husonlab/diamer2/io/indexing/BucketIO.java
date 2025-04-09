@@ -145,7 +145,7 @@ public class BucketIO {
             this.file = file;
             try {
                 fos = new FileOutputStream(file.toString());
-                dos = new DataOutputStream(new BufferedOutputStream(fos));
+                dos = new DataOutputStream(new BufferedOutputStream(fos, 65_536));
                 dos.writeInt(0);
             } catch (Exception e) {
                 throw new RuntimeException("Could not open bucket file " + file.toFile().getName(), e);

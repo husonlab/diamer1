@@ -42,7 +42,7 @@ public class DBAnalyzer {
         this.settings = settings;
         this.bucketSizes = new long[encoder.getNrOfBuckets()];
         this.charCounts = new long[encoder.getTargetAlphabet().getBase()];
-        queue = new ArrayBlockingQueue<>(settings.MAX_THREADS * 10, false);
+        queue = new ArrayBlockingQueue<>(settings.MAX_IO_THREADS * 10, false);
     }
 
     public String analyze() {
@@ -52,9 +52,9 @@ public class DBAnalyzer {
         Thread readerThread = new Thread(() -> batchSupplier(sup, queue, settings.SEQUENCE_BATCH_SIZE));
         readerThread.start();
 
-        BatchProcessor[] batchProcessors = new BatchProcessor[settings.MAX_THREADS];
-        Thread[] processingThreads = new Thread[settings.MAX_THREADS];
-        for (int j = 0; j < settings.MAX_THREADS; j++) {
+        BatchProcessor[] batchProcessors = new BatchProcessor[settings.MAX_IO_THREADS];
+        Thread[] processingThreads = new Thread[settings.MAX_IO_THREADS];
+        for (int j = 0; j < settings.MAX_IO_THREADS; j++) {
             batchProcessors[j] = new BatchProcessor(queue, tree, encoder, finished);
             processingThreads[j] = new Thread(batchProcessors[j]);
             processingThreads[j].start();
@@ -71,7 +71,7 @@ public class DBAnalyzer {
         }
         finished.set(true);
 
-        for (int j = 0; j < settings.MAX_THREADS; j++) {
+        for (int j = 0; j < settings.MAX_IO_THREADS; j++) {
             try {
                 processingThreads[j].join();
                 long[] threadBucketSizes = batchProcessors[j].getBucketSizes();
@@ -138,8 +138,9 @@ public class DBAnalyzer {
         Runtime runtime = Runtime.getRuntime();
         long freeMemory = (runtime.maxMemory() - runtime.totalMemory()) + runtime.freeMemory();
         freeMemory -= (long) (freeMemory * 0.1); // 10 % for the JVM
-        // each bucket entry = 8 byte + 5 %
-        return (int) Math.min(Math.floor(freeMemory / ((maxBucketSize + 1_000 * settings.MAX_THREADS) * 12.6)), encoder.getNrOfBuckets());
+        // each bucket entry = 8 byte (kmer) + 4 byte (id) + 10 %
+        long bucketArraySizes = (maxBucketSize + 1_000L * settings.MAX_IO_THREADS);
+        return (int) Math.min(Math.floor(freeMemory / (bucketArraySizes * 13.2)), encoder.getNrOfBuckets());
     }
 
     private static void batchSupplier(SequenceSupplier<Integer, byte[]> sup,
@@ -231,7 +232,7 @@ public class DBAnalyzer {
                             for (byte c : sequenceRecord.sequence()) {
                                 charCounts[c]++;
                             }
-                            extractedKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
+                            extractedKmers = kmerExtractor.extractComplexityMaximizer(sequenceRecord.sequence());
                             for (long kmer : extractedKmers) {
                                 int bucketOfKmer = encoder.getBucketNameFromKmer(kmer);
                                 bucketSizes[bucketOfKmer]++;

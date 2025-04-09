@@ -18,8 +18,6 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
-
 public class DBIndexer2 {
 
     private final Logger logger;
@@ -56,7 +54,7 @@ public class DBIndexer2 {
         distributor = new ContingentDistributor(settings.BUCKETS_PER_CYCLE, expectedBucketSize, contingentSizes);
         kmers = new long[settings.BUCKETS_PER_CYCLE][];
         taxIds = new int[settings.BUCKETS_PER_CYCLE][];
-        logger.logInfo("Allocating memory ...");
+        logger.logInfo("Allocating memory for " + settings.BUCKETS_PER_CYCLE + " buckets of size " + expectedBucketSize);
         for (int i = 0; i < settings.BUCKETS_PER_CYCLE; i++) {
             kmers[i] = new long[expectedBucketSize];
             taxIds[i] = new int[expectedBucketSize];
@@ -113,26 +111,18 @@ public class DBIndexer2 {
                     throw new RuntimeException(e);
                 }
             }
-            logger.logInfo("Sorting");
-            Thread[] sortingThreads = new Thread[indexEnd];
-            for (int j = 0; j < indexEnd; j++) {
-                int finalJ = j;
-                sortingThreads[j] = new Thread(() -> radixInPlaceParallel(kmers[finalJ], taxIds[finalJ], settings.MAX_THREADS));
-                sortingThreads[j].start();
-            }
 
-            for (int j = 0; j < indexEnd; j++) {
-                try {
-                    sortingThreads[j].join();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+            logger.logInfo("Sorting");
+            try (ForkJoinPool pool = new ForkJoinPool(settings.MAX_THREADS)) {
+                for (int j = 0; j < indexEnd; j++) {
+                    pool.submit(new Sorting.MsdRadixTask(kmers[j], taxIds[j]));
                 }
             }
 
             logger.logInfo("Writing");
 
             try (CustomThreadPoolExecutor executor = new CustomThreadPoolExecutor(
-                    Math.min(settings.MAX_THREADS, settings.MAX_WRITE_THREADS), Math.min(settings.MAX_THREADS, settings.MAX_WRITE_THREADS), indexEnd + 1, 3600, logger)) {
+                    settings.MAX_THREADS, settings.MAX_THREADS, indexEnd + 1, 3600, logger)) {
                 for (int j = 0; j < indexEnd; j++) {
                     int finalJ = j;
                     executor.submit(() -> writeBucket(kmers[finalJ], taxIds[finalJ], tree, encoder, dbIndexIO.getBucketIO(rangeStart + finalJ), bucketSizes));
@@ -285,7 +275,7 @@ public class DBIndexer2 {
                                 skippedSequenceRecords.incrementAndGet();
                                 break;
                             }
-                            extractKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
+                            extractKmers = kmerExtractor.extractComplexityMaximizer(sequenceRecord.sequence());
                             for (long kmer : extractKmers) {
                                 int bucketOfKmer = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketInRange(bucketOfKmer)) {

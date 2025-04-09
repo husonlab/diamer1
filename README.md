@@ -9,25 +9,32 @@ mbac26
 
 ````shell
 -Dcom.sun.management.jmxremote.port=9000 -Dcom.sun.management.jmxremote.rmi.port=9001 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.net.preferIPv4Stack=true -Djava.rmi.server.hostname=127.0.0.1
-ssh -J kubach@sshgw.cs.uni-tuebingen.de kubach@ibminode06.cs.uni-tuebingen.de -L 9000:localhost:9000 -L 9001:localhost:9001 -N
+ssh -J kubach@sshgw.cs.uni-tuebingen.de kubach@kim.cs.uni-tuebingen.de -L 9000:localhost:9000 -L 9001:localhost:9001 -N
 service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 ````
 
-| Index                | Size (gb) |
-|----------------------|-----------|
-| nr90 DIAMOND         | 195       |
-| nr90 DIAMOND c>4     | 181       |
-| nr90 DIAMOND c>5     | 127       |
-| nr90 DIAMOND k<1e-11 | 171       |
-| nr90 Etchebest       | 268       |
-| nr90 kraken2         | 269       |
-| nr90 Solis           | 261       |
-| nr90 Segmasker       | 171       |
-| nr Etchebest         | 581       |
-| nr DIAMOND Solis15   | 581       |
-| nr DIAMOND           | 381       |
-| nr DIAMOND p<1e-11   | 347       |
-|                      |           |
+| Index                              | Size (gb) |
+|------------------------------------|-----------|
+| nr90 DIAMOND                       | 195       |
+| nr90 DIAMOND c>4                   | 181       |
+| nr90 DIAMOND c>5                   | 127       |
+| nr90 DIAMOND k<1e-11               | 171       |
+| nr90 Etchebest                     | 268       |
+| nr90 kraken2                       | 269       |
+| nr90 Solis 11                      | 261       |
+| nr90 Solis 15                      | 269       |
+| nr90 Solis 15, probability, l = 27 | 75        |
+| nr90 Solis 15, probability, l = 20 | 106       |
+| nr90 Solis 15, probability, l = 17 | 133       |
+| nr90 Solis 15, probability, l = 15 | 169       |
+| nr90 Solis 15, complexity, l = 17  | 85        |
+| nr90 Solis 15, complexity, l = 20  | 60        |
+| nr90 Segmasker                     | 171       |
+| nr Etchebest                       | 581       |
+| nr DIAMOND Solis15                 | 581       |
+| nr DIAMOND                         | 381       |
+| nr DIAMOND p<1e-11                 | 347       |
+|                                    |           |
 
 
 # Changes since last meeting:

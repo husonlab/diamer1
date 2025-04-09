@@ -231,7 +231,7 @@ public class ReadIndexer {
                         } else {
                             nrOfProcessedTranslations.incrementAndGet();
                             int id = record.id();
-                            long[] kmers = kmerExtractor.extractKmers(record.sequence());
+                            long[] kmers = kmerExtractor.extractComplexityMaximizer(record.sequence());
                             for (long kmer : kmers) {
                                 int bucketName = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketName >= rangeStart && bucketName < rangeEnd) {

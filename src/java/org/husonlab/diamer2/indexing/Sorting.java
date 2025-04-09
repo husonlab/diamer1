@@ -70,19 +70,19 @@ public class Sorting {
 
     /**
      * Sorts a long array by its most significant N bits in place.
+     *
      * @param input Array to sort.
+     * @param pool
      */
-    public static void radixInPlaceParallel(@NotNull long[] input, int[] ids, int parallelism) {
-        try (ForkJoinPool pool = new ForkJoinPool(parallelism)) {
-            pool.invoke(new MsdRadixTask(input, ids, 0, input.length, 0));
-        }
+    public static void radixInPlaceParallel(@NotNull long[] input, int[] ids, ForkJoinPool pool) {
+        pool.invoke(new MsdRadixTask(input, ids, 0, input.length, 0));
     }
 
     public static void radixInPlace(@NotNull long[] input, int[] ids) {
         msdRadix(input, ids, 63, 0, 0);
     }
 
-    private static class MsdRadixTask extends RecursiveAction {
+    public static class MsdRadixTask extends RecursiveAction {
 
         private final long[] input;
         private final int[] ids;
@@ -96,6 +96,14 @@ public class Sorting {
             this.begin = begin;
             this.end = end;
             this.shift = shift;
+        }
+
+        public MsdRadixTask(long[] input, int[] ids) {
+            this.input = input;
+            this.ids = ids;
+            this.begin = 0;
+            this.end = input.length;
+            this.shift = 0;
         }
 
         @Override

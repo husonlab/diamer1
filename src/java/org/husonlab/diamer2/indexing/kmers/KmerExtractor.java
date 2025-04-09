@@ -1,10 +1,6 @@
 package org.husonlab.diamer2.indexing.kmers;
 
-import org.husonlab.diamer2.util.Pair;
-
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.PriorityQueue;
 
 /**
  * Class to extract and encode of kmers from a sequence.
@@ -15,9 +11,17 @@ public class KmerExtractor {
     private final Filter filter;
 
     // for minimizers
-    private final static int windowSize = 27;
-    private final PriorityQueue<Pair<Long, Double>> kmersQueue;
-    private final Pair<Long, Double>[] kmersArray;
+    private final static int windowSize = 20;
+    private final long[] windowKmers;
+    private final double[] windowProbabilities;
+    private int windowMinimizerIndex;
+    private double windowMinimizerProbability;
+
+    private final int[] windowComplexities;
+    private int windowMinimizerComplexity;
+
+    private final long[] windowHashes;
+    private int windowHashMinimizer;
 
     /**
      * Creates a new KmerExtractor with the given encoder.
@@ -31,11 +35,12 @@ public class KmerExtractor {
         this.filter = filter;
 
         // for minimizers
-        this.kmersQueue = new PriorityQueue<>(
-                windowSize - k + 1,
-                Comparator.comparingDouble(Pair::last)
-        );
-        this.kmersArray = new Pair[windowSize - k + 1];
+        this.windowKmers = new long[windowSize - k + 1];
+        this.windowProbabilities = new double[windowSize - k + 1];
+        this.windowComplexities = new int[windowSize - k + 1];
+        this.windowMinimizerIndex = 0;
+        this.windowMinimizerProbability = 0;
+        this.windowMinimizerComplexity = Integer.MAX_VALUE;
     }
 
     /**
@@ -60,7 +65,7 @@ public class KmerExtractor {
      * @param sequence the sequence to extract the kmers from
      * @return the extracted kmers
      */
-    public long[] extractKmersNoMinimizers(byte[] sequence) {
+    public long[] extractKmers(byte[] sequence) {
         int seqLength = sequence.length;
         if (seqLength < k) {
             return new long[0];
@@ -86,13 +91,14 @@ public class KmerExtractor {
     /**
      * Extracts the minimizers from the given sequence.
      */
-    public long[] extractKmers(byte[] sequence) {
+    public long[] extractProbabilityMinimizer(byte[] sequence) {
         int seqLength = sequence.length;
         if (seqLength < windowSize) {
             return new long[0];
         }
         kmerEncoder.reset();
-        kmersQueue.clear();
+        windowMinimizerIndex = 0;
+        windowMinimizerProbability = 0;
         // add the first k-1 characters to the encoder
         for (int i = 0; i < k - 1; i++) {
             kmerEncoder.addBack(sequence[i]);
@@ -105,9 +111,8 @@ public class KmerExtractor {
         for (int i = k - 1; i < windowSize - 1; i++) {
             kmerEncoding = kmerEncoder.addBack(sequence[i]);
             kmerProbability = kmerEncoder.getProbability();
-            Pair<Long, Double> pair = new Pair<>(kmerEncoding, kmerProbability);
-            kmersArray[i - k + 1] = pair;
-            kmersQueue.add(pair);
+            windowKmers[i - k + 2] = kmerEncoding;
+            windowProbabilities[i - k + 2] = kmerProbability;
         }
 
         // add the remaining characters to the encoder and store the resulting encoding
@@ -116,18 +121,100 @@ public class KmerExtractor {
         for (int i = windowSize - 1; i < seqLength; i++) {
             kmerEncoding = kmerEncoder.addBack(sequence[i]);
             kmerProbability = kmerEncoder.getProbability();
-            Pair<Long, Double> newKmer = new Pair<>(kmerEncoding, kmerProbability);
-            Pair<Long, Double> oldKmer = kmersArray[0];
-            System.arraycopy(kmersArray, 1, kmersArray, 0, kmersArray.length - 1);
-            kmersArray[kmersArray.length - 1] = newKmer;
-            kmersQueue.remove(oldKmer);
-            kmersQueue.add(newKmer);
-            Pair<Long, Double> minimizer = kmersQueue.peek();
-            if (kmersIndex == 0 || minimizer.first() != kmers[kmersIndex - 1]) {
-                kmers[kmersIndex++] = minimizer.first();
+            System.arraycopy(windowKmers, 1, windowKmers, 0, windowKmers.length - 1);
+            windowKmers[windowKmers.length - 1] = kmerEncoding;
+            System.arraycopy(windowProbabilities, 1, windowProbabilities, 0, windowProbabilities.length - 1);
+            windowProbabilities[windowProbabilities.length - 1] = kmerProbability;
+            windowMinimizerIndex--;
+            if (kmerProbability < windowMinimizerProbability) {
+                windowMinimizerProbability = kmerProbability;
+                windowMinimizerIndex = windowKmers.length - 1;
+            }
+            if (windowMinimizerIndex < 0) {
+                findProbabilityMinimizerIndex();
+                windowMinimizerProbability = windowProbabilities[windowMinimizerIndex];
+            }
+            if (kmersIndex == 0 || windowKmers[windowMinimizerIndex] != kmers[kmersIndex - 1]) {
+                kmers[kmersIndex++] = windowKmers[windowMinimizerIndex];
             }
         }
         return Arrays.copyOf(kmers, kmersIndex);
+    }
+
+    public long[] extractComplexityMaximizer(byte[] sequence) {
+        int seqLength = sequence.length;
+        if (seqLength < windowSize) {
+            return new long[0];
+        }
+        kmerEncoder.reset();
+        windowMinimizerIndex = 0;
+        windowMinimizerComplexity = Integer.MAX_VALUE;
+        // add the first k-1 characters to the encoder
+        for (int i = 0; i < k - 1; i++) {
+            kmerEncoder.addBack(sequence[i]);
+        }
+
+        long kmerEncoding;
+        int kmerComplexity;
+
+        // fill first minimizer window
+        for (int i = k - 1; i < windowSize - 1; i++) {
+            kmerEncoding = kmerEncoder.addBack(sequence[i]);
+            kmerComplexity = kmerEncoder.getComplexity();
+            windowKmers[i - k + 2] = kmerEncoding;
+            windowComplexities[i - k + 2] = kmerComplexity;
+        }
+
+        // add the remaining characters to the encoder and store the resulting encoding
+        long[] kmers = new long[seqLength - windowSize + 1];
+        int kmersIndex = 0;
+        for (int i = windowSize - 1; i < seqLength; i++) {
+            kmerEncoding = kmerEncoder.addBack(sequence[i]);
+            kmerComplexity = kmerEncoder.getComplexity();
+            System.arraycopy(windowKmers, 1, windowKmers, 0, windowKmers.length - 1);
+            windowKmers[windowKmers.length - 1] = kmerEncoding;
+            System.arraycopy(windowComplexities, 1, windowComplexities, 0, windowComplexities.length - 1);
+            windowComplexities[windowProbabilities.length - 1] = kmerComplexity;
+            windowMinimizerIndex--;
+            if (kmerComplexity > windowMinimizerComplexity) {
+                windowMinimizerComplexity = kmerComplexity;
+                windowMinimizerIndex = windowKmers.length - 1;
+            }
+            if (windowMinimizerIndex < 0) {
+                findComplexityMaximizerIndex();
+                windowMinimizerComplexity = windowComplexities[windowMinimizerIndex];
+            }
+            if (kmersIndex == 0 || windowKmers[windowMinimizerIndex] != kmers[kmersIndex - 1]) {
+                kmers[kmersIndex++] = windowKmers[windowMinimizerIndex];
+            }
+        }
+        return Arrays.copyOf(kmers, kmersIndex);
+    }
+
+    private void findProbabilityMinimizerIndex() {
+        windowMinimizerProbability = Double.MAX_VALUE;
+        for (int i = 0; i < windowKmers.length; i++) {
+            if (windowProbabilities[i] <= windowMinimizerProbability) {
+                windowMinimizerProbability = windowProbabilities[i];
+                windowMinimizerIndex = i;
+            }
+        }
+    }
+
+    private void findComplexityMaximizerIndex() {
+        windowMinimizerComplexity = 0;
+        for (int i = 0; i < windowKmers.length; i++) {
+            if (windowComplexities[i] >= windowMinimizerComplexity) {
+                windowMinimizerComplexity = windowComplexities[i];
+                windowMinimizerIndex = i;
+            }
+        }
+    }
+
+    public static int hashFunction(long value) {
+        value = (value ^ (value >>> 33)) * 0xff51afd7ed558ccdL;
+        value = (value ^ (value >>> 33)) * 0xc4ceb9fe1a85ec53L;
+        return (int) (value ^ (value >>> 33));
     }
 
     public interface Filter {
