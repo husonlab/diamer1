@@ -214,7 +214,7 @@ public class DBIndexer {
                             continue;
                         }
                         int taxId = record.id();
-                        long[] kmers = kmerExtractor.extractComplexityMaximizer(record.sequence());
+                        long[] kmers = kmerExtractor.extractKmers(record.sequence());
                         for (long kmerEnc : kmers) {
                             int bucketName = encoder.getBucketNameFromKmer(kmerEnc);
                             if (bucketName >= rangeStart && bucketName < rangeEnd) {

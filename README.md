@@ -23,10 +23,13 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 | nr90 kraken2                       | 269       |
 | nr90 Solis 11                      | 261       |
 | nr90 Solis 15                      | 269       |
-| nr90 Solis 15, probability, l = 27 | 75        |
-| nr90 Solis 15, probability, l = 20 | 106       |
-| nr90 Solis 15, probability, l = 17 | 133       |
+| nr90 Solis 15, l = 15              | 135       |
 | nr90 Solis 15, probability, l = 15 | 169       |
+| nr90 Solis 15, probability, l = 17 | 133       |
+| nr90 Solis 15, probability, l = 20 | 106       |
+| nr90 Solis 15, probability, l = 27 | 75        |
+| nr90 Solis 15, complexity, l = 14  | 163       |
+| nr90 Solis 15, complexity, l = 15  | 122       |
 | nr90 Solis 15, complexity, l = 17  | 85        |
 | nr90 Solis 15, complexity, l = 20  | 60        |
 | nr90 Segmasker                     | 171       |
@@ -34,7 +37,6 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 | nr DIAMOND Solis15                 | 581       |
 | nr DIAMOND                         | 381       |
 | nr DIAMOND p<1e-11                 | 347       |
-|                                    |           |
 
 
 # Changes since last meeting:

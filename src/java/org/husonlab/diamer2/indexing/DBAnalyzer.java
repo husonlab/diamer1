@@ -140,7 +140,7 @@ public class DBAnalyzer {
         freeMemory -= (long) (freeMemory * 0.1); // 10 % for the JVM
         // each bucket entry = 8 byte (kmer) + 4 byte (id) + 10 %
         long bucketArraySizes = (maxBucketSize + 1_000L * settings.MAX_IO_THREADS);
-        return (int) Math.min(Math.floor(freeMemory / (bucketArraySizes * 13.2)), encoder.getNrOfBuckets());
+        return (int) Math.min(Math.floor(freeMemory / (bucketArraySizes * 14d)), encoder.getNrOfBuckets());
     }
 
     private static void batchSupplier(SequenceSupplier<Integer, byte[]> sup,
@@ -232,7 +232,7 @@ public class DBAnalyzer {
                             for (byte c : sequenceRecord.sequence()) {
                                 charCounts[c]++;
                             }
-                            extractedKmers = kmerExtractor.extractComplexityMaximizer(sequenceRecord.sequence());
+                            extractedKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
                             for (long kmer : extractedKmers) {
                                 int bucketOfKmer = encoder.getBucketNameFromKmer(kmer);
                                 bucketSizes[bucketOfKmer]++;

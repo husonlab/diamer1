@@ -63,7 +63,6 @@ public class DBIndexer2 {
     }
 
     public String index() {
-        logger.logInfo("Expected bucket size: " + expectedBucketSize);
         tree.addLongProperty("kmers in database", 0);
         for (int i = 0; i < encoder.getNrOfBuckets(); i += settings.BUCKETS_PER_CYCLE) {
             processedSequenceRecords.set(0);
@@ -275,7 +274,7 @@ public class DBIndexer2 {
                                 skippedSequenceRecords.incrementAndGet();
                                 break;
                             }
-                            extractKmers = kmerExtractor.extractComplexityMaximizer(sequenceRecord.sequence());
+                            extractKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
                             for (long kmer : extractKmers) {
                                 int bucketOfKmer = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketInRange(bucketOfKmer)) {

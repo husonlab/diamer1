@@ -2,6 +2,8 @@ package org.husonlab.diamer2.main.encoders;
 
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
+import org.husonlab.diamer2.indexing.kmers.KmerExtractorComplexityMaximizer;
+import org.husonlab.diamer2.indexing.kmers.KmerExtractorMinimizer;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
@@ -95,7 +97,7 @@ public abstract class Encoder {
      * @return a KmerExtractor that can be used to extract kmers from sequences
      */
     public KmerExtractor getKmerExtractor(){
-        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods()), (kmer) -> true);
+        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods()));
     }
 
     public int getNrOfKmerBitsInBucketEntry() {
