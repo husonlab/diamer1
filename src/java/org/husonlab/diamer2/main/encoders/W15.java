@@ -1,6 +1,5 @@
 package org.husonlab.diamer2.main.encoders;
 
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
 import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
 
 import java.nio.file.Path;

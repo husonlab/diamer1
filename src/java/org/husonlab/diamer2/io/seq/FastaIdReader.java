@@ -69,6 +69,7 @@ public class FastaIdReader extends SequenceReader<Integer, char[]> {
 
     public boolean readNextSequence() throws IOException {
         sequence.setLength(0);
+//        sequence.append('*');
         while (true) {
             if (bufferIndex >= BUFFER_SIZE) {
                 if (fillBuffer() == -1) {
