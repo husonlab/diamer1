@@ -67,8 +67,8 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 * Base11Uniform: [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
 * Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
-* Solis: [ILMVJ][NPQSXB][DEZ][A][HR][G][T][KO][WY][F][CU]
-* kraken2 (15): [ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W][CU]
+* Solis 11: [ILMVJ][NPQSXB][DEZ][A][HR][G][T][KO][WY][F][CU]
+* Solis 15: [ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W][CU]
 * all 20: [LXJ][A][G][V][S][EZ][T][R][DB][I][P][KO][F][N][Q][Y][M][H][W][CU]
 
 # Future:

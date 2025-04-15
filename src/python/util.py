@@ -2,7 +2,8 @@ import pandas as pd
 from threading import Thread
 
 
-def read_per_taxon_assignment(path: str, rank: str = None, kmer_threshold: int = 1000) -> pd.DataFrame:
+def read_per_taxon_assignment(path: str, rank: str = None, kmer_threshold: int = 1000,
+                              ovo_1_threshold: int = 1) -> pd.DataFrame:
     """
     Reads all taxons with a kmer count greater than 1000 from a per taxon assignment file.
     :param path: path to the file
@@ -11,11 +12,16 @@ def read_per_taxon_assignment(path: str, rank: str = None, kmer_threshold: int =
     :return: dataframe with
     """
     df = pd.read_csv(path, header=0, sep="\t", index_col="label")
+    # change old naming scheme
+    df.columns = [x.replace("0000", "").replace("ratio: ", "").replace("(accumulated)", "cumulative") for x in
+                  df.columns]
     if rank:
-        df = df[(df['rank'] == rank) & (df["kmer count"] >= kmer_threshold)] \
+        df = df[(df['rank'] == rank) & (df["kmer count"] >= kmer_threshold) &
+                (df["OVO (1.00) read count cumulative"] >= ovo_1_threshold)] \
             .sort_values(["kmer count"], ascending=False)
     else:
-        df = df[(df["kmer count"] >= kmer_threshold)] \
+        df = df[(df["kmer count"] >= kmer_threshold) &
+                (df["OVO (1.00) read count cumulative"] >= ovo_1_threshold)] \
             .sort_values(["kmer count"], ascending=False)
     return df
 
