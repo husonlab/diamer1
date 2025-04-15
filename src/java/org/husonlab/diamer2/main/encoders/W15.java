@@ -88,10 +88,10 @@ public class W15 extends Encoder {
 
     @Override
     public int getBucketNameFromKmer(long kmer) {
-//        return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
-        int bucket = hashFunction(kmer) % nrOfBuckets;
-        int absMask = bucket >> 31;
-        return (bucket ^ absMask) - absMask; // Convert to positive
+        return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
+//        int bucket = hashFunction(kmer) % nrOfBuckets;
+//        int absMask = bucket >> 31;
+//        return (bucket ^ absMask) - absMask; // Convert to positive
     }
 
     @Override
