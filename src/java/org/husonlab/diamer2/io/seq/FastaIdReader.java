@@ -69,7 +69,7 @@ public class FastaIdReader extends SequenceReader<Integer, char[]> {
 
     public boolean readNextSequence() throws IOException {
         sequence.setLength(0);
-//        sequence.append('*');
+        sequence.append('*');
         while (true) {
             if (bufferIndex >= BUFFER_SIZE) {
                 if (fillBuffer() == -1) {
@@ -80,6 +80,7 @@ public class FastaIdReader extends SequenceReader<Integer, char[]> {
             while (bufferIndex < BUFFER_SIZE) {
                 char c = buffer[bufferIndex++];
                 if (c == '>') {
+                    sequence.append('*'); // End of sequence
                     bufferIndex--; // Step back so the next ID can be processed
                     return true;
                 } else if (!Character.isISOControl(c)) {

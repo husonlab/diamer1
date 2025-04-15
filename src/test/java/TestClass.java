@@ -159,4 +159,10 @@ public class TestClass {
             throw new RuntimeException(e);
         }
     }
+
+    @Test
+    public void testW15() {
+        W15 w15 = new W15(new Base11Alphabet(), null, null, new boolean[]{true, true, true}, 22);
+        System.out.println(w15.getBucketNameFromKmer(10));
+    }
 }

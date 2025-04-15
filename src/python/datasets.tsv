@@ -27,8 +27,8 @@ NR90	Etchebest	15	111111111111111	15	c > 4	F:/Studium/Master/semester5/thesis/da
 NR90	Etchebest	15	111111111111111	15	p < 1e-11	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-11/per_taxon_assignments.tsv
 NR90	Etchebest	15	111111111111111	15	p < 1e-12	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-12/per_taxon_assignments.tsv
 NR90	Etchebest	15	111111111111111	15	p < 1e-13	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-13/per_taxon_assignments.tsv
-NR90	uniform	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform/per_taxon_assignments.tsv
-NR90	uniform	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform_longspaced/per_taxon_assignments.tsv
+NR90	uniform 11	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform/per_taxon_assignments.tsv
+NR90	uniform 11	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform_longspaced/per_taxon_assignments.tsv
 NR90	all 20	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_all20/per_taxon_assignments.tsv
 NR90	Solis 11	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis/per_taxon_assignments.tsv		261
 NR90	Solis 15	12	111111111111	12		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis15_12-mer/per_taxon_assignments.tsv		255
@@ -46,6 +46,8 @@ NR90	Solis 15	13	1111111111111	17		F:/Studium/Master/semester5/thesis/data/test_
 NR90	Solis 15	13	1111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis15_complexityMaximizer15/per_taxon_assignments.tsv	complexity	122
 NR90	Solis 15	13	1111111111111	14		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis15_complexityMaximizer14/per_taxon_assignments.tsv	complexity	163
 NR90	DIAMOND	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond_13-mer/per_taxon_assignments.tsv		117
-NR90	uniform	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform_13-mer/per_taxon_assignments.tsv		277
+NR90	uniform 11	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform_13-mer/per_taxon_assignments.tsv		277
 NR90	Etchebest	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_13-mer/per_taxon_assignments.tsv		246
 NR90	Solis 11	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis11_13-mer/per_taxon_assignments.tsv		225
+NR90	uniform 16	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform16_13-mer/per_taxon_assignments.tsv		282
+NR90	Solis 16	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis16_13-mer/per_taxon_assignments.tsv		270
