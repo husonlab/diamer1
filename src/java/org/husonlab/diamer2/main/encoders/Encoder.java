@@ -133,17 +133,10 @@ public abstract class Encoder {
     /**
      * Combines an id and a kmer to an index entry. The bucket name is not included in the result.
      * @param id taxon id or sequence id the kmer belongs to
-     * @param kmer the number representing the kmer
+     * @param kmerWithoutBucketName the number representing the kmer
      * @return index entry
      */
-    public abstract long getIndex(int id, long kmer);
-
-    /**
-     * Extracts the part of a kmer that is stored in the bucket from a whole encoded kmer.
-     * @param kmer the number representing the kmer
-     * @return the part of the kmer that belongs in the bucket
-     */
-    public abstract long getBucketPartFromKmer(long kmer);
+    public abstract long getIndexEntry(int id, long kmerWithoutBucketName);
 
     /**
      * Extracts the bucket name from a kmer.
@@ -151,6 +144,13 @@ public abstract class Encoder {
      * @return the bucket name
      */
     public abstract int getBucketNameFromKmer(long kmer);
+
+    /**
+     * Removes the bits from the bucket that are captured in the bucket name.
+     *
+     * @return remaining bits of the kmer packed to the left 54 bits.
+     */
+    public abstract long getKmerWithoutBucketName(long kmer);
 
     /**
      * Extracts the id (taxon id or read id) from an index entry.
@@ -169,6 +169,7 @@ public abstract class Encoder {
      * @param kmerIndex the index entry of the kmer (without the bucket name)
      * @return the number representing the kmer
      */
+    @Deprecated
     public abstract long getKmerFromIndexEntry(int bucketName, long kmerIndex);
 
     /**

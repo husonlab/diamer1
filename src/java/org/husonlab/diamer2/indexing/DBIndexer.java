@@ -225,8 +225,8 @@ public class DBIndexer {
 //                                    // slows indexing down by about 20%
 //                                    statisticsCollector.addToHistogram(kmerEnc);
 //                                }
-                                bucketMaps[bucketName - rangeStart].computeIfPresent(kmerEnc, (k, v) -> tree.findLCA(v, taxId));
-                                bucketMaps[bucketName - rangeStart].computeIfAbsent(kmerEnc, k -> taxId);
+                                bucketMaps[bucketName - rangeStart].computeIfPresent(encoder.getKmerWithoutBucketName(kmerEnc), (k, v) -> tree.findLCA(v, taxId));
+                                bucketMaps[bucketName - rangeStart].computeIfAbsent(encoder.getKmerWithoutBucketName(kmerEnc), k -> taxId);
                             }
                         }
                     }

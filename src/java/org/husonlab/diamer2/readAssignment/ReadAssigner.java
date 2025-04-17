@@ -6,11 +6,9 @@ import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
-import org.husonlab.diamer2.seq.alphabet.Alphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.logging.*;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.concurrent.*;
 
@@ -86,7 +84,7 @@ public class ReadAssigner {
         progressBar.finish();
 
         logger.logInfo("Sorting, normalizing and saving kmer matches ...");
-        int nrOfMatchingKmers = 0;
+        long nrOfMatchingKmers = 0;
         int nrOfReadsWithMatches = 0;
         int nrOfReadsWithoutMatches = 0;
         for (ArrayList<ReadAssignment.KmerCount<Integer>> readAssignments: readAssignment.getKmerCounts()) {

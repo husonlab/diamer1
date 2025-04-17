@@ -236,7 +236,7 @@ public class ReadIndexer {
                                 int bucketName = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketName >= rangeStart && bucketName < rangeEnd) {
                                     if (settings.COLLECT_STATS) kmerCounts.put(kmer, kmerCounts.getOrDefault(kmer, 0) + 1);
-                                    bucketLists[bucketName - rangeStart].add(encoder.getIndex(id, kmer));
+                                    bucketLists[bucketName - rangeStart].add(encoder.getIndexEntry(id, encoder.getKmerWithoutBucketName(kmer)));
                                 }
                             }
                         }

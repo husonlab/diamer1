@@ -157,7 +157,7 @@ public class DBIndexer2 {
                         lastTaxId = tree.findLCA(Arrays.copyOfRange(taxIds, lastKmerStartIndex, i));
                     }
                     if (lastTaxId != -1) {
-                        bucketWriter.write(encoder.getIndex(lastTaxId, lastKmer));
+                        bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
                         tree.addToProperty(lastTaxId, "kmers in database", 1);
                     }
                     lastKmerStartIndex = i;
@@ -169,7 +169,7 @@ public class DBIndexer2 {
                 lastTaxId = tree.findLCA(Arrays.copyOfRange(taxIds, lastKmerStartIndex, kmers.length));
             }
             if (lastTaxId != -1) {
-                bucketWriter.write(encoder.getIndex(lastTaxId, lastKmer));
+                bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
                 tree.addToProperty(lastTaxId, "kmers in database", 1);
             }
 
@@ -280,7 +280,7 @@ public class DBIndexer2 {
                                 if (bucketInRange(bucketOfKmer)) {
                                     int currentIndexOfMatchingBucket = bucketOfKmer - startBucket;
                                     int nextFreeIndex = getNextIndexInBucket(currentIndexOfMatchingBucket);
-                                    kmers[currentIndexOfMatchingBucket][nextFreeIndex] = kmer;
+                                    kmers[currentIndexOfMatchingBucket][nextFreeIndex] = encoder.getKmerWithoutBucketName(kmer);
                                     taxIds[currentIndexOfMatchingBucket][nextFreeIndex] = taxId;
                                 }
                             }

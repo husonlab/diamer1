@@ -39,7 +39,7 @@ public class Bucket {
         content = new long[bucketMap.size()];
         int i = 0;
         for (ConcurrentHashMap.Entry<Long, Integer> entry : bucketMap.entrySet()) {
-            content[i] = encoder.getIndex(entry.getValue(), entry.getKey());
+            content[i] = encoder.getIndexEntry(entry.getValue(), entry.getKey());
             i++;
         }
         sort(encoder.getNrOfKmerBitsInBucketEntry());

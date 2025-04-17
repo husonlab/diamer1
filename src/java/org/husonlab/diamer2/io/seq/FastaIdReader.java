@@ -20,6 +20,7 @@ public class FastaIdReader extends SequenceReader<Integer, char[]> {
     private final StringBuilder idString;
     private int id;
     private final StringBuilder sequence;
+    private char c;
 
     public FastaIdReader(Path file) {
         super(file);
@@ -78,7 +79,7 @@ public class FastaIdReader extends SequenceReader<Integer, char[]> {
             }
 
             while (bufferIndex < BUFFER_SIZE) {
-                char c = buffer[bufferIndex++];
+                c = buffer[bufferIndex++];
                 if (c == '>') {
                     sequence.append('*'); // End of sequence
                     bufferIndex--; // Step back so the next ID can be processed

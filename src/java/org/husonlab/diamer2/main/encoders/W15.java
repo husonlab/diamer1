@@ -27,11 +27,6 @@ public class W15 extends Encoder {
     }
 
     @Override
-    public long getBucketPartFromKmer(long kmer) {
-        return kmer >>> nrOfBitsBucketNames;
-    }
-
-    @Override
     protected double[] getLetterLikelihoods() {
         // Diamond alphabet
 //        return new double[] {
@@ -82,27 +77,61 @@ public class W15 extends Encoder {
     }
 
     @Override
-    public long getIndex(int id, long kmer) {
-        return getBucketPartFromKmer(kmer) << bitsForIds | id;
+    public long getIndexEntry(int id, long kmerWithoutBucketName) {
+        return (kmerWithoutBucketName << bitsForIds) | id;
     }
 
     @Override
     public int getBucketNameFromKmer(long kmer) {
-        return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
-//        int bucket = hashFunction(kmer) % nrOfBuckets;
-//        int absMask = bucket >> 31;
-//        return (bucket ^ absMask) - absMask; // Convert to positive
+//        return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
+        // 1111111111111111011111111110010111010111011111111101011011111111
+        // 0000000000000000100000000001101000101000100000000010100100000000
+        // 47, 36, 35, 33, 29, 27, 23, 13, 11, 8
+        return (int)   ((((kmer >> 27) & 1)) |      // 27 -> 0
+                        (((kmer >> 35) & 1) << 1) | // 35 -> 1
+                        (((kmer >> 33) & 1) << 2) | // 33 -> 2
+                        (((kmer >> 8 ) & 1) << 3) | // ...
+                        (((kmer >> 11) & 1) << 4) |
+                        (((kmer >> 13) & 1) << 5) |
+                        (((kmer >> 36) & 1) << 6) |
+                        (((kmer >> 29) & 1) << 7) |
+                        (((kmer >> 23) & 1) << 8) |
+                        (((kmer >> 47) & 1) << 9));
+    }
+
+    @Override
+    public long getKmerWithoutBucketName(long kmer) {
+        return (kmer & 0xFFL) |
+               ((kmer & 0x600L) >>> 1) |
+               ((kmer & 0x1000L) >>> 2) |
+               ((kmer & 0x7FC000L) >>> 3) |
+               ((kmer & 0x7000000L) >>> 4) |
+               ((kmer & 0x10000000L) >>> 5) |
+               ((kmer & 0x1C0000000L) >>> 6) |
+               ((kmer & 0x400000000L) >>> 7) |
+               ((kmer & 0x7FE000000000L) >>> 9) |
+               ((kmer & 0xFFFF000000000000L) >>> 10);
     }
 
     @Override
     public int getIdFromIndexEntry(long kmerIndex) {
-        return (int) kmerIndex & (1 << bitsForIds) - 1;
+        return (int) kmerIndex & ((1 << bitsForIds) - 1);
     }
 
     @Override
     public long getKmerFromIndexEntry(int bucketName, long kmerIndex) {
-        return (kmerIndex >>> bitsForIds) << nrOfBitsBucketNames | bucketName;
+//        return (kmerIndex >>> bitsForIds) << nrOfBitsBucketNames | bucketName;
+        return  (kmerIndex & 0xFFFF000000000000L) | ((bucketName & 0x200L) << 38) | // 9 -> 47
+                (kmerIndex & 0xFFC000000000L >> 1) | ((bucketName & 0x40L) << 30) | ((bucketName & 0x2L) << 34)| // 6,1 -> 36,35
+                (kmerIndex & 0x2000000000L >> 3) | ((bucketName & 0x4L) << 31) | // 2 -> 33
+                (kmerIndex & 0x1C00000000L >> 4) | ((bucketName & 0x80L) << 22) | // 7 -> 29
+                (kmerIndex & 0x200000000L >> 5) | ((bucketName & 0x1L) << 27) | // 0 -> 27
+                (kmerIndex & 0x1C0000000L >> 6) | ((bucketName & 0x100L) << 15) | // 8 -> 23
+                (kmerIndex & 0x3FE00000L >> 7) | ((bucketName & 0x20L) << 8) | // 5 -> 13
+                (kmerIndex & 0x100000L >> 8) | ((bucketName & 0x10L) << 7) | // 4 -> 11
+                (kmerIndex & 0xC0000L >> 9) | ((bucketName & 0x8L) << 5); // 3 -> 8
     }
+
     @Override
     public long getKmerFromIndexEntry(long kmerIndex) {
         return kmerIndex >>> bitsForIds;
@@ -121,11 +150,5 @@ public class W15 extends Encoder {
     @Override
     public int getNrOfBuckets() {
         return nrOfBuckets;
-    }
-
-    private static int hashFunction(long value) {
-        value = (value ^ (value >>> 33)) * 0xff51afd7ed558ccdL;
-        value = (value ^ (value >>> 33)) * 0xc4ceb9fe1a85ec53L;
-        return (int) (value ^ (value >>> 33));
     }
 }

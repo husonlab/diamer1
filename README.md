@@ -4,7 +4,8 @@
 * 28.02.2025:
   * Fixed bug in Compressed4BitSequence that did not properly store -1 values.
 
-mbac26
+newer dataset: https://www.ebi.ac.uk/ena/browser/view/ERX13528856?show=reads
+more difficult dataset: mbac26
 2024
 
 ````shell
@@ -66,6 +67,8 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 # Alphabets
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 * uniform11: [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
+* uniform11: [L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]
+* uniform11-2: [RKO][PD][HYFW][L][EQZ][TNB][A][SCU][IMJ][G][VX]
 * uniform16: [L][A][G][V][S][E][T][R][D][I][PUBJZO][KX][FC][NW][QH][YM]
 * Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
 * Solis 11: [ILMVJ][NPQSXB][DEZ][A][HR][G][T][KO][WY][F][CU]
