@@ -1,5 +1,8 @@
+import numpy as np
 import pandas as pd
 from threading import Thread
+
+from matplotlib import pyplot as plt
 
 
 def read_per_taxon_assignment(path: str, rank: str = None, kmer_threshold: int = 1000,
@@ -179,3 +182,21 @@ def compare_with_kraken(path_kraken: str, path_raw_assignment: str, path_per_rea
     kraken_assignment_processor.join()
 
     return target
+
+
+def plot_true_assigned_per_rank(df: pd.DataFrame, total: int = 100, title: str = "", x_axis: str = "",
+                                y_axis: str = "true assigned reads (%)", ranks: int = 8):
+    ranks = ["superkingdom", "kingdom", "phylum", "class", "order", "family", "genus", "species"][-ranks:]
+    colors = ["#ffa9b1", "#6e9053", "#9a6dad", "#c7cc67", "#87c4ff", "#e4963a", "#539a97", "#af5d55"]
+    colors = colors[-len(ranks):]
+    plt.figure(figsize=(len(df), 6))
+    for rank, color in zip(ranks, colors):
+        plt.bar(df["label"].astype(str), df[rank] / total * 100, label=rank, color=color, width=0.8)
+    plt.legend(bbox_to_anchor=(1, 1), loc="upper left")
+    plt.ylim(0, 100)
+    plt.yticks(np.arange(0, 101, 10))
+    plt.xlabel(x_axis)
+    plt.xticks(rotation=45)
+    plt.ylabel(y_axis)
+    plt.title(title, pad=20)
+    plt.show()

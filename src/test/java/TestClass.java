@@ -28,11 +28,11 @@ import static org.husonlab.diamer2.main.Main.parseMask;
 
 public class TestClass {
     @Test
-    public void test() {
-        Path output = Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr_processed\\new");
+    public void analyze_kraken_result() {
+        Path output = Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2_processed");
         GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, 3, false, true, true, false);
-        Tree tree = readTaxonomy(Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxdmp\\nodes.dmp"), Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\taxdmp\\names.dmp"), true);
-        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr\\output.txt"), settings);
+        Tree tree = readTaxonomy(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/nodes.dmp"), Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/names.dmp"), true);
+        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2/raw_kraken2.txt"), settings);
         readAssignment.addKmerCountsToTree();
         readAssignment.sortKmerCounts();
         readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.1f));
@@ -65,8 +65,8 @@ public class TestClass {
     public void analyseDBIndex() {
         String args[] = new String[]{
                 "--analyze-db-index", "--only-standard-ranks",
-                "F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\index_longspaced",
-                "C:\\Users\\noel\\Documents\\diamer2\\statistics\\KmerHistogramPerRankNr100Longspaced"
+                "F:/Studium/Master/semester5/thesis/data/NCBI/100/index_longspaced",
+                "C:/Users/noel/Documents/diamer2/statistics/KmerHistogramPerRankNr100Longspaced"
         };
         Main.main(args);
     }
@@ -74,7 +74,7 @@ public class TestClass {
     @Test
     public void averageDBProteinLength() throws IOException {
         HashMap<Integer, Long> lengths = new HashMap<>();
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100_preprocessed.fsa")))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream("F:/Studium/Master/semester5/thesis/data/NCBI/100/nr100_preprocessed.fsa")))) {
             String line;
             StringBuilder sb = new StringBuilder();
             while ((line = br.readLine()) != null) {
@@ -86,7 +86,7 @@ public class TestClass {
                 }
             }
         }
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:\\Users\\nk035\\Documents\\diamer2\\statistics\\protein_lengths.tsv"))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/nk035/Documents/diamer2/statistics/protein_lengths.tsv"))) {
             bw.write("length\tcount\n");
             for (Integer length : lengths.keySet()) {
                 bw.write(length + "\t" + lengths.get(length) + "\n");
@@ -111,7 +111,7 @@ public class TestClass {
             0.012889268,
         });
         Base11Alphabet alphabet = new Base11Alphabet();
-        try (SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<>(new FastaIdReader(Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\100\\nr100_preprocessed.fsa")),
+        try (SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<>(new FastaIdReader(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/100/nr100_preprocessed.fsa")),
                 alphabet::translateDBSequence, false)) {
             FutureSequenceRecords<Integer, byte[]> futureSequenceRecords;
             while ((futureSequenceRecords = sup.next()) != null) {
@@ -163,6 +163,26 @@ public class TestClass {
     @Test
     public void testW15() {
         W15 w15 = new W15(new Base11Alphabet(), null, null, new boolean[]{true, true, true}, 22);
+        long kmer = 13665795155445L;
+//        long kmer = 0xFFFFFFFFFFFFFL;
+        int bucket = w15.getBucketNameFromKmer(kmer);
+        long kmerWithoutBucket = w15.getKmerWithoutBucketName(kmer);
+        long indexEntry = w15.getIndexEntry(0, kmerWithoutBucket);
+        int id = w15.getIdFromIndexEntry(indexEntry);
+        long kmerFromIndexEntry = w15.getKmerFromIndexEntry(indexEntry);
+        long restoredKmer = w15.getKmerFromIndexEntry(bucket, indexEntry);
+        System.out.println("Kmer: " + kmer);
+        System.out.println("Kmer: " + Long.toBinaryString(kmer));
+        System.out.println("Bucket: " + bucket);
+        System.out.println("Kmer without bucket: " + kmerWithoutBucket);
+        System.out.println("Kmer without bucket: " + Long.toBinaryString(kmerWithoutBucket));
+        System.out.println("Index entry: " + indexEntry);
+        System.out.println("Index entry: " + Long.toBinaryString(indexEntry));
+        System.out.println("ID: " + id);
+        System.out.println("Kmer from index entry: " + kmerFromIndexEntry);
+        System.out.println("Kmer from index entry: " + Long.toBinaryString(kmerFromIndexEntry));
+        System.out.println("Restored kmer: " + restoredKmer);
+        System.out.println("Restored kmer: " + Long.toBinaryString(restoredKmer));
         System.out.println(w15.getBucketNameFromKmer(10));
     }
 }

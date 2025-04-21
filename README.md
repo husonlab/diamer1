@@ -63,11 +63,13 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * -: 111111111111111
 * longspaced: 11111101101100111000100001
 * [Zhang et al.](https://doi.org/10.1093/bioinformatics/bth037): 11110010101011001101111
+* zhang 12: 111010110100110111
+* zhang 9: 110110101000111
 
 # Alphabets
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 * uniform11: [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
-* uniform11: [L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]
+* uniform11 S: [L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]
 * uniform11-2: [RKO][PD][HYFW][L][EQZ][TNB][A][SCU][IMJ][G][VX]
 * uniform16: [L][A][G][V][S][E][T][R][D][I][PUBJZO][KX][FC][NW][QH][YM]
 * Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
@@ -190,10 +192,10 @@ java -Xmx100g -jar diamer2.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/n
 # Kraken2
 ## DB setup
 ````shell
-kraken2-build --protein --download-library nr --db kraken_db
-kraken2-build --threads 64 --download-taxonomy --protein --db kraken_db
-kraken2-build --build --threads 64 --db kraken_db
-kraken2 --db kraken_db Zymo-GridION-EVEN-3Peaks-R103-merged.fq > 
+kraken2-build --protein --download-library nr --db kraken2db
+kraken2-build --threads 64 --download-taxonomy --protein --db kraken2db
+kraken2-build --build --threads 64 --db kraken2db
+kraken2 --db kraken2db Zymo-GridION-EVEN-3Peaks-R103-merged.fq > 
 ````
 
 # Questions:
