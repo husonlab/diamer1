@@ -65,6 +65,7 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * [Zhang et al.](https://doi.org/10.1093/bioinformatics/bth037): 11110010101011001101111
 * zhang 12: 111010110100110111
 * zhang 9: 110110101000111
+* 12-2: 11111100111111
 
 # Alphabets
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
