@@ -60,3 +60,4 @@ NR90	uniform 11 S	11	11111111111	11		F:/Studium/Master/semester5/thesis/data/tes
 NR90	uniform 11 S	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_15-mer/per_taxon_assignments.tsv		292
 NR90	uniform 11 S	12	111010110100110111	18		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_zhang12_12-mer/per_taxon_assignments.tsv		271
 NR90	uniform 11 S	12	11111100111111	14		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_12-2-mer/per_taxon_assignments.tsv		269
+NR90	uniform 16 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform16s_13-mer/per_taxon_assignments.tsv		284

@@ -73,6 +73,7 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * uniform11 S: [L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]
 * uniform11-2: [RKO][PD][HYFW][L][EQZ][TNB][A][SCU][IMJ][G][VX]
 * uniform16: [L][A][G][V][S][E][T][R][D][I][PUBJZO][KX][FC][NW][QH][YM]
+* uniform16 S: [L][A][G][V][S][E][T][R][D][I][PUBJZO*][KX][FC][NW][QH][YM]
 * Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
 * Solis 11: [ILMVJ][NPQSXB][DEZ][A][HR][G][T][KO][WY][F][CU]
 * Solis 15: [ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W][CU]
@@ -202,7 +203,7 @@ kraken2 --db kraken2db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 # Questions:
 
 # TODO
-* try to use duskmaster to mask low complexity regions
+* can bracken be used with my output?
 * Use higher level than sequenceRecord to store sequenceRecords in memory for all but the first run to save computation
 * Bloom filter for usefull kmers
 * use weight for OVO that consinders the total amino acids in the database per rank to account for database bias
