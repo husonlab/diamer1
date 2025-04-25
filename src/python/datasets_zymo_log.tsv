@@ -8,9 +8,15 @@ NR	DIAMOND	15	111111111111111	15	p < 1e-11	F:/Studium/Master/semester5/thesis/da
 NR	Etchebest	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_etchebest/per_taxon_assignments.tsv		581
 NR	Solis 15	12	111111111111	12		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_solis15_12-mer/per_taxon_assignments.tsv		539
 NR	Solis 15	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_kraken2/per_taxon_assignments.tsv		581
+NR	uniform 16 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_uniform16s_13-mer/per_taxon_assignments.tsv		629
+NR	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_uniform11s_13-mer_old/per_taxon_assignments.tsv	old	611
+NR	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_uniform11s_13-mer/per_taxon_assignments.tsv		369
+NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_solis15s_complexityMaximizer_12-mer/per_taxon_assignments.tsv	complexity	128
+NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_solis15s_complexityMaximizer_12-mer_test/per_taxon_assignments.tsv	complexity - only DB	128
+NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr_solis15s_probabilityMinimizer15_12-mer/per_taxon_assignments.tsv	probability	184
 NR90	DIAMOND	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond/per_taxon_assignments.tsv		195
 NR90	DIAMOND	15	11111101101100111000100001	26		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond_longspaced/per_taxon_assignments.tsv
-NR90	DIAMOND	15	11110010101011001101111	23		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond_zhang/per_taxon_assignments.tsv
+NR90	DIAMOND	15	11110010101011001101111	23		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond_zhang/per_taxon_assignments.tsv		199
 NR90	DIAMOND	15	111111111111111	15	c > 4	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond_filtered_4/per_taxon_assignments.tsv		181
 NR90	DIAMOND	15	111111111111111	15	c > 5	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond_filtered_5/per_taxon_assignments.tsv		127
 NR90	DIAMOND	15	111111111111111	15	p < 1e-9	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_diamond_filteredE-9/per_taxon_assignments.tsv
@@ -24,9 +30,9 @@ NR90	Etchebest	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/te
 NR90	Etchebest	15	11111101101100111000100001	26		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_longspaced/per_taxon_assignments.tsv
 NR90	Etchebest	15	11110010101011001101111	23		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_zhang/per_taxon_assignments.tsv
 NR90	Etchebest	15	111111111111111	15	c > 4	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filtered_4/per_taxon_assignments.tsv
-NR90	Etchebest	15	111111111111111	15	p < 1e-11	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-11/per_taxon_assignments.tsv
-NR90	Etchebest	15	111111111111111	15	p < 1e-12	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-12/per_taxon_assignments.tsv
-NR90	Etchebest	15	111111111111111	15	p < 1e-13	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-13/per_taxon_assignments.tsv
+NR90	Etchebest	15	111111111111111	15	p < 1e-11	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-11/per_taxon_assignments.tsv		268
+NR90	Etchebest	15	111111111111111	15	p < 1e-12	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-12/per_taxon_assignments.tsv		268
+NR90	Etchebest	15	111111111111111	15	p < 1e-13	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_etchebest_filteredE-13/per_taxon_assignments.tsv		261
 NR90	uniform 11	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform/per_taxon_assignments.tsv
 NR90	uniform 11	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform_longspaced/per_taxon_assignments.tsv
 NR90	all 20	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_all20/per_taxon_assignments.tsv
@@ -53,7 +59,7 @@ NR90	uniform 16	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/tes
 NR90	Solis 16	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis16_13-mer/per_taxon_assignments.tsv		270
 NR90	Solis 15 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_solis15s_13-mer/per_taxon_assignments.tsv		270
 NR90	uniform 11.2	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11-2_13-mer/per_taxon_assignments.tsv		270
-NR90	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv		279
+NR90	uniform 11 S	13	1111111111111	13	c > 3	F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_13-mer_old/per_taxon_assignments.tsv		279
 NR90	uniform 11 S	14	11111111111111	14		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_14-mer/per_taxon_assignments.tsv		286
 NR90	uniform 11 S	12	111111111111	12		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_12-mer/per_taxon_assignments.tsv		268
 NR90	uniform 11 S	11	11111111111	11		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_11-mer/per_taxon_assignments.tsv		238
@@ -61,3 +67,4 @@ NR90	uniform 11 S	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data
 NR90	uniform 11 S	12	111010110100110111	18		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_zhang12_12-mer/per_taxon_assignments.tsv		271
 NR90	uniform 11 S	12	11111100111111	14		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_12-2-mer/per_taxon_assignments.tsv		269
 NR90	uniform 16 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform16s_13-mer/per_taxon_assignments.tsv		284
+NR90	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_dataset/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv		171

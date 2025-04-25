@@ -137,7 +137,7 @@ public class DBAnalyzer {
     public int suggestNrOfBuckets() {
         Runtime runtime = Runtime.getRuntime();
         long freeMemory = (runtime.maxMemory() - runtime.totalMemory()) + runtime.freeMemory();
-        freeMemory -= (long) (freeMemory * 0.1); // 10 % for the JVM
+        freeMemory -= (long) (freeMemory * 0.2); // 20 % for the JVM
         // each bucket entry = 8 byte (kmer) + 4 byte (id) + 10 %
         long bucketArraySizes = (maxBucketSize + 1_000L * settings.MAX_IO_THREADS);
         return (int) Math.min(Math.floor(freeMemory / (bucketArraySizes * 14d)), encoder.getNrOfBuckets());

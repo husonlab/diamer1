@@ -26,13 +26,14 @@ public class BucketIO {
             throw new FileNotFoundException("Tried to read non-existing bucket file: " + file.toFile().getName());
         }
         long[] content;
-        try (FileInputStream fis = new FileInputStream(file.toString());
-             DataInputStream dis = new DataInputStream(fis)) {
-            int length = dis.readInt();
+        try (BucketReader reader = getBucketReader()) {
+            int length = reader.getLength();
             content = new long[length];
             for (int i = 0; i < length; i++) {
-                content[i] = dis.readLong();
+                content[i] = reader.next();
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
         return new Bucket(name, content);
     }
@@ -43,10 +44,9 @@ public class BucketIO {
      */
     public void write(Bucket bucket) throws IOException {
         long[] content = bucket.getContent();
-        try (DataOutputStream dos = new DataOutputStream(new BufferedOutputStream(new FileOutputStream(file.toString())))) {
-            dos.writeInt(content.length);
+        try (BucketWriter writer = getBucketWriter()) {
             for (long l : content) {
-                dos.writeLong(l);
+                writer.write(l);
             }
         }
     }
@@ -82,19 +82,23 @@ public class BucketIO {
     public static class BucketReader implements AutoCloseable {
 
         private final FileInputStream fis;
-        private final DataInputStream dis;
         private final int length;
         private int position = 0;
+        private long previous;
+        byte[] buffer = new byte[65_536];
+        private int bufferPosition = 0;
+        private int bufferLength = 0;
 
         public BucketReader(Path file) {
             try {
                 fis = new FileInputStream(file.toString());
-                dis = new DataInputStream(new BufferedInputStream(fis, 65_536));
             } catch (Exception e) {
                 throw new RuntimeException("Could not open bucket file " + file.toFile().getName(), e);
             }
             try {
-                length = dis.readInt();
+                byte[] lengthBytes = fis.readNBytes(4);
+                length = ((lengthBytes[0] & 0xFF) << 24) | ((lengthBytes[1] & 0xFF) << 16) |
+                        ((lengthBytes[2] & 0xFF) << 8) | (lengthBytes[3] & 0xFF);
             } catch (Exception e) {
                 throw new RuntimeException("Could not read length of bucket file " + file.toFile().getName(), e);
             }
@@ -113,17 +117,44 @@ public class BucketIO {
             if (position >= length) {
                 throw new RuntimeException("BucketReader: end of bucket reached");
             }
+            position++;
+            previous += readNextLong();
+            return previous;
+        }
+
+        public long readNextLong() {
+            long l = 0;
+            int i = 0;
+            byte b;
+            do {
+                b = getNextByte();
+                l |= ((long) (b & 0b01111111)) << (i * 7);
+                i++;
+            } while (b < 0);
+            return l;
+        }
+
+        private byte getNextByte() {
+            if (bufferPosition >= bufferLength) {
+                fillBuffer();
+            }
+            return buffer[bufferPosition++];
+        }
+
+        private void fillBuffer() {
             try {
-                position++;
-                return dis.readLong();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not read long from bucket file", e);
+                bufferPosition = 0;
+                bufferLength = fis.read(buffer);
+                if (bufferLength == -1) {
+                    throw new EOFException();
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read from bucket file", e);
             }
         }
 
         @Override
         public void close() throws Exception {
-            dis.close();
             fis.close();
         }
 
@@ -140,6 +171,7 @@ public class BucketIO {
         private final FileOutputStream fos;
         private final DataOutputStream dos;
         private int length = 0;
+        private long previous;
 
         public BucketWriter(Path file) {
             this.file = file;
@@ -154,8 +186,22 @@ public class BucketIO {
 
         public void write(long l) {
             try {
-                dos.writeLong(l);
+                l -= previous;
+                previous += l;
+                writeLong(l);
                 length++;
+            } catch (Exception e) {
+                throw new RuntimeException("Could not write long to bucket file", e);
+            }
+        }
+
+        private void writeLong(long l) {
+            try {
+                while ((l & ~0b01111111) != 0) {
+                    dos.writeByte((byte) ((l & 0b01111111) | 0b10000000));
+                    l >>>= 7;
+                }
+                dos.writeByte((byte) l);
             } catch (Exception e) {
                 throw new RuntimeException("Could not write long to bucket file", e);
             }

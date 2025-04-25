@@ -78,6 +78,10 @@ public class Sorting {
         pool.invoke(new MsdRadixTask(input, ids, 0, input.length, 0));
     }
 
+    public static void radixInPlaceParallel(@NotNull long[] input, int[] ids, int parallelism) {
+        radixInPlaceParallel(input, ids, new ForkJoinPool(parallelism));
+    }
+
     public static void radixInPlace(@NotNull long[] input, int[] ids) {
         msdRadix(input, ids, 63, 0, 0);
     }

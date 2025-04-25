@@ -2,6 +2,7 @@ import static org.husonlab.diamer2.indexing.Sorting.radixSortNBits;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
@@ -56,12 +57,34 @@ public class SortingTest {
     }
 
     @Test
+    public void testNegatives() {
+        long[] input = new long[]{
+                0, 1, 2, 3, 4, 5, 0, -1, -2, -3, -4, -5, (-1L >>> 2)
+        };
+        for (long l : input) {
+            System.out.println(l);
+        }
+        for (int i = 0; i < input.length; i++) {
+            long zigzag = ((input[i] << 1) ^ (input[i] >> 63));
+            System.out.println(input[i] + " " + zigzag);
+            System.out.println(Long.toBinaryString(input[i]) + " " + Long.toBinaryString(zigzag));
+        }
+        for (long l : input) {
+            System.out.println(l);
+        }
+        radixInPlaceParallel(input, new int[input.length], 12);
+        for (long l : input) {
+            System.out.println(l);
+        }
+    }
+
+    @Test
     public void compare() {
         int size = 300_000_000;
         long[] input = new long[size];
         int[] ids = new int[size];
         for (int i = 0; i < input.length; i++) {
-            input[i] = ThreadLocalRandom.current().nextLong() >>> 1;
+            input[i] = ThreadLocalRandom.current().nextLong();
             ids[i] = (int) (input[i] >>> 32);
         }
 //        input[0] = 0;

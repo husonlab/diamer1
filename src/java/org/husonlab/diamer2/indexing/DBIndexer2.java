@@ -152,14 +152,16 @@ public class DBIndexer2 {
         int lastTaxId = taxIds[0];
         try (BucketIO.BucketWriter bucketWriter = bucketIO.getBucketWriter()) {
             for (int i = 1; i < kmers.length; i++) {
-                if (lastKmer != kmers[i] || taxIds[i] == -1) {
+                if (lastKmer != kmers[i] && lastTaxId != -1) {
                     if (i - lastKmerStartIndex > 1) {
                         lastTaxId = tree.findLCA(Arrays.copyOfRange(taxIds, lastKmerStartIndex, i));
                     }
-                    if (lastTaxId != -1) {
-                        bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
-                        tree.addToProperty(lastTaxId, "kmers in database", 1);
-                    }
+                    bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
+                    tree.addToProperty(lastTaxId, "kmers in database", 1);
+                    lastKmerStartIndex = i;
+                    lastKmer = kmers[i];
+                    lastTaxId = taxIds[i];
+                } else if (lastTaxId == -1) {
                     lastKmerStartIndex = i;
                     lastKmer = kmers[i];
                     lastTaxId = taxIds[i];

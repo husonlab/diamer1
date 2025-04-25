@@ -1,5 +1,7 @@
+import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
+import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.io.seq.FastaIdReader;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
@@ -21,10 +23,13 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
+import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
 import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
 import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
 import static org.husonlab.diamer2.main.Main.parseMask;
+import static org.junit.Assert.assertEquals;
 
 public class TestClass {
     @Test
@@ -184,5 +189,44 @@ public class TestClass {
         System.out.println("Restored kmer: " + restoredKmer);
         System.out.println("Restored kmer: " + Long.toBinaryString(restoredKmer));
         System.out.println(w15.getBucketNameFromKmer(10));
+    }
+
+    @Test
+    public void testDeltaCompression() throws IOException {
+        int size = 20;
+        long[] input = new long[size];
+        int[] ids = new int[size];
+        for (int i = 0; i < input.length; i++) {
+            input[i] = ThreadLocalRandom.current().nextLong();
+            ids[i] = (int) (input[i] >>> 32);
+        }
+        input[10] = -1L;
+        input[11] = -1L >>> 1;
+        input[15] = 1L << 63;
+        input[12] = 0;
+        input[13] = 1;
+        input[14] = -2;
+
+        radixInPlaceParallel(input, ids, 12);
+        for (int i = 0; i < size; i++) {
+            System.out.println(input[i]);
+        }
+
+        BucketIO bucketIO = new BucketIO(Path.of("C:\\Users\\nk035\\Downloads\\testBucket.bin"), 0);
+        bucketIO.write(new Bucket(0, input));
+        Bucket bucket = bucketIO.read();
+        long[] content = bucket.getContent();
+        for (int i = 0; i < size; i++) {
+            System.out.println(content[i]);
+        }
+        for (int i = 0; i < size; i++) {
+            assertEquals(input[i], content[i]);
+        }
+    }
+
+    @Test
+    public void bucketReaderTest() throws IOException {
+        Bucket bucket = (new BucketIO(Path.of("C:\\Users\\nk035\\Downloads\\1008.bin"), 1008)).read();
+        System.out.println(bucket.getName());
     }
 }

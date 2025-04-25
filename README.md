@@ -67,7 +67,7 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * zhang 9: 110110101000111
 * 12-2: 11111100111111
 
-# Alphabets
+# Alphabets[1008.bin](../../Downloads/1008.bin)
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 * uniform11: [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
 * uniform11 S: [L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]
@@ -203,6 +203,9 @@ kraken2 --db kraken2db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 # Questions:
 
 # TODO
+* use xor to flip every second bit of the bucket id to get rid of uneven distribution
+* only sort used parts of the array
+* remap kmers to buckets to make the sizes equal
 * can bracken be used with my output?
 * Use higher level than sequenceRecord to store sequenceRecords in memory for all but the first run to save computation
 * Bloom filter for usefull kmers

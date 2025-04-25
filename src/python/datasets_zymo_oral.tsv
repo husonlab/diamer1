@@ -1,11 +1,18 @@
 database	alphabet	kmer size	seed shape	minimizer window	filtering	path	minimizer criterion	DB Index size
-kraken2 - NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2_processed/per_taxon_assignments.tsv
+kraken2 - NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2_processed/per_taxon_assignments.tsv	segmasker
 NR90	uniform 11 S	11	11111111111	11		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_11-mer/per_taxon_assignments.tsv		238
 NR90	uniform 11 S	12	111111111111	12		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_12-mer/per_taxon_assignments.tsv		268
-NR90	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv		279
+NR90	uniform 11 S	13	1111111111111	13	c > 3	F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_13-mer_old/per_taxon_assignments.tsv		279
 NR90	uniform 11 S	14	11111111111111	14		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_14-mer/per_taxon_assignments.tsv		286
 NR90	uniform 11 S	15	111111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_15-mer/per_taxon_assignments.tsv		292
 NR90	uniform 11 S	12	111010110100110111	18		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_zhang12_12-mer/per_taxon_assignments.tsv		271
 NR90	uniform 11 S	9	110110101000111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_zhang9_9-mer/per_taxon_assignments.tsv		147
 NR90	uniform 11 S	12	11111100111111	14		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_12-2-mer/per_taxon_assignments.tsv		269
 NR90	uniform 16 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform16s_13-mer/per_taxon_assignments.tsv		284
+NR	uniform 16 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_uniform16s_13-mer/per_taxon_assignments.tsv		629
+NR	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_uniform11s_13-mer_old/per_taxon_assignments.tsv	old	611
+NR	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_uniform11s_13-mer/per_taxon_assignments.tsv		369
+NR90	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv		171
+NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_solis15s_complexityMaximizer_12-mer/per_taxon_assignments.tsv	complexity	128
+NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_solis15s_complexityMaximizer_12-mer_test/per_taxon_assignments.tsv	complexity - only DB	128
+NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_solis15s_probabilityMinimizer15_12-mer/per_taxon_assignments.tsv	probability	184
