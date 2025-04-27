@@ -203,10 +203,12 @@ kraken2 --db kraken2db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 # Questions:
 
 # TODO
+* Implement kraken2s O(1) algorithm to determine a minimizer
 * use xor to flip every second bit of the bucket id to get rid of uneven distribution
 * only sort used parts of the array
 * remap kmers to buckets to make the sizes equal
 * can bracken be used with my output?
+* implement megan min-support threshold for read classification? (described in megan4 paper)
 * Use higher level than sequenceRecord to store sequenceRecords in memory for all but the first run to save computation
 * Bloom filter for usefull kmers
 * use weight for OVO that consinders the total amino acids in the database per rank to account for database bias
