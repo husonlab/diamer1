@@ -28,6 +28,21 @@ def read_per_taxon_assignment(path: str, rank: str = None, kmer_threshold: int =
             .sort_values(["kmer count"], ascending=False)
     return df
 
+def extract_algorithm_info(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Combines all columns with read counts into one column and extracts the algorithm name, parameter and data from the column name
+    """
+    # only keep columns that contain read counts
+    cols = [col for col in df.reset_index().columns if col not in ["kmer count","kmer count cumulative", "node id", "kmers in database", "normalized kmer count"]]
+    # melt all columns with read counts and introduce new columns for the algorithm that was used
+    df_melted = pd.melt(df.reset_index()[cols], id_vars=["label", "rank", "true positive"], var_name="assignment method", value_name="read count")
+    # split the algorithm into its name, parameter and data and remove the old column
+    df_melted = pd.concat([df_melted, df_melted["assignment method"].str.extract(r"(?P<algorithm>^[a-zA-Z]+) \((?P<algorithmParameter>\d+\.\d+)\) (?P<algorithmData>.+)$")], axis=1).drop(columns=["assignment method"])
+    # convert algorithmParameter to float
+    df_melted.rename(columns={"algorithmParameter": "algorithm parameter"}, inplace=True)
+    df_melted["algorithm parameter"] = df_melted["algorithm parameter"].astype(float)
+    df_melted.rename(columns={"algorithmData": "algorithm data"}, inplace=True)
+    return df_melted
 
 def true_positives(df: pd.DataFrame, total_reads: int, true_labels: list, rank: str):
     """
@@ -52,6 +67,38 @@ def true_positives(df: pd.DataFrame, total_reads: int, true_labels: list, rank: 
                                                                                   "normalized kmer count"]], axis=1)
     true_assigned = pd.DataFrame(true_assigned.sum(axis=0), columns=["true assigned reads (%)"]) / total_reads * 100
     return true_assigned
+
+
+def get_precision_recall(df: pd.DataFrame, taxa: dict, ignor_cols: list=None) -> pd.DataFrame:
+    """
+    Calculate precision and recall based on correctly identified taxa
+    :param df: DataFrame with assigned reads per taxon
+    :param taxa: dict with {rank: [tax1, tax2], rank2: [tax3, tax4]} for all true taxa
+    :param ignor_cols: columns to exclude from the calculation
+    :return: DataFrame with precision and recall for each taxon
+    """
+    if ignor_cols is None:
+        ignor_cols = []
+    # columns with read counts per taxon to consider (results of different algorithms for assignment, raw k-mer counts, etc.)
+    cols = [col for col in df.columns if col not in ignor_cols]
+    result = pd.DataFrame(columns=["rank", "column", "cutoff", "precision", "recall"])
+    for rank in taxa:       # iterate over all ranks
+        for col in cols:    # iterate over all columns with read counts/k-mer counts or similar
+            # extract data of rank and column, transfer index (taxon name) to column, sort by the read count/k-mer count, reindex
+            df_rank = df.loc[df["rank"] == rank,col].reset_index().sort_values(by=col, ascending=False, ignore_index=True)
+            # filter out taxa that are not in the true taxa for the current rank and rename the read count / k-mer count column as this is the cutoff and reuse the taxName column (label) for the original column name of the result
+            df_rank = df_rank[df_rank["label"].isin(taxa[rank])].reset_index().rename(columns={col: "cutoff", "label": "column"})
+            df_rank["column"] = col
+            # calculate precision by the index a taxon has after removing false positives (corresponds to the number of true positives) divided by the index of the taxon without removing false positives (corresponds to the number of true positives + false positives) for each cutoff
+            df_rank["precision"] = (df_rank.index + 1) / (df_rank["index"] + 1)
+            # true positives / total expected taxa in the sample
+            df_rank["recall"] = (df_rank.index + 1) / len(taxa[rank])
+            # reuse the index column for storing the rank of the calculation
+            df_rank = df_rank.rename(columns={"index": "rank"})
+            df_rank["rank"] = rank
+            df_default = pd.DataFrame({"rank": rank, "column": col, "cutoff": 0, "precision": 1, "recall": 0}, index=[0])
+            result = pd.concat([result, df_default, df_rank], ignore_index=True)
+    return result
 
 
 class Node:
