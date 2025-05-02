@@ -102,7 +102,9 @@ public class W15 extends Encoder {
 
     @Override
     public int getBucketNameFromKmer(long kmer) {
-        return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
+        // return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
+
+        return (int) (kmer & 0b1111111111) ^ 0b1010101010;
 
         // extract specific bits
         // 1111111111111111111111111110010111010111011111101101011011111111
@@ -163,7 +165,9 @@ public class W15 extends Encoder {
 
     @Override
     public long getKmerFromIndexEntry(int bucketName, long kmerIndex) {
-        return (kmerIndex >>> bitsForIds) << nrOfBitsBucketNames | bucketName;
+        // return ((kmerIndex >>> bitsForIds) << nrOfBitsBucketNames) | bucketName;
+
+        return ((kmerIndex >>> bitsForIds) << nrOfBitsBucketNames) | (bucketName ^ 0b1010101010);
 
         // insert specific bits
                              // 0000000000000001101000101000100000010010100100000000

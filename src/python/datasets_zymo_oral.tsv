@@ -17,3 +17,4 @@ NR90	uniform 11 S	13	1111111111111	13		F:/Studium/Master/semester5/thesis/data/t
 NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_solis15s_complexityMaximizer_12-mer/per_taxon_assignments.tsv	complexity	128
 NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_solis15s_complexityMaximizer_12-mer_test/per_taxon_assignments.tsv	complexity - only DB	128
 NR	Solis 15 S	12	111111111111	15		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_solis15s_probabilityMinimizer15_12-mer/per_taxon_assignments.tsv	probability	184
+NR	uniform 11 S	14	11111111111111	14		F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_nr_uniform11s_14-mer/per_taxon_assignments.tsv		309

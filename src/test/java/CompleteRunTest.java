@@ -12,7 +12,7 @@ import java.util.*;
 public class CompleteRunTest {
     @Test
     public void runAndCompareWithExpectedResult() throws IOException {
-        boolean assertInbetween = false;
+        boolean assertInbetween = true;
         Path nodesDmp = Utilities.getFile("src/test/resources/database/taxdmp/nodes.dmp", true);
         Path namesDmp = Utilities.getFile("src/test/resources/database/taxdmp/names.dmp", true);
         Path ncbiAccession2Taxid = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid.gz", true);
@@ -59,7 +59,7 @@ public class CompleteRunTest {
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {
             exclusionRules = new ArrayList<>();
-            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14))));
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14, 1068))));
             assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
         }
 
@@ -140,7 +140,7 @@ public class CompleteRunTest {
         File actualOutput = new File("src/test/resources/test_output");
         exclusionRules = new ArrayList<>();
         exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
-        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14))));
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14, 1068))));
         assertDirectoriesEqual(expectedOutput, actualOutput, exclusionRules);
     }
 

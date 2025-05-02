@@ -100,10 +100,10 @@ public abstract class Encoder {
 //        KmerEncoder kmerEncoder = new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods());
 //        return new KmerExtractorComplexityMaximizer(kmerEncoder, 15);
 
-        KmerEncoder kmerEncoder = new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods());
-        return new KmerExtractorProbabilityMinimizer(kmerEncoder, 15);
+//        KmerEncoder kmerEncoder = new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods());
+//        return new KmerExtractorProbabilityMinimizer(kmerEncoder, 15);
 
-//        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods()));
+        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods()));
     }
 
     public int getNrOfKmerBitsInBucketEntry() {

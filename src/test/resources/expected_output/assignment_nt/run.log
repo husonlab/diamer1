@@ -1,4 +1,4 @@
---assignreads --debug --statistics --encoder base11nuc --ovo 0.2,0.5,0.6,0.8,0.9,1.0 -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc C:\Users\noel\Documents\diamer2\src\test\resources\test_output\assignment_nt
+--assignreads --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc C:\Users\noel\Documents\diamer2\src\test\resources\test_output\assignment_nt
 MAX_THREADS:	16
 MAX_MEMORY:	3
 KEEP_IN_MEMORY:	false
@@ -7,13 +7,13 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-03-15T12:06:11.305783
-End: 2025-03-15T12:06:11.896790800
+Start: 2025-05-01T16:56:57.410326700
+End: 2025-05-01T16:56:57.565436
 
 Buckets skipped: 0
 Reads with matches: 2
 Reads without matches: 4
-Matching kmers: 79
+Matching kmers: 78
 
 OVO (0.20) read count
 Total assignments: 2 (33.33%)

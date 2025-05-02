@@ -1,17 +1,17 @@
---preprocess -t 12 --debug --statistics -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid.gz C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid2.gz
+--preprocess -t 12 --debug --statistics -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\noel\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid.gz C:\Users\noel\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid2.gz
 MAX_THREADS:	12
-MAX_MEMORY:	8
+MAX_MEMORY:	3
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	12
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-04-16T15:52:26.542271700
-End: 2025-04-16T15:52:26.716138600
+Start: 2025-05-01T17:12:08.462554800
+End: 2025-05-01T17:12:08.573328600
 
-input file	C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa
-output file	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+input file	C:\Users\noel\Documents\diamer2\src\test\resources\database\db.fsa
+output file	C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 processed sequenceRecords	7
 kept sequenceRecords	6
 skipped sequenceRecords without accession	1
