@@ -1,19 +1,21 @@
---indexreads --debug --statistics --alphabet base11nuc C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
+--indexreads --debug --statistics --alphabet base11nuc C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
 MAX_THREADS:	16
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-05-01T17:12:14.345021500
-End: 2025-05-01T17:12:14.833735400
+Start: 2025-05-03T21:50:46.332638800
+End: 2025-05-03T21:50:53.581236500
 
-Processed Reads: 6
-Processed translations: 36
-Skipped translations because length < 26: 0
-total extracted kmers: 2996
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
+processed reads: 6
+processed translations: 3051
+skipped translations because length < 26: 1333
+total extracted kmers:	2996
 bucket sizes: 
 0	2
 1	3

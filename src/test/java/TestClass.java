@@ -1,8 +1,11 @@
 import org.husonlab.diamer2.indexing.Bucket;
+import org.husonlab.diamer2.indexing.ReadIndexer2;
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
+import org.husonlab.diamer2.io.Utilities;
 import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.io.seq.FastaIdReader;
+import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
@@ -15,6 +18,8 @@ import org.husonlab.diamer2.readAssignment.algorithms.OVA;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.seq.SequenceRecord;
 import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer2.seq.alphabet.CustomAlphabet;
+import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.junit.Test;
 
@@ -228,5 +233,26 @@ public class TestClass {
     public void bucketReaderTest() throws IOException {
         Bucket bucket = (new BucketIO(Path.of("C:\\Users\\nk035\\Downloads\\1008.bin"), 1008)).read();
         System.out.println(bucket.getName());
+    }
+
+    @Test
+    public void testReadIndexer2() {
+        Path reads = Utilities.getFile("src/test/resources/reads/reads.fq", true);
+        Path output = Utilities.getFolder("C:/Users/nk035/Downloads/test_index", false);
+
+        boolean[] mask = parseMask("111111111111111");
+        ReducedAlphabet alphabet = new Base11Alphabet();
+        Encoder encoder = new W15(alphabet, null, output, mask, 22);
+        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, true, true, false, false);
+
+        try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
+             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+                     fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
+            ReadIndexer2 readIndexer = new ReadIndexer2(sup, 1000, encoder, globalSettings);
+//            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
+            readIndexer.index();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

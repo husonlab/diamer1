@@ -4,13 +4,11 @@ import org.apache.commons.cli.*;
 import org.husonlab.diamer2.indexing.DBAnalyzer;
 import org.husonlab.diamer2.indexing.DBIndexer2;
 import org.husonlab.diamer2.indexing.ReadIndexer;
+import org.husonlab.diamer2.indexing.ReadIndexer2;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
-import org.husonlab.diamer2.io.seq.FastaIdReader;
-import org.husonlab.diamer2.io.seq.FastaReader;
-import org.husonlab.diamer2.io.seq.FastqIdReader;
-import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.seq.*;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.readAssignment.algorithms.OVA;
@@ -369,7 +367,7 @@ public class Main {
         // run indexing with specified alphabet
         ReducedAlphabet alphabet = getAlphabet(cli);
         Encoder encoder = new W15(alphabet, output, null, mask, globalSettings.BITS_FOR_IDS);
-        try (SequenceSupplier<Integer,byte[]> sup = new SequenceSupplier<>(
+        try (SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                 new FastaIdReader(database), alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
             DBAnalyzer dbAnalyzer = new DBAnalyzer(sup, tree, encoder, globalSettings);
             String runInfo = dbAnalyzer.analyze();
@@ -403,9 +401,10 @@ public class Main {
         ReducedAlphabet alphabet = getAlphabet(cli);
         Encoder encoder = new W15(alphabet, null, output, mask, globalSettings.BITS_FOR_IDS);
         try (   FastqIdReader fastqIdReader = new FastqIdReader(reads);
-                SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<>(
+                SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                         fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
+            ReadIndexer2 readIndexer = new ReadIndexer2(sup, 1000, encoder, globalSettings);
+//            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
             String runInfo = readIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
         } catch (Exception e) {

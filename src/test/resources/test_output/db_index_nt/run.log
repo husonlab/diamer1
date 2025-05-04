@@ -1,17 +1,17 @@
---indexdb --debug --statistics --alphabet base11nuc -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt
+--indexdb --debug --statistics --alphabet base11nuc -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
 MAX_THREADS:	16
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-05-01T17:12:11.839764300
-End: 2025-05-01T17:12:11.969515200
+Start: 2025-05-03T21:50:43.487123800
+End: 2025-05-03T21:50:43.603269100
 
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
-output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
 processed sequenceRecords: 19
 total raw kmers:	1081
 max bucket size:	5
@@ -1065,10 +1065,10 @@ char counts relative:
 8	0.03184713375796178
 9	0.014154281670205236
 10	0.01556970983722576
-End: 2025-05-01T17:12:12.616138800
+End: 2025-05-03T21:50:44.205367800
 
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
-output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
 processed sequenceRecords: 7
 total extracted kmers:	1081
 bucket sizes: 

@@ -59,7 +59,7 @@ public class CompleteRunTest {
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {
             exclusionRules = new ArrayList<>();
-            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14, 1068))));
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14, 1068, 1070, 1071))));
             assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
         }
 
@@ -140,7 +140,7 @@ public class CompleteRunTest {
         File actualOutput = new File("src/test/resources/test_output");
         exclusionRules = new ArrayList<>();
         exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
-        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14, 1068))));
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14, 1068, 1070, 1071))));
         assertDirectoriesEqual(expectedOutput, actualOutput, exclusionRules);
     }
 

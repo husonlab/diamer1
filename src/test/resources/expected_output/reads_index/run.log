@@ -1,19 +1,21 @@
---indexreads -t 12 -b 1024 --mask 111111111111111 --debug --statistics C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index
+--indexreads -t 12 -b 1024 --mask 111111111111111 --debug --statistics C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
 MAX_THREADS:	12
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	1024
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-05-01T17:10:13.490833200
-End: 2025-05-01T17:10:13.909284300
+Start: 2025-05-03T21:47:52.703044800
+End: 2025-05-03T21:47:53.243427200
 
-Processed Reads: 6
-Processed translations: 90
-Skipped translations because length < 15: 118
-total extracted kmers: 1709
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
+processed reads: 6
+processed translations: 90
+skipped translations because length < 15: 118
+total extracted kmers:	1709
 bucket sizes: 
 0	0
 1	3

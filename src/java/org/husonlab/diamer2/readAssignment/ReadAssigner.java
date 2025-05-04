@@ -149,7 +149,7 @@ public class ReadAssigner {
                     long readsEntry = reads.next();
                     long readKmer = encoder.getKmerFromIndexEntry(readsEntry);
                     // advance the db bucket until the kmer is equal or larger than the read kmer
-                    while (dbKmer < readKmer && dbCount < dbLength) {
+                    while (Long.compareUnsigned(dbKmer, readKmer) < 0 && dbCount < dbLength) {
                         dbEntry = db.next();
                         dbKmer = encoder.getKmerFromIndexEntry(dbEntry);
                         dbCount++;

@@ -13,12 +13,12 @@ import org.husonlab.diamer2.seq.SequenceRecord;
  * @param <H> Header type
  * @param <S> Sequence type
  */
-public abstract class FutureSequenceRecords<H, S> {
+public interface FutureSequenceRecords<H, S> {
     /**
      * Performs the computation defined in the implementing class and returns the result.
      * <p>
      *     Depending on the implementation, this method call might be more or less computationally expensive.
      * </p>
      */
-    abstract public Iterable<SequenceRecord<H, S>> getSequenceRecords();
+    Iterable<SequenceRecord<H, S>> getSequenceRecords();
 }

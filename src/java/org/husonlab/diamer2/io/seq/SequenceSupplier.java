@@ -123,7 +123,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      *              stored after conversion
      * @return {@link FutureSequenceRecords} containing the input {@link SequenceRecord}.
      */
-    private FutureSequenceRecords<H, S> getFutureSequenceRecords(
+    protected FutureSequenceRecords<H, S> getFutureSequenceRecords(
             Converter<S> converter, SequenceRecord<H, char[]> sequenceRecord, MemoryEntry<H, S> entry) {
         return new FutureSequenceRecords<H, S>() {
             @Override
@@ -202,7 +202,7 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      * Class to store the sequences in memory during the first iteration. To be able to return some kind of progress
      * status during further iterations, the sequencesRead and bytesRead are stored together with the sequences.
      */
-    private static class MemoryEntry<H, S>{
+    static class MemoryEntry<H, S>{
         protected final int sequencesRead;
         protected final long bytesRead;
         protected FutureSequenceRecords<H, S> futureSequenceRecords;

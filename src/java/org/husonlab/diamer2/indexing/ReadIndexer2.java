@@ -5,16 +5,13 @@ import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.FlexibleBucket;
 import org.husonlab.diamer2.util.Pair;
 import org.husonlab.diamer2.util.logging.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -36,8 +33,9 @@ public class ReadIndexer2 {
     private AtomicBoolean readingFinished = new AtomicBoolean(false);
     private final ReadIndexIO readIndexIO;
     private final int[] bucketSizes;
-    private static final AtomicInteger processedSequenceRecords = new AtomicInteger(0);
-    private static final AtomicInteger skippedSequenceRecords = new AtomicInteger(0);
+    private static final AtomicInteger processedReads = new AtomicInteger(0);
+    private static final AtomicInteger processedTranslations = new AtomicInteger(0);
+    private static final AtomicInteger skippedTranslations = new AtomicInteger(0);
 
     public ReadIndexer2(SequenceSupplier<Integer, byte[]> sup,
                         long maxBucketSize,
@@ -61,8 +59,7 @@ public class ReadIndexer2 {
 
     public String index() {
         for (int i = 0; i < encoder.getNrOfBuckets(); i += settings.BUCKETS_PER_CYCLE) {
-            processedSequenceRecords.set(0);
-            skippedSequenceRecords.set(0);
+            processedReads.set(0);
             int rangeStart = i;
             int rangeEnd = Math.min(i + settings.BUCKETS_PER_CYCLE, encoder.getNrOfBuckets());
             int indexStart = 0;
@@ -74,17 +71,17 @@ public class ReadIndexer2 {
 
             for (FlexibleBucket bucket : buckets) {
                 bucket.clear();
-                bucket.fillIds(-1);
+                bucket.fill(Long.MAX_VALUE);
             }
 
+            readingFinished.set(false);
             Thread readerThread = new Thread(() -> batchSupplier(sup, queue, settings.SEQUENCE_BATCH_SIZE));
             readerThread.start();
 
             Thread[] processingThreads = new Thread[settings.MAX_THREADS];
             for (int j = 0; j < settings.MAX_THREADS; j++) {
-                processingThreads[j] = new Thread(new BatchProcessor(queue, kmers, taxIds, distributor, tree, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE));
+                processingThreads[j] = new Thread(new BatchProcessor(queue, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE));
                 processingThreads[j].start();
-//                processingThreads[j] = Thread.startVirtualThread(new BatchProcessor(queue, kmers, taxIds, distributor, tree, encoder, finished, i, parallelism));
             }
 
             try {
@@ -108,8 +105,8 @@ public class ReadIndexer2 {
 
             logger.logInfo("Sorting");
             try (ForkJoinPool pool = new ForkJoinPool(settings.MAX_THREADS)) {
-                for (int j = 0; j < indexEnd; j++) {
-                    pool.submit(new Sorting.MsdRadixTask(kmers[j], taxIds[j]));
+                for (int j = indexStart; j < indexEnd; j++) {
+                    pool.submit(new Sorting.MsdRadixTaskFlexibleBucket(buckets[j]));
                 }
             }
 
@@ -117,19 +114,19 @@ public class ReadIndexer2 {
 
             try (CustomThreadPoolExecutor executor = new CustomThreadPoolExecutor(
                     settings.MAX_THREADS, settings.MAX_THREADS, indexEnd + 1, 3600, logger)) {
-                for (int j = 0; j < indexEnd; j++) {
+                for (int j = indexStart; j < indexEnd; j++) {
                     int finalJ = j;
-                    executor.submit(() -> writeBucket(kmers[finalJ], taxIds[finalJ], tree, encoder, dbIndexIO.getBucketIO(rangeStart + finalJ), bucketSizes));
+                    executor.submit(() -> writeBucket(buckets[finalJ], encoder, readIndexIO.getBucketIO(rangeStart + finalJ), bucketSizes));
                 }
             }
         }
 
-        // Export tree with number of kmers that map to each node
-        TreeIO.saveTree(tree, dbIndexIO.getIndexFolder().resolve("tree.txt"));
-
         StringBuilder report = new StringBuilder("input file: ").append(sup.getFile()).append("\n")
-                .append("output directory: ").append(dbIndexIO.getIndexFolder()).append("\n")
-                .append("processed sequenceRecords: ").append(processedSequenceRecords).append("\n");
+                .append("output directory: ").append(readIndexIO.getIndexFolder()).append("\n")
+                .append("processed reads: ").append(processedReads).append("\n")
+                .append("processed translations: ").append(processedTranslations).append("\n")
+                .append("skipped translations because length < ").append(encoder.getK()).append(": ")
+                .append(skippedTranslations).append("\n");
         long totalKmers = 0;
         StringBuilder bucketSizesString = new StringBuilder().append("bucket sizes: ").append("\n");
         for (int i = 0; i < bucketSizes.length; i++) {
@@ -141,37 +138,16 @@ public class ReadIndexer2 {
         return report.toString();
     }
 
-    private static void writeBucket(long[] kmers, int[] taxIds, Tree tree, Encoder encoder, BucketIO bucketIO, int[] bucketSizes) {
+    private static void writeBucket(FlexibleBucket bucket, Encoder encoder, BucketIO bucketIO, int[] bucketSizes) {
         int lastKmerStartIndex = 0;
-        long lastKmer = kmers[0];
-        int lastTaxId = taxIds[0];
         try (BucketIO.BucketWriter bucketWriter = bucketIO.getBucketWriter()) {
-            for (int i = 1; i < kmers.length; i++) {
-                if (lastKmer != kmers[i] && lastTaxId != -1) {
-                    if (i - lastKmerStartIndex > 1) {
-                        lastTaxId = tree.findLCA(Arrays.copyOfRange(taxIds, lastKmerStartIndex, i));
-                    }
-                    bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
-                    tree.addToProperty(lastTaxId, "kmers in database", 1);
-                    lastKmerStartIndex = i;
-                    lastKmer = kmers[i];
-                    lastTaxId = taxIds[i];
-                } else if (lastTaxId == -1) {
-                    lastKmerStartIndex = i;
-                    lastKmer = kmers[i];
-                    lastTaxId = taxIds[i];
+            for (int i = 0; i < bucket.size(); i++) {
+                long indexEntry = bucket.getValue(i);
+                if (indexEntry != Long.MAX_VALUE) {
+                    bucketWriter.write(indexEntry);
                 }
             }
-            if (kmers.length - lastKmerStartIndex > 1) {
-                lastTaxId = tree.findLCA(Arrays.copyOfRange(taxIds, lastKmerStartIndex, kmers.length));
-            }
-            if (lastTaxId != -1) {
-                bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
-                tree.addToProperty(lastTaxId, "kmers in database", 1);
-            }
-
             bucketSizes[bucketIO.getName()] = bucketWriter.getLength();
-//            System.out.println("Bucket size " + bucketIO.getName() + ": " + bucketWriter.getLength());
         }
     }
 
@@ -187,7 +163,7 @@ public class ReadIndexer2 {
                 if (batchIndex == batchSize) {
                     try {
                         queue.put(batch);
-                        processedSequenceRecords.addAndGet(batchSize);
+                        processedReads.addAndGet(batchSize);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -197,7 +173,7 @@ public class ReadIndexer2 {
             }
             try {
                 queue.put(batch);
-                processedSequenceRecords.addAndGet(batchIndex);
+                processedReads.addAndGet(batchIndex);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
@@ -262,6 +238,12 @@ public class ReadIndexer2 {
                             break;
                         }
                         for (SequenceRecord<Integer, byte[]> sequenceRecord : futureSequenceRecords.getSequenceRecords()) {
+                            if (sequenceRecord.sequence().length < encoder.getK()) {
+                                skippedTranslations.incrementAndGet();
+                                continue;
+                            } else {
+                                processedTranslations.incrementAndGet();
+                            }
                             int id = sequenceRecord.id();
                             extractKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
                             for (long kmer : extractKmers) {
@@ -269,13 +251,14 @@ public class ReadIndexer2 {
                                 if (bucketInRange(bucketOfKmer)) {
                                     currentIndexOfMatchingBucket = bucketOfKmer - startBucket;
                                     nextFreeIndex = getNextIndexInBucket(currentIndexOfMatchingBucket);
-                                    buckets[currentIndexOfMatchingBucket].set(nextFreeIndex, encoder.getKmerWithoutBucketName(kmer), id);
+                                    buckets[currentIndexOfMatchingBucket].set(nextFreeIndex, encoder.getIndexEntry(id, encoder.getKmerWithoutBucketName(kmer)));
                                 }
                             }
                         }
                     }
                 }
             } catch (InterruptedException e) {
+                System.out.println(e);
                 throw new RuntimeException(e);
             }
         }

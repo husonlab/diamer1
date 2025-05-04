@@ -1,6 +1,7 @@
 package org.husonlab.diamer2.indexing;
 
 import org.husonlab.diamer2.util.FlexibleBucket;
+import org.husonlab.diamer2.util.FlexibleDBBucket;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ForkJoinPool;
@@ -139,6 +140,53 @@ public class Sorting {
         }
     }
 
+    public static class MsdRadixTaskFlexibleDBBucket extends RecursiveAction {
+
+        private final FlexibleDBBucket bucket;
+        private final int begin;
+        private final int end;
+        private final int shift;
+
+        public MsdRadixTaskFlexibleDBBucket(FlexibleDBBucket bucket, int begin, int end, int shift) {
+            this.bucket = bucket;
+            this.begin = begin;
+            this.end = end;
+            this.shift = shift;
+        }
+
+        public MsdRadixTaskFlexibleDBBucket(FlexibleDBBucket bucket) {
+            this.bucket = bucket;
+            this.begin = 0;
+            this.end = bucket.size();
+            this.shift = 0;
+        }
+
+        @Override
+        protected void compute() {
+            if (end - begin < SEQUENTIAL_THRESHOLD || shift > 63) {
+                msdRadixFlexibleDBBucket(bucket, begin, end, shift);
+                return;
+            }
+            int zerosIndex = begin - 1;
+            int onesIndex = end;
+            while (onesIndex - zerosIndex > 1) {
+                if (getBit(bucket.getValue(zerosIndex + 1), shift)) {
+                    long temp = bucket.getValue(zerosIndex + 1);
+                    int  tempId = bucket.getId(zerosIndex + 1);
+                    bucket.set(zerosIndex + 1, bucket.getValue(onesIndex - 1), bucket.getId(onesIndex - 1));
+                    bucket.set(onesIndex - 1, temp, tempId);
+                    onesIndex--;
+                } else {
+                    zerosIndex++;
+                }
+            }
+            MsdRadixTaskFlexibleDBBucket right = new MsdRadixTaskFlexibleDBBucket(bucket, onesIndex, end, shift + 1);
+            right.fork();
+            new MsdRadixTaskFlexibleDBBucket(bucket, begin, zerosIndex + 1, shift + 1).compute();
+            right.join();
+        }
+    }
+
     public static class MsdRadixTaskFlexibleBucket extends RecursiveAction {
 
         private final FlexibleBucket bucket;
@@ -171,9 +219,8 @@ public class Sorting {
             while (onesIndex - zerosIndex > 1) {
                 if (getBit(bucket.getValue(zerosIndex + 1), shift)) {
                     long temp = bucket.getValue(zerosIndex + 1);
-                    int  tempId = bucket.getId(zerosIndex + 1);
-                    bucket.set(zerosIndex + 1, bucket.getValue(onesIndex - 1), bucket.getId(onesIndex - 1));
-                    bucket.set(onesIndex - 1, temp, tempId);
+                    bucket.set(zerosIndex + 1, bucket.getValue(onesIndex - 1));
+                    bucket.set(onesIndex - 1, temp);
                     onesIndex--;
                 } else {
                     zerosIndex++;
@@ -223,7 +270,7 @@ public class Sorting {
         msdRadix(input, ids, onesIndex, end, shift + 1);
     }
 
-    private static void msdRadixFlexibleBucket(@NotNull FlexibleBucket bucket, int begin, int end, int shift) {
+    private static void msdRadixFlexibleDBBucket(@NotNull FlexibleDBBucket bucket, int begin, int end, int shift) {
         if (end - begin < 2 || shift > 63) {
             return;
         }
@@ -235,6 +282,26 @@ public class Sorting {
                 int  tempId = bucket.getId(zerosIndex + 1);
                 bucket.set(zerosIndex + 1, bucket.getValue(onesIndex - 1), bucket.getId(onesIndex - 1));
                 bucket.set(onesIndex - 1, temp, tempId);
+                onesIndex--;
+            } else {
+                zerosIndex++;
+            }
+        }
+        msdRadixFlexibleDBBucket(bucket, begin, zerosIndex + 1, shift + 1);
+        msdRadixFlexibleDBBucket(bucket, onesIndex, end, shift + 1);
+    }
+
+    private static void msdRadixFlexibleBucket(@NotNull FlexibleBucket bucket, int begin, int end, int shift) {
+        if (end - begin < 2 || shift > 63) {
+            return;
+        }
+        int zerosIndex = begin - 1;
+        int onesIndex = end;
+        while (onesIndex - zerosIndex > 1) {
+            if (getBit(bucket.getValue(zerosIndex + 1), shift)) {
+                long temp = bucket.getValue(zerosIndex + 1);
+                bucket.set(zerosIndex + 1, bucket.getValue(onesIndex - 1));
+                bucket.set(onesIndex - 1, temp);
                 onesIndex--;
             } else {
                 zerosIndex++;
