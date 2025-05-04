@@ -51,7 +51,6 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
      * @return List of {@link SequenceRecord}s
      */
     public ArrayList<SequenceRecord<H, S>> next(int n) throws IOException {
-        sequencesRead += n;
         ArrayList<SequenceRecord<H, S>> sequenceRecords = new ArrayList<>();
         for (int i = 0; i < n; i++) {
             SequenceRecord<H, S> seq = next();

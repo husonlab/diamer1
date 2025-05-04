@@ -18,7 +18,7 @@ import java.util.LinkedList;
  */
 public class FastqIdReader extends SequenceReader<Integer, char[]> implements HeaderToIdReader {
     private String line;
-
+    private final StringBuilder sequence;
     /**
      * List to store the headers of the sequences during reading.
      */
@@ -34,6 +34,7 @@ public class FastqIdReader extends SequenceReader<Integer, char[]> implements He
      */
     public FastqIdReader(Path file) {
         super(file);
+        sequence = new StringBuilder();
         try {
             this.line = br.readLine();
         } catch (IOException e) {
@@ -46,24 +47,33 @@ public class FastqIdReader extends SequenceReader<Integer, char[]> implements He
     // todo: change to use read(char[]) instead of readLine()
     @Override
     public SequenceRecord<Integer, char[]> next() throws IOException {
-        if (line != null && line.startsWith("@")) {
+        line = br.readLine();
+        if (readNextId()) {
             id = sequencesRead++;
-            headers.add(line);
-            sequence = new StringBuilder(br.readLine());
             br.readLine();
             br.readLine();
-            line = br.readLine();
-            char[] sequence = new char[this.sequence.length()];
-            this.sequence.getChars(0, this.sequence.length(), sequence, 0);
-            return new SequenceRecord<>(id, sequence);
-        } else {
-            while ((line = br.readLine()) != null) {
-                if (line.startsWith("@")) {
-                    return next();
+            return new SequenceRecord<>(id, line.toCharArray());
+        }
+        return null;
+    }
+
+    public boolean readNextId() throws IOException {
+        do {
+            if (line == null) {
+                return false; // End of file
+            } else if (line.startsWith("@")) {
+                try {
+                    if (collectHeaders) {
+                        headers.add(line);
+                    }
+                    line = br.readLine();
+                    return true;
+                } catch (NumberFormatException e) {
+                    throw new RuntimeException("Invalid sequence ID format");
                 }
             }
-            return null;
-        }
+        } while ((line = br.readLine()) != null);
+        return false;
     }
 
     /**
@@ -78,6 +88,12 @@ public class FastqIdReader extends SequenceReader<Integer, char[]> implements He
     public void removeHeaders() {
         headers.clear();
         collectHeaders = false;
+    }
+
+    @Override
+    public void reset() throws IOException {
+        super.reset();
+        headers.clear();
     }
 
     @Override

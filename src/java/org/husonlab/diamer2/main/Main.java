@@ -367,7 +367,7 @@ public class Main {
         // run indexing with specified alphabet
         ReducedAlphabet alphabet = getAlphabet(cli);
         Encoder encoder = new W15(alphabet, output, null, mask, globalSettings.BITS_FOR_IDS);
-        try (SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+        try (SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
                 new FastaIdReader(database), alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
             DBAnalyzer dbAnalyzer = new DBAnalyzer(sup, tree, encoder, globalSettings);
             String runInfo = dbAnalyzer.analyze();
@@ -401,9 +401,9 @@ public class Main {
         ReducedAlphabet alphabet = getAlphabet(cli);
         Encoder encoder = new W15(alphabet, null, output, mask, globalSettings.BITS_FOR_IDS);
         try (   FastqIdReader fastqIdReader = new FastqIdReader(reads);
-                SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+                SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
                         fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer2 readIndexer = new ReadIndexer2(sup, 1000, encoder, globalSettings);
+            ReadIndexer2 readIndexer = new ReadIndexer2(sup, fastqIdReader, 1_000, encoder, globalSettings);
 //            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
             String runInfo = readIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));

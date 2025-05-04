@@ -3,6 +3,7 @@ package org.husonlab.diamer2.indexing;
 import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
+import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.main.GlobalSettings;
@@ -26,6 +27,7 @@ public class ReadIndexer2 {
     private final int expectedBucketSize;
     private final static int contingentSizes = 1_024;
     private final SequenceSupplier<Integer, byte[]> sup;
+    private final FastqIdReader fastqIdReader;
     private final Encoder encoder;
     private final GlobalSettings settings;
     BlockingQueue<FutureSequenceRecords<Integer, byte[]>[]> queue;
@@ -38,6 +40,7 @@ public class ReadIndexer2 {
     private static final AtomicInteger skippedTranslations = new AtomicInteger(0);
 
     public ReadIndexer2(SequenceSupplier<Integer, byte[]> sup,
+                        FastqIdReader fastqIdReader,
                         long maxBucketSize,
                         Encoder encoder,
                         GlobalSettings settings) {
@@ -45,6 +48,7 @@ public class ReadIndexer2 {
         logger.addElement(new Time()).addElement(new RunningTime());
         this.expectedBucketSize = (int) maxBucketSize + contingentSizes * settings.MAX_THREADS;
         this.sup = sup;
+        this.fastqIdReader = fastqIdReader;
         this.encoder = encoder;
         readIndexIO = encoder.getReadIndexIO();
         this.settings = settings;
@@ -94,6 +98,20 @@ public class ReadIndexer2 {
                 throw new RuntimeException(e);
             }
             readingFinished.set(true);
+
+            // write a read header map during the first iteration
+            if (rangeStart == 0) {
+                logger.logInfo("Writing read header map");
+                new Thread(() -> {
+                    try {
+                        readIndexIO.writeReadHeaderMapping(fastqIdReader.getHeaders());
+                        // remove headers from memory
+                        fastqIdReader.removeHeaders();
+                    } catch (RuntimeException e) {
+                        throw new RuntimeException("Error writing read header map.", e);
+                    }
+                }).start();
+            }
 
             for (int j = 0; j < settings.MAX_THREADS; j++) {
                 try {
@@ -158,6 +176,7 @@ public class ReadIndexer2 {
             FutureSequenceRecords<Integer, byte[]>[] batch = new FutureSequenceRecords[batchSize];
             FutureSequenceRecords<Integer, byte[]> futureSequenceRecords;
             int batchIndex = 0;
+            sup.reset();
             while ((futureSequenceRecords = sup.next()) != null) {
                 batch[batchIndex++] = futureSequenceRecords;
                 if (batchIndex == batchSize) {
@@ -177,7 +196,6 @@ public class ReadIndexer2 {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            sup.reset();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

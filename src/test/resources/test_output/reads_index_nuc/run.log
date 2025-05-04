@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-05-03T21:50:46.332638800
-End: 2025-05-03T21:50:53.581236500
+Start: 2025-05-04T17:15:28.739377
+End: 2025-05-04T17:15:35.991287300
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_nuc

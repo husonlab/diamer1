@@ -27,7 +27,7 @@ public class GlobalSettings {
     /**
      * How many sequences to process in a batch in one thread
      */
-    public final int SEQUENCE_BATCH_SIZE = 1000;
+    public final int SEQUENCE_BATCH_SIZE = 1_000;
     /**
      * Buckets to process in one cycle
      */

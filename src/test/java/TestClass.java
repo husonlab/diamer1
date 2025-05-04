@@ -1,5 +1,6 @@
 import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.indexing.ReadIndexer2;
+import org.husonlab.diamer2.indexing.StatisticsEstimator;
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.Utilities;
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
+import static org.husonlab.diamer2.indexing.StatisticsEstimator.estimateBucketSizes;
+import static org.husonlab.diamer2.indexing.StatisticsEstimator.estimateMaxBucketSize;
 import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
 import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
 import static org.husonlab.diamer2.main.Main.parseMask;
@@ -248,11 +251,37 @@ public class TestClass {
         try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
              SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                      fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer2 readIndexer = new ReadIndexer2(sup, 1000, encoder, globalSettings);
+            ReadIndexer2 readIndexer = new ReadIndexer2(sup, fastqIdReader, 1000, encoder, globalSettings);
 //            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
             readIndexer.index();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testBucketSizeEstimator() {
+        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\Zymo-GridION-EVEN-3Peaks-R103-merged.fq.gz", true);
+
+        boolean[] mask = parseMask("1111111111111");
+        ReducedAlphabet alphabet = new CustomAlphabet("[ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W]");
+        Encoder encoder = new W15(alphabet, null, null, mask, 22);
+        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, true, true, false, false);
+
+        int[] bucketSizes;
+        int maxBucketSize;
+        try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
+             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+                     fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
+            bucketSizes = estimateBucketSizes(sup, encoder, 5000);
+            sup.reset();
+            maxBucketSize = estimateMaxBucketSize(sup, encoder, 5000);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Maximum bucket size: " + maxBucketSize);
+        for (int i = 0; i < bucketSizes.length; i++) {
+            System.out.println("Bucket " + i + ": " + bucketSizes[i]);
         }
     }
 }
