@@ -54,7 +54,7 @@ public class CompleteRunTest {
 
         // Generate DB index
         Main.main(new String[]{
-                "--indexdb", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
+                "--indexdb", "-t", "1", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(), "--alphabet", "[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]",
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {

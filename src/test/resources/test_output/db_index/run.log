@@ -1,14 +1,14 @@
---indexdb -t 12 -b 1024 --mask 111111111111111 --debug --statistics -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
-MAX_THREADS:	12
+--indexdb -t 1 -b 1024 --mask 111111111111111 --debug --statistics -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
+MAX_THREADS:	1
 MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	1024
-QUEUE_SIZE:	24
+QUEUE_SIZE:	2
 DEBUG:	true
-Start: 2025-05-05T11:53:15.364790500
-End: 2025-05-05T11:53:15.491118200
+Start: 2025-05-05T14:14:48.418102
+End: 2025-05-05T14:14:48.545409700
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
@@ -1065,7 +1065,7 @@ char counts relative:
 8	0.016865776528460996
 9	0.02108222066057625
 10	0.015460295151089248
-End: 2025-05-05T11:53:16.272712600
+End: 2025-05-05T14:14:49.354025900
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index

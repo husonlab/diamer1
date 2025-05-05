@@ -1,6 +1,5 @@
 import org.husonlab.diamer2.indexing.Bucket;
-import org.husonlab.diamer2.indexing.ReadIndexer2;
-import org.husonlab.diamer2.indexing.StatisticsEstimator;
+import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.Utilities;
@@ -251,7 +250,7 @@ public class TestClass {
         try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
              SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                      fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer2 readIndexer = new ReadIndexer2(sup, fastqIdReader, 1000, encoder, globalSettings);
+            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, 1000, encoder, globalSettings);
 //            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
             readIndexer.index();
         } catch (Exception e) {

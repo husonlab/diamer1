@@ -380,6 +380,7 @@ public class Main {
                 globalSettings.setBUCKETS_PER_CYCLE(suggestedNrOfBuckets);
             }
             DBIndexer2 dbIndexer = new DBIndexer2(sup, dbAnalyzer.getMaxBucketSize(), tree, encoder, globalSettings);
+//            DBIndexer dbIndexer = new DBIndexer(sup, tree, dbAnalyzer.getMaxBucketSize(), encoder, globalSettings);
             runInfo = dbIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
         } catch (Exception e) {
@@ -403,7 +404,7 @@ public class Main {
             int estimatedBucketSize = StatisticsEstimator.estimateMaxBucketSize(sup, encoder, 1_000);
             int suggestedNrOfBuckets = StatisticsEstimator.suggestNumberOfBucketsReads(estimatedBucketSize);
             globalSettings.BUCKETS_PER_CYCLE = suggestedNrOfBuckets;
-            ReadIndexer2 readIndexer = new ReadIndexer2(sup, fastqIdReader, estimatedBucketSize, encoder, globalSettings);
+            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, estimatedBucketSize, encoder, globalSettings);
 //            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
             String runInfo = readIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));

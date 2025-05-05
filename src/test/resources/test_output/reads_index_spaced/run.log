@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	127
 QUEUE_SIZE:	2
 DEBUG:	true
-Start: 2025-05-05T11:53:21.570205
-End: 2025-05-05T11:53:22.244176
+Start: 2025-05-05T14:14:55.192473600
+End: 2025-05-05T14:14:55.884911
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
