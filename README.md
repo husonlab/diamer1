@@ -201,6 +201,10 @@ kraken2 --db kraken2db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 ````
 
 # Questions:
+* meaning of DIAMER? (double indexing assignment of next-generation sequencing data)
+* how to hand in my code (my github, group github?)
+* new thesis registration form
+* new form for use of AI (does it replace the old sentences?)
 
 # TODO
 * Implement kraken2s O(1) algorithm to determine a minimizer

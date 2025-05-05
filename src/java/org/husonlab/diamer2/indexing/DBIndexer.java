@@ -90,8 +90,6 @@ public class DBIndexer {
 //                processingThreads[j] = new Thread(new BatchProcessor(queue, tree, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE));
 //                processingThreads[j].start();
 //            }
-            BatchProcessor batchProcessor = new BatchProcessor(queue, tree, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE);
-            batchProcessor.run();
 
             try {
                 while (readerThread.isAlive()) {
@@ -104,13 +102,16 @@ public class DBIndexer {
             }
             readingFinished.set(true);
 
-            for (int j = 0; j < settings.MAX_THREADS; j++) {
-                try {
-                    processingThreads[j].join();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
+            BatchProcessor batchProcessor = new BatchProcessor(queue, tree, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE);
+            batchProcessor.run();
+
+//            for (int j = 0; j < settings.MAX_THREADS; j++) {
+//                try {
+//                    processingThreads[j].join();
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }
 
             logger.logInfo("Sorting");
             try (ForkJoinPool pool = new ForkJoinPool(settings.MAX_THREADS)) {
@@ -151,6 +152,7 @@ public class DBIndexer {
         long lastKmer = encoder.getKmerFromIndexEntry(lastIndexEntry);
         int lastTaxId = encoder.getIdFromIndexEntry(lastIndexEntry);
         FlexibleIntArray lastTaxIds = new FlexibleIntArray(10);
+        lastTaxIds.add(lastTaxId);
         try (BucketIO.BucketWriter bucketWriter = bucketIO.getBucketWriter()) {
             for (int i = 1; i < bucket.size(); i++) {
                 long indexEntry = bucket.getValue(i);

@@ -379,8 +379,8 @@ public class Main {
                 System.out.printf("Suggested number of buckets: %d\n", suggestedNrOfBuckets);
                 globalSettings.setBUCKETS_PER_CYCLE(suggestedNrOfBuckets);
             }
-            DBIndexer2 dbIndexer = new DBIndexer2(sup, dbAnalyzer.getMaxBucketSize(), tree, encoder, globalSettings);
-//            DBIndexer dbIndexer = new DBIndexer(sup, tree, dbAnalyzer.getMaxBucketSize(), encoder, globalSettings);
+//            DBIndexer2 dbIndexer = new DBIndexer2(sup, dbAnalyzer.getMaxBucketSize(), tree, encoder, globalSettings);
+            DBIndexer dbIndexer = new DBIndexer(sup, tree, dbAnalyzer.getMaxBucketSize(), encoder, globalSettings);
             runInfo = dbIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
         } catch (Exception e) {
