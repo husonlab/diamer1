@@ -7,8 +7,8 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	127
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-05-04T17:15:21.601437700
-End: 2025-05-04T17:15:21.712737200
+Start: 2025-05-05T11:53:16.912696200
+End: 2025-05-05T11:53:17.032892600
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
@@ -1065,7 +1065,7 @@ char counts relative:
 8	0.016865776528460996
 9	0.02108222066057625
 10	0.015460295151089248
-End: 2025-05-04T17:15:23.158985500
+End: 2025-05-05T11:53:18.477799900
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced

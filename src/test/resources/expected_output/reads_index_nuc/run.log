@@ -7,14 +7,14 @@ SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-05-03T21:47:54.820412800
-End: 2025-05-03T21:48:01.903592600
+Start: 2025-05-05T11:52:23.754469500
+End: 2025-05-05T11:52:24.229706200
 
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
 processed reads: 6
-processed translations: 3051
-skipped translations because length < 26: 1333
+processed translations: 36
+skipped translations because length < 26: 0
 total extracted kmers:	2996
 bucket sizes: 
 0	2

@@ -260,11 +260,11 @@ public class TestClass {
     }
 
     @Test
-    public void testBucketSizeEstimator() {
+    public void testBucketSizeEstimatorFastq() {
         Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\Zymo-GridION-EVEN-3Peaks-R103-merged.fq.gz", true);
 
         boolean[] mask = parseMask("1111111111111");
-        ReducedAlphabet alphabet = new CustomAlphabet("[ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W]");
+        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
         Encoder encoder = new W15(alphabet, null, null, mask, 22);
         GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, true, true, false, false);
 
@@ -273,9 +273,36 @@ public class TestClass {
         try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
              SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                      fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            bucketSizes = estimateBucketSizes(sup, encoder, 5000);
+            bucketSizes = estimateBucketSizes(sup, encoder, 10000);
             sup.reset();
-            maxBucketSize = estimateMaxBucketSize(sup, encoder, 5000);
+            maxBucketSize = estimateMaxBucketSize(sup, encoder, 10000);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        System.out.println("Maximum bucket size: " + maxBucketSize);
+        for (int i = 0; i < bucketSizes.length; i++) {
+            System.out.println("Bucket " + i + ": " + bucketSizes[i]);
+        }
+    }
+
+    @Test
+    public void testBucketSizeEstimatorFasta() {
+//        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr50\\nr50_preprocessed.fsa", true);
+        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr90\\nr90_preprocessed.fsa.gz", true);
+
+        boolean[] mask = parseMask("1111111111111");
+        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]");
+        Encoder encoder = new W15(alphabet, null, null, mask, 22);
+        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, false, true, false, false);
+
+        int[] bucketSizes;
+        int maxBucketSize;
+        try (FastaIdReader fastaIdReader = new FastaIdReader(reads);
+             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+                     fastaIdReader, alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
+            bucketSizes = estimateBucketSizes(sup, encoder, 10000);
+            sup.reset();
+            maxBucketSize = estimateMaxBucketSize(sup, encoder, 10000);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

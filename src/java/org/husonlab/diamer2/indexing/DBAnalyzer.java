@@ -212,7 +212,7 @@ public class DBAnalyzer {
                             }
                             pollFailCount++;
                             if (pollFailCount++ > 30000) {
-                                throw new RuntimeException("Polling failed for 5 minutes. Supplier too slow?");
+                                throw new RuntimeException("Polling failed for 5 minutes. Filesystem too slow?");
                             }
                             continue;
                         }

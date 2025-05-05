@@ -22,7 +22,7 @@ public class FastqIdReader extends SequenceReader<Integer, char[]> implements He
     /**
      * List to store the headers of the sequences during reading.
      */
-    private final LinkedList<String> headers;
+    private LinkedList<String> headers;
 
     /**
      * Controls if headers should be collected. Will be set to false after calling {@link #removeHeaders()}.
@@ -35,11 +35,6 @@ public class FastqIdReader extends SequenceReader<Integer, char[]> implements He
     public FastqIdReader(Path file) {
         super(file);
         sequence = new StringBuilder();
-        try {
-            this.line = br.readLine();
-        } catch (IOException e) {
-            throw new RuntimeException("Could not read from sequence file: " + file);
-        }
         headers = new LinkedList<>();
         collectHeaders = true;
     }
@@ -81,6 +76,7 @@ public class FastqIdReader extends SequenceReader<Integer, char[]> implements He
      */
     @Override
     public LinkedList<String> getHeaders() {
+        collectHeaders = false;
         return headers;
     }
 

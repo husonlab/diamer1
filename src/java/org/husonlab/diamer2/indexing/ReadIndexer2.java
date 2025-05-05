@@ -56,12 +56,21 @@ public class ReadIndexer2 {
         logger.logInfo("Allocating memory for " + settings.BUCKETS_PER_CYCLE + " buckets of size " + expectedBucketSize);
         buckets = new FlexibleBucket[settings.BUCKETS_PER_CYCLE];
         for (int i = 0; i < settings.BUCKETS_PER_CYCLE; i++) {
-            buckets[i] = new FlexibleBucket(expectedBucketSize, expectedBucketSize, contingentSizes);
+            buckets[i] = new FlexibleBucket(expectedBucketSize, 8_129, contingentSizes);
         }
         bucketSizes = new int[encoder.getNrOfBuckets()];
     }
 
     public String index() {
+        Thread headerMapThread = new Thread(() -> {
+            try {
+                readIndexIO.writeReadHeaderMapping(fastqIdReader.getHeaders());
+                // remove headers from memory
+                fastqIdReader.removeHeaders();
+            } catch (RuntimeException e) {
+                throw new RuntimeException("Error writing read header map.", e);
+            }
+        });
         for (int i = 0; i < encoder.getNrOfBuckets(); i += settings.BUCKETS_PER_CYCLE) {
             processedReads.set(0);
             int rangeStart = i;
@@ -83,6 +92,8 @@ public class ReadIndexer2 {
             readerThread.start();
 
             Thread[] processingThreads = new Thread[settings.MAX_THREADS];
+            processedTranslations.set(0);
+            skippedTranslations.set(0);
             for (int j = 0; j < settings.MAX_THREADS; j++) {
                 processingThreads[j] = new Thread(new BatchProcessor(queue, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE));
                 processingThreads[j].start();
@@ -102,15 +113,7 @@ public class ReadIndexer2 {
             // write a read header map during the first iteration
             if (rangeStart == 0) {
                 logger.logInfo("Writing read header map");
-                new Thread(() -> {
-                    try {
-                        readIndexIO.writeReadHeaderMapping(fastqIdReader.getHeaders());
-                        // remove headers from memory
-                        fastqIdReader.removeHeaders();
-                    } catch (RuntimeException e) {
-                        throw new RuntimeException("Error writing read header map.", e);
-                    }
-                }).start();
+                headerMapThread.start();
             }
 
             for (int j = 0; j < settings.MAX_THREADS; j++) {
@@ -135,6 +138,14 @@ public class ReadIndexer2 {
                 for (int j = indexStart; j < indexEnd; j++) {
                     int finalJ = j;
                     executor.submit(() -> writeBucket(buckets[finalJ], encoder, readIndexIO.getBucketIO(rangeStart + finalJ), bucketSizes));
+                }
+            }
+
+            if (rangeStart == 0) {
+                try {
+                    headerMapThread.join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             }
         }

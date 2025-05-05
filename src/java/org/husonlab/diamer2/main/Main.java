@@ -1,10 +1,7 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.indexing.DBAnalyzer;
-import org.husonlab.diamer2.indexing.DBIndexer2;
-import org.husonlab.diamer2.indexing.ReadIndexer;
-import org.husonlab.diamer2.indexing.ReadIndexer2;
+import org.husonlab.diamer2.indexing.*;
 import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
 import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
@@ -403,7 +400,10 @@ public class Main {
         try (   FastqIdReader fastqIdReader = new FastqIdReader(reads);
                 SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
                         fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer2 readIndexer = new ReadIndexer2(sup, fastqIdReader, 1_000, encoder, globalSettings);
+            int estimatedBucketSize = StatisticsEstimator.estimateMaxBucketSize(sup, encoder, 1_000);
+            int suggestedNrOfBuckets = StatisticsEstimator.suggestNumberOfBucketsReads(estimatedBucketSize);
+            globalSettings.BUCKETS_PER_CYCLE = suggestedNrOfBuckets;
+            ReadIndexer2 readIndexer = new ReadIndexer2(sup, fastqIdReader, estimatedBucketSize, encoder, globalSettings);
 //            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
             String runInfo = readIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
