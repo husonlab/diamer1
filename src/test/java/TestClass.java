@@ -1,5 +1,6 @@
 import org.husonlab.diamer2.indexing.Bucket;
 import org.husonlab.diamer2.indexing.ReadIndexer;
+import org.husonlab.diamer2.indexing.StatisticsEstimator;
 import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.Utilities;
@@ -31,8 +32,6 @@ import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
-import static org.husonlab.diamer2.indexing.StatisticsEstimator.estimateBucketSizes;
-import static org.husonlab.diamer2.indexing.StatisticsEstimator.estimateMaxBucketSize;
 import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
 import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
 import static org.husonlab.diamer2.main.Main.parseMask;
@@ -272,9 +271,9 @@ public class TestClass {
         try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
              SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                      fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            bucketSizes = estimateBucketSizes(sup, encoder, 10000);
-            sup.reset();
-            maxBucketSize = estimateMaxBucketSize(sup, encoder, 10000);
+            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
+            bucketSizes = statisticsEstimator.getEstimatedBucketSizes();
+            maxBucketSize = statisticsEstimator.getMaxBucketSize();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -299,9 +298,9 @@ public class TestClass {
         try (FastaIdReader fastaIdReader = new FastaIdReader(reads);
              SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                      fastaIdReader, alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
-            bucketSizes = estimateBucketSizes(sup, encoder, 10000);
-            sup.reset();
-            maxBucketSize = estimateMaxBucketSize(sup, encoder, 10000);
+            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
+            bucketSizes = statisticsEstimator.getEstimatedBucketSizes();
+            maxBucketSize = statisticsEstimator.getMaxBucketSize();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

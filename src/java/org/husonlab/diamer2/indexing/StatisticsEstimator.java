@@ -5,39 +5,37 @@ import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.SequenceRecord;
+import org.husonlab.diamer2.util.Pair;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.HashMap;
 
 /**
  * Class to estimate some statistics and required memory.
  */
 public class StatisticsEstimator {
+    private final int sampleSize;
+    private final Path file;
+    private final int[] estimatedBucketSizes;
+    private final int maxBucketSize;
+    private final HashMap<Byte, Long> charCounts;
+    private final double[] charFrequencies;
 
-    public static int estimateMaxBucketSize(SequenceSupplier<?, byte[]> sup, Encoder encoder, int numberOfSequences) {
-        int bucketSizes[] = estimateBucketSizes(sup, encoder, numberOfSequences);
-        int max = 0;
-        for (int i = 0; i < bucketSizes.length; i++) {
-            if (bucketSizes[i] > max) {
-                max = bucketSizes[i];
-            }
-        }
-        return max;
+    public StatisticsEstimator(SequenceSupplier<?, byte[]> sup, Encoder encoder, int numberOfSequences) {
+        this.sampleSize = numberOfSequences;
+        this.file = sup.getFile();
+        Pair<int[], HashMap<Byte, Long>> kmersAncChars = countKmersAndChars(sup, encoder, numberOfSequences);
+        this.estimatedBucketSizes = kmersAncChars.first();
+        this.charCounts = kmersAncChars.last();
+        this.maxBucketSize = calculateMaxBucketSize(estimatedBucketSizes);
+        this.charFrequencies = calculateCharFrequencies(charCounts, encoder);
     }
 
-    public static int[] estimateBucketSizes(SequenceSupplier<?, byte[]> sup, Encoder encoder, int numberOfSequences) {
-        int bucketSizes[] = countKmers(sup, encoder, numberOfSequences);
-        long bytesRead = sup.getBytesRead();
-        long totalBytes = sup.getFileSize();
-        for (int i = 0; i < bucketSizes.length; i++) {
-            bucketSizes[i] = (int) (bucketSizes[i] * (totalBytes / bytesRead));
-        }
-        return bucketSizes;
-    }
-
-    public static int[] countKmers(SequenceSupplier<?, byte[]> sup, Encoder encoder, int numberOfSequences) {
+    public static Pair<int[], HashMap<Byte, Long>> countKmersAndChars(SequenceSupplier<?, byte[]> sup, Encoder encoder, int numberOfSequences) {
 //        HashMap<Long, Integer> kmerCounts = new HashMap<>();
 
+        HashMap<Byte, Long> charCounts = new HashMap<>();
         int[] bucketSizes = new int[encoder.getNrOfBuckets()];
         KmerExtractor kmerExtractor = encoder.getKmerExtractor();
         FutureSequenceRecords<?, byte[]> sequenceRecords;
@@ -45,6 +43,11 @@ public class StatisticsEstimator {
         try {
             while ((sequenceRecords = sup.next()) != null && n++ <= numberOfSequences) {
                 for (SequenceRecord<?, byte[]> sequenceRecord : sequenceRecords.getSequenceRecords()) {
+                    // Count characters
+                    for (byte b : sequenceRecord.sequence()) {
+                        charCounts.put(b, charCounts.getOrDefault(b, 0L) + 1);
+                    }
+                    // Count kmers
                     for (long kmer : kmerExtractor.extractKmers(sequenceRecord.sequence())) {
                         int bucket = encoder.getBucketNameFromKmer(kmer);
                         bucketSizes[bucket]++;
@@ -64,15 +67,44 @@ public class StatisticsEstimator {
 //                .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
 //                .forEach(entry -> System.out.println("Kmer: " + entry.getKey() + ", Count: " + entry.getValue()));
 
-        return bucketSizes;
+        // estimate the total number of kmers
+        long bytesRead = sup.getBytesRead();
+        long totalBytes = sup.getFileSize();
+        for (int i = 0; i < bucketSizes.length; i++) {
+            bucketSizes[i] = (int) (bucketSizes[i] * (totalBytes / bytesRead));
+        }
+
+        return new Pair<>(bucketSizes, charCounts);
     }
 
-    public static int suggestNumberOfBucketsReads(int expectedBucketSize) {
+    private static int calculateMaxBucketSize(int[] bucketSizes) {
+        int max = 0;
+        for (int i = 0; i < bucketSizes.length; i++) {
+            if (bucketSizes[i] > max) {
+                max = bucketSizes[i];
+            }
+        }
+        return max;
+    }
+
+    private static double[] calculateCharFrequencies(HashMap<Byte, Long> charCounts, Encoder encoder) {
+        int total = 0;
+        for (Long count : charCounts.values()) {
+            total += count;
+        }
+        double[] frequencies = new double[encoder.getTargetAlphabet().getBase()];
+        for (int i = 0; i < frequencies.length; i++) {
+            frequencies[i] = (double) charCounts.getOrDefault((byte)i, 0L) / total;
+        }
+        return frequencies;
+    }
+
+    public int getSuggestedNumberOfBuckets() {
         Runtime runtime = Runtime.getRuntime();
         long freeMemory = (runtime.maxMemory() - runtime.totalMemory()) + runtime.freeMemory();
         freeMemory -= (long) (freeMemory * 0.2); // 20 % for the JVM
         // each bucket entry = 8 byte (kmer + id) (in practice its more 12 byte for some reason)
-        long memoryPerBucket = 12 * (long)expectedBucketSize;
+        long memoryPerBucket = 12 * (long)maxBucketSize;
         int numberOfBuckets = (int) (freeMemory / memoryPerBucket);
         // round down to next power of 2
 //        return (int) Math.pow(2, Math.floor(Math.log(numberOfBuckets) / Math.log(2)));
@@ -81,15 +113,40 @@ public class StatisticsEstimator {
 //        return numberOfBuckets;
     }
 
-    public static int suggestNumberOfBucketsDB(int expectedBucketSize) {
-        Runtime runtime = Runtime.getRuntime();
-        long freeMemory = (runtime.maxMemory() - runtime.totalMemory()) + runtime.freeMemory();
-        freeMemory -= (long) (freeMemory * 0.2); // 20 % for the JVM
-        // each bucket entry = 8 byte (kmer) + 4 byte (id)
-        long memoryPerBucket = 12 * (long)expectedBucketSize;
-        int numberOfBuckets = (int) (freeMemory / memoryPerBucket);
-        // round down to next power of 2
-//        return (int) Math.pow(2, Math.floor(Math.log(numberOfBuckets) / Math.log(2)));
-        return numberOfBuckets;
+    public int[] getEstimatedBucketSizes() {
+        return estimatedBucketSizes;
+    }
+
+    public int getMaxBucketSize() {
+        return maxBucketSize;
+    }
+
+    public HashMap<Byte, Long> getCharCounts() {
+        return charCounts;
+    }
+
+    public double[] getCharFrequencies() {
+        return charFrequencies;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Statistics on the first ").append(sampleSize)
+                .append(" sequences of the input file: ").append(file).append("\n");
+        sb.append("Character counts:\n");
+        for (int i = 0; i < charFrequencies.length; i++) {
+            sb.append(i).append(": ").append(charCounts.getOrDefault((byte) i, 0L)).append("\n");
+        }
+        sb.append("Character frequencies:\n");
+        for (int i = 0; i < charFrequencies.length; i++) {
+            sb.append(i).append(": ").append(charFrequencies[i]).append("\n");
+        }
+        sb.append("Max estimated bucket size: ").append(maxBucketSize).append("\n");
+        sb.append("Estimated bucket sizes:\n");
+        for (int i = 0; i < estimatedBucketSizes.length; i++) {
+            sb.append(i).append(": ").append(estimatedBucketSizes[i]).append("\n");
+        }
+        return sb.toString();
     }
 }

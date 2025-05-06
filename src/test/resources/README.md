@@ -72,7 +72,7 @@
     * 79 kmer
 * read3
   * tax1/tax2 -> node0
-    * YEITVYQLSADDLRS
+    * YEITVYQLSADDLRS 602126021100201
     * reverse translated: TATGAAATTACCGTGTATCAGCTGAGCGCGGATGATCTGCGCAGC
     * reverse complement (in reads): GCTGCGCAGATCATCCGCGCTCAGCTGATACACGGTAATTTCATA
     * stop codon TGA in position 3, 23, 33 (not in reading frame 1)

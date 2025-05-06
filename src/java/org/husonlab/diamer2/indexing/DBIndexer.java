@@ -133,7 +133,7 @@ public class DBIndexer {
 
         StringBuilder report = new StringBuilder("input file: ").append(sup.getFile()).append("\n")
                 .append("output directory: ").append(dbIndexIO.getIndexFolder()).append("\n")
-                .append("processed sequences: ").append(processedSequences).append("\n")
+                .append("processed sequence records: ").append(processedSequences).append("\n")
                 .append("skipped sequences because length < ").append(encoder.getK()).append(": ")
                 .append(skippedSequences).append("\n");
         long totalKmers = 0;
@@ -148,20 +148,27 @@ public class DBIndexer {
     }
 
     private static void writeBucket(FlexibleBucket bucket, Tree tree, Encoder encoder, BucketIO bucketIO, int[] bucketSizes) {
-        long lastIndexEntry = bucket.getValue(0);
+        int i = 0;
+        if (bucket.size() == 0) {
+            return;
+        }
+        while (i < bucket.size() && bucket.getValue(i) == Long.MAX_VALUE) {
+            i++;
+        }
+        long lastIndexEntry = bucket.getValue(i++);
         long lastKmer = encoder.getKmerFromIndexEntry(lastIndexEntry);
         int lastTaxId = encoder.getIdFromIndexEntry(lastIndexEntry);
         FlexibleIntArray lastTaxIds = new FlexibleIntArray(10);
         lastTaxIds.add(lastTaxId);
         try (BucketIO.BucketWriter bucketWriter = bucketIO.getBucketWriter()) {
-            for (int i = 1; i < bucket.size(); i++) {
+            for ( ; i < bucket.size(); i++) {
                 long indexEntry = bucket.getValue(i);
                 long kmer = encoder.getKmerFromIndexEntry(indexEntry);
                 int taxId = encoder.getIdFromIndexEntry(indexEntry);
                 if (indexEntry != Long.MAX_VALUE) {
                     if (kmer != lastKmer) {
                         if (lastTaxIds.size() == 1) {
-                            bucketWriter.write(indexEntry);
+                            bucketWriter.write(lastIndexEntry);
                             tree.addToProperty(lastTaxId, "kmers in database", 1);
                             lastTaxIds.clear();
                         } else if (lastTaxIds.size() > 1) {
@@ -173,6 +180,7 @@ public class DBIndexer {
                         lastIndexEntry = indexEntry;
                         lastKmer = kmer;
                         lastTaxId = taxId;
+                        lastTaxIds.add(taxId);
                     } else {
                         if (lastTaxId != taxId) {
                             lastTaxIds.add(taxId);
@@ -182,7 +190,7 @@ public class DBIndexer {
             }
             if (lastTaxIds.size() > 0 && lastIndexEntry != Long.MAX_VALUE) {
                 lastTaxId = tree.findLCA(lastTaxIds.toArray());
-                bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
+                bucketWriter.write(lastIndexEntry);
                 tree.addToProperty(lastTaxId, "kmers in database", 1);
             }
             bucketSizes[bucketIO.getName()] = bucketWriter.getLength();

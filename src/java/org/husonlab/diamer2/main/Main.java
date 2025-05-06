@@ -366,11 +366,11 @@ public class Main {
         Encoder encoder = new W15(alphabet, output, null, mask, globalSettings.BITS_FOR_IDS);
         try (SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
                 new FastaIdReader(database), alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
-            DBAnalyzer dbAnalyzer = new DBAnalyzer(sup, tree, encoder, globalSettings);
-            String runInfo = dbAnalyzer.analyze();
-            writeLogEnd(runInfo, output.resolve("run.log"));
+            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
+            int estimatedBucketSize = statisticsEstimator.getMaxBucketSize();
+            String runInfo = statisticsEstimator.toString();
             if (!cli.hasOption("b")) {
-                int suggestedNrOfBuckets = dbAnalyzer.suggestNrOfBuckets();
+                int suggestedNrOfBuckets = statisticsEstimator.getSuggestedNumberOfBuckets();
                 if (suggestedNrOfBuckets < 1) {
                     System.err.println("Indexing one bucket could exceed the available memory." +
                             "\nIf --keep-in-memory is set, consider removing it or increase the maximum heap size.");
@@ -380,8 +380,8 @@ public class Main {
                 globalSettings.setBUCKETS_PER_CYCLE(suggestedNrOfBuckets);
             }
 //            DBIndexer2 dbIndexer = new DBIndexer2(sup, dbAnalyzer.getMaxBucketSize(), tree, encoder, globalSettings);
-            DBIndexer dbIndexer = new DBIndexer(sup, tree, dbAnalyzer.getMaxBucketSize(), encoder, globalSettings);
-            runInfo = dbIndexer.index();
+            DBIndexer dbIndexer = new DBIndexer(sup, tree, estimatedBucketSize, encoder, globalSettings);
+            runInfo += dbIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
         } catch (Exception e) {
             writeLogEnd(e.toString(), output.resolve("run.log"));
@@ -401,12 +401,14 @@ public class Main {
         try (   FastqIdReader fastqIdReader = new FastqIdReader(reads);
                 SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
                         fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            int estimatedBucketSize = StatisticsEstimator.estimateMaxBucketSize(sup, encoder, 1_000);
-            int suggestedNrOfBuckets = StatisticsEstimator.suggestNumberOfBucketsReads(estimatedBucketSize);
+            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 1_000);
+            String runInfo = statisticsEstimator.toString();
+            int estimatedBucketSize = statisticsEstimator.getMaxBucketSize();
+            int suggestedNrOfBuckets = statisticsEstimator.getSuggestedNumberOfBuckets();
             globalSettings.BUCKETS_PER_CYCLE = suggestedNrOfBuckets;
             ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, estimatedBucketSize, encoder, globalSettings);
 //            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
-            String runInfo = readIndexer.index();
+            runInfo += readIndexer.index();
             writeLogEnd(runInfo, output.resolve("run.log"));
         } catch (Exception e) {
             writeLogEnd(e.toString(), output.resolve("run.log"));

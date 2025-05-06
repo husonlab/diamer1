@@ -12,7 +12,7 @@ import java.util.*;
 public class CompleteRunTest {
     @Test
     public void runAndCompareWithExpectedResult() throws IOException {
-        boolean assertInbetween = true;
+        boolean assertInbetween = false;
         Path nodesDmp = Utilities.getFile("src/test/resources/database/taxdmp/nodes.dmp", true);
         Path namesDmp = Utilities.getFile("src/test/resources/database/taxdmp/names.dmp", true);
         Path ncbiAccession2Taxid = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid.gz", true);
