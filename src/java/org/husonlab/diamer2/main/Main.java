@@ -166,7 +166,7 @@ public class Main {
                 Option.builder()
                         .longOpt("mask")
                         .argName("bitmask")
-                        .desc("Mask to use for kmer extraction.\nDefault: 11111101101100111000100001")
+                        .desc("Mask to use for kmer extraction.\nDefault: 1111111111111")
                         .hasArg()
                         .type(String.class)
                         .build()

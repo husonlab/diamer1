@@ -1,16 +1,16 @@
---indexreads --debug --statistics --alphabet base11nuc C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
+--indexreads --debug --statistics --alphabet base11nuc C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
 MAX_THREADS:	16
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-05-06T13:22:28.870550200
-End: 2025-05-06T13:22:29.449744200
+Start: 2025-05-06T16:57:26.940472400
+End: 2025-05-06T16:57:27.394060700
 
-Statistics on the first 1000 sequences of the input file: C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq
+Statistics on the first 1000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 Character counts:
 0: 1245
 1: 843
@@ -1061,8 +1061,8 @@ Estimated bucket sizes:
 1021: 2
 1022: 3
 1023: 1
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq
-output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_nuc
 processed reads: 6
 processed translations: 36
 skipped translations because length < 26: 0

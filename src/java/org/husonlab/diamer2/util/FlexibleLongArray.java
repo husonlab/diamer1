@@ -1,5 +1,9 @@
 package org.husonlab.diamer2.util;
 
+/**
+ * Implementation of a flexible array for longs.
+ * Better than an ArrayList because it does store the values as primitives.
+ */
 public class FlexibleLongArray {
 
     private int size;

@@ -1,14 +1,14 @@
---assignreads -t 12 -b 12 --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index C:\Users\noel\Documents\diamer2\src\test\resources\test_output\assignment
+--assignreads -t 12 -b 12 --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment
 MAX_THREADS:	12
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	12
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-05-06T13:22:29.454928200
-End: 2025-05-06T13:22:29.687650
+Start: 2025-05-06T16:57:27.398588400
+End: 2025-05-06T16:57:27.879690900
 
 Buckets skipped: 0
 Reads with matches: 4
@@ -17,85 +17,85 @@ Matching kmers: 103
 
 OVO (0.20) read count
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.20) read count (norm. kmers)
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.50) read count
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.50) read count (norm. kmers)
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.60) read count
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.60) read count (norm. kmers)
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.80) read count
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.80) read count (norm. kmers)
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.90) read count
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (0.90) read count (norm. kmers)
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (1.00) read count
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVO (1.00) read count (norm. kmers)
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVA (0.70) read count
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 
 OVA (0.70) read count (norm. kmers)
 Total assignments: 4 (66.67%)
-1 from root: 2
-no rank: 1
+1 from root: 1
+no rank: 2
 2 from root: 1
 

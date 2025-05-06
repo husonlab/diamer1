@@ -1,16 +1,16 @@
---indexreads -t 1 -b 127 --keep-in-memory --mask 111111011110011100011 --debug --statistics C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
+--indexreads -t 1 -b 127 --keep-in-memory --mask 111111011110011100011 --debug --statistics C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
 MAX_THREADS:	1
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	true
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	127
 QUEUE_SIZE:	2
 DEBUG:	true
-Start: 2025-05-06T13:22:28.147999600
-End: 2025-05-06T13:22:28.870550200
+Start: 2025-05-06T16:57:26.230386500
+End: 2025-05-06T16:57:26.938448300
 
-Statistics on the first 1000 sequences of the input file: C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq
+Statistics on the first 1000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 Character counts:
 0: 1060
 1: 843
@@ -1061,8 +1061,8 @@ Estimated bucket sizes:
 1021: 0
 1022: 1
 1023: 1
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\reads\reads.fq
-output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
 processed reads: 6
 processed translations: 73
 skipped translations because length < 21: 135

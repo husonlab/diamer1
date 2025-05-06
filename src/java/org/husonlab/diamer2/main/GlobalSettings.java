@@ -36,9 +36,13 @@ public class GlobalSettings {
      * How large the queues for thread pools should be
      */
     public final int QUEUE_SIZE;
-
+    /**
+     * Flag for debugging
+     */
     public final boolean DEBUG;
-
+    /**
+     * Flag for collecting and writing statistics about generated index files.
+     */
     public final boolean COLLECT_STATS;
 
     public final boolean ONLY_STANDARD_RANKS;

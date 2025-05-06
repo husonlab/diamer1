@@ -218,16 +218,14 @@ public class ReadAssignmentIO {
 
         StringBuilder info = new StringBuilder();
 
-        if (settings.COLLECT_STATS) {
-            for (int i = 0; i < nrOfAssignmentAlgorithms; i++) {
-                info.append(readAssignment.getAssignmentAlgorithms().get(i)).append("\n");
-                info.append("Total assignments: ").append(assignedReads[i])
-                        .append(" (").append("%.2f".formatted(assignedReads[i] / (float) nrOfReads * 100)).append("%)\n");
-                for (String rank : assignmentsPerRank[i].keySet()) {
-                    info.append(rank).append(": ").append(assignmentsPerRank[i].get(rank)).append("\n");
-                }
-                info.append("\n");
+        for (int i = 0; i < nrOfAssignmentAlgorithms; i++) {
+            info.append(readAssignment.getAssignmentAlgorithms().get(i)).append("\n");
+            info.append("Total assignments: ").append(assignedReads[i])
+                    .append(" (").append("%.2f".formatted(assignedReads[i] / (float) nrOfReads * 100)).append("%)\n");
+            for (String rank : assignmentsPerRank[i].keySet()) {
+                info.append(rank).append(": ").append(assignmentsPerRank[i].get(rank)).append("\n");
             }
+            info.append("\n");
         }
         return info.toString();
     }

@@ -1,16 +1,16 @@
---indexdb -t 1 -b 1024 --mask 111111111111111 --debug --statistics -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index
+--indexdb -t 1 -b 1024 --mask 111111111111111 --debug --statistics -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 MAX_THREADS:	1
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	1024
 QUEUE_SIZE:	2
 DEBUG:	true
-Start: 2025-05-06T12:50:39.374628100
-End: 2025-05-06T13:01:52.592963600
+Start: 2025-05-06T16:57:23.477429900
+End: 2025-05-06T16:57:24.178152400
 
-Statistics on the first 10000 sequences of the input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+Statistics on the first 10000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 Character counts:
 0: 437
 1: 316
@@ -1061,8 +1061,8 @@ Estimated bucket sizes:
 1021: 0
 1022: 0
 1023: 0
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
-output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 processed sequence records: 6
 skipped sequences because length < 15: 1
 total extracted kmers:	1309

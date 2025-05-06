@@ -286,10 +286,10 @@ public class TestClass {
     @Test
     public void testBucketSizeEstimatorFasta() {
 //        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr50\\nr50_preprocessed.fsa", true);
-        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr90\\nr90_preprocessed.fsa.gz", true);
+        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr50\\nr50_preprocessed.fsa", true);
 
         boolean[] mask = parseMask("1111111111111");
-        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]");
+        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
         Encoder encoder = new W15(alphabet, null, null, mask, 22);
         GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, false, true, false, false);
 
@@ -298,7 +298,7 @@ public class TestClass {
         try (FastaIdReader fastaIdReader = new FastaIdReader(reads);
              SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
                      fastaIdReader, alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
-            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
+            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 1_000_000);
             bucketSizes = statisticsEstimator.getEstimatedBucketSizes();
             maxBucketSize = statisticsEstimator.getMaxBucketSize();
         } catch (Exception e) {

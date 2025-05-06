@@ -1,16 +1,16 @@
---indexdb --debug --statistics --alphabet base11nuc -no C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt
+--indexdb --debug --statistics --alphabet base11nuc -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
 MAX_THREADS:	16
-MAX_MEMORY:	3
+MAX_MEMORY:	8
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
 BUCKETS_PER_CYCLE:	16
 QUEUE_SIZE:	32
 DEBUG:	true
-Start: 2025-05-06T13:12:51.391697400
-End: 2025-05-06T13:22:27.538856900
+Start: 2025-05-06T16:57:25.419533700
+End: 2025-05-06T16:57:25.776524900
 
-Statistics on the first 10000 sequences of the input file: C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
+Statistics on the first 10000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
 Character counts:
 0: 488
 1: 299
@@ -1061,8 +1061,8 @@ Estimated bucket sizes:
 1021: 0
 1022: 0
 1023: 1
-input file: C:\Users\noel\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
-output directory: C:\Users\noel\Documents\diamer2\src\test\resources\test_output\db_index_nt
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\expected_output\db_preprocessed_nt\test_nt.fsa
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_nt
 processed sequence records: 7
 skipped sequences because length < 26: 2
 total extracted kmers:	1081

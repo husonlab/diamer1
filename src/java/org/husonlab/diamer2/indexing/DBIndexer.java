@@ -86,10 +86,10 @@ public class DBIndexer {
             Thread[] processingThreads = new Thread[settings.MAX_THREADS];
             processedSequences.set(0);
             skippedSequences.set(0);
-//            for (int j = 0; j < settings.MAX_THREADS; j++) {
-//                processingThreads[j] = new Thread(new BatchProcessor(queue, tree, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE));
-//                processingThreads[j].start();
-//            }
+            for (int j = 0; j < settings.MAX_THREADS; j++) {
+                processingThreads[j] = new Thread(new BatchProcessor(queue, tree, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE));
+                processingThreads[j].start();
+            }
 
             try {
                 while (readerThread.isAlive()) {
@@ -102,15 +102,16 @@ public class DBIndexer {
             }
             readingFinished.set(true);
 
-            BatchProcessor batchProcessor = new BatchProcessor(queue, tree, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE);
-            batchProcessor.run();
+            for (int j = 0; j < settings.MAX_THREADS; j++) {
+                try {
+                    processingThreads[j].join();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
 
-//            for (int j = 0; j < settings.MAX_THREADS; j++) {
-//                try {
-//                    processingThreads[j].join();
-//                } catch (InterruptedException e) {
-//                    throw new RuntimeException(e);
-//                }
+//            for (int j = 0; j < buckets.length; j++) {
+//                logger.logInfo("Bucket " + (j + rangeStart) + " size: " + buckets[j].size());
 //            }
 
             logger.logInfo("Sorting");
@@ -190,7 +191,7 @@ public class DBIndexer {
             }
             if (lastTaxIds.size() > 0 && lastIndexEntry != Long.MAX_VALUE) {
                 lastTaxId = tree.findLCA(lastTaxIds.toArray());
-                bucketWriter.write(lastIndexEntry);
+                bucketWriter.write(encoder.getIndexEntry(lastTaxId, lastKmer));
                 tree.addToProperty(lastTaxId, "kmers in database", 1);
             }
             bucketSizes[bucketIO.getName()] = bucketWriter.getLength();
