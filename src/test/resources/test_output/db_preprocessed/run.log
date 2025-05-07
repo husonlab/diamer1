@@ -1,15 +1,19 @@
+2025-05-07T14:03:25.214153100
 --preprocess -t 12 --debug --statistics -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid.gz C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid2.gz
+VERSION:	1.0.0
 MAX_THREADS:	12
-MAX_MEMORY:	8
+MAX_IO_THREADS:	16
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
-BUCKETS_PER_CYCLE:	12
+BUCKETS_PER_CYCLE:	0
 QUEUE_SIZE:	24
 DEBUG:	true
-Start: 2025-05-06T16:57:23.357483900
-End: 2025-05-06T16:57:23.475344800
-
+COLLECT_STATS:	true
+ONLY_STANDARD_RANKS:	false
+Preprocessing started: 2025-05-07T14:03:25.240737100
+Using NCBI mapping files: C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid.gz and C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid2.gz
+Preprocessing finished: 2025-05-07T14:03:25.340523800
 input file	C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa
 output file	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 processed sequenceRecords	7
@@ -18,3 +22,4 @@ skipped sequenceRecords without accession	1
 skipped sequenceRecords with rank too high (superkingdom, phylum, family, kingdom, class, order)	0
 2 from root	4
 1 from root	2
+

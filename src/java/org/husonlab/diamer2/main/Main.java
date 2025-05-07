@@ -1,11 +1,6 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.indexing.*;
-import org.husonlab.diamer2.io.accessionMapping.AccessionMapping;
-import org.husonlab.diamer2.io.accessionMapping.MeganMapping;
-import org.husonlab.diamer2.io.accessionMapping.NCBIMapping;
-import org.husonlab.diamer2.io.seq.*;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
 import org.husonlab.diamer2.readAssignment.algorithms.OVA;
@@ -13,22 +8,16 @@ import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.main.encoders.Encoder;
-import org.husonlab.diamer2.main.encoders.W15;
 import org.husonlab.diamer2.seq.alphabet.*;
-import org.husonlab.diamer2.taxonomy.Tree;
-import org.husonlab.diamer2.io.NCBIReader;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.util.DBIndexAnalyzer;
-import org.husonlab.diamer2.util.Pair;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-import static org.husonlab.diamer2.io.Utilities.getFile;
 import static org.husonlab.diamer2.io.Utilities.getFolder;
 
 
@@ -43,15 +32,15 @@ public class Main {
                 Option.builder()
                         .longOpt("preprocess")
                         .desc("""
-                                Preprocess protein sequence database.\
+                                Preprocess protein sequence database.
                                 
-                                Required options: -no -na <input> <output> <mapping>\
+                                Required options: -no -na <input> <output> <mapping>
                                 
-                                <input>: protein database as multi-FASTA\
+                                <input>: protein database as multi-FASTA
                                 
-                                <output>: output file\
+                                <output>: output file
                                 
-                                <mapping>: accession -> taxid mapping file(s), can be either a MEGAN mapping file \
+                                <mapping>: accession -> taxid mapping file(s), can be either a MEGAN mapping file 
                                 (.db or .mdb) or NCBI accession2taxid mapping file(s).""")
                         .build()
         );
@@ -59,11 +48,11 @@ public class Main {
                 Option.builder()
                         .longOpt("indexdb")
                         .desc("""
-                                Index a preprocessed sequence database.\
+                                Index a preprocessed sequence database.
                                 
-                                Required options: -no -na <input> <output>\
+                                Required options: -no -na <input> <output>
                                 
-                                <input>: preprocessed database\
+                                <input>: preprocessed database
                                 
                                 <output>: output path""")
                         .build()
@@ -72,11 +61,11 @@ public class Main {
                 Option.builder()
                         .longOpt("indexreads")
                         .desc("""
-                                Index DNA reads.\
+                                Index DNA reads.
                                 
-                                Required options: <input> <output>\
+                                Required options: <input> <output>
                                 
-                                <input>: reads in fastQ format\
+                                <input>: reads in fastQ format
                                 
                                 <output>: output path""")
                         .build()
@@ -85,11 +74,11 @@ public class Main {
                 Option.builder()
                         .longOpt("assignreads")
                         .desc("""
-                                Assign reads.\
+                                Assign reads.
                                 
-                                Required options: <input> <output>\
+                                Required options: <input> <output>
                                 
-                                <input>: database index folder and reads index folder\
+                                <input>: database index folder and reads index folder
                                 
                                 <output>: output path""")
                         .build()
@@ -98,11 +87,11 @@ public class Main {
                 Option.builder()
                         .longOpt("analyze-db-index")
                         .desc("""
-                                Generate statistics for a DB Index.\
+                                Generate statistics for a DB Index.
                                 
-                                Required options: <input> <output>\
+                                Required options: <input> <output>
                                 
-                                <input>: database index folder\
+                                <input>: database index folder
                                 
                                 <output>: output path""")
                         .build()
@@ -113,16 +102,6 @@ public class Main {
                         .longOpt("threads")
                         .argName("number")
                         .desc("Number of threads")
-                        .hasArg()
-                        .type(Integer.class)
-                        .converter((Converter<Integer, NumberFormatException>) Integer::parseInt)
-                        .build()
-        );
-        options.addOption(
-                Option.builder("m")
-                        .longOpt("memory")
-                        .argName("number")
-                        .desc("Memory in GB")
                         .hasArg()
                         .type(Integer.class)
                         .converter((Converter<Integer, NumberFormatException>) Integer::parseInt)
@@ -194,32 +173,70 @@ public class Main {
                 Option.builder()
                         .longOpt("alphabet")
                         .desc("""
-                                diamond (default) \
+                                diamond (default) 
                                 
-                                Encoding: DIAMOND's base 11 alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]\
+                                Encoding: DIAMOND's base 11 alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
                                 
                                 -
                                 
-                                base11uniform\
+                                base11uniform
                                 
                                 Encoding: a base 11 alphabet in which the likelihood of each amino acid is about the
-                                same [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]\
+                                same [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
                                 
                                 -
                                 
-                                base11nuc\
+                                base11nuc
                                 
-                                For nucleotide databases\
+                                For nucleotide databases
                                 
                                 Encoding: DIAMOND's base 11 alphabet but with stop codons encoded as 0.
-                                [BDEKNOQRXZ*][AST][IJLV][G][P][F][Y][CU][H][M][W]\
+                                [BDEKNOQRXZ*][AST][IJLV][G][P][F][Y][CU][H][M][W]
                                 
                                 -
                                 
-                                custom\
+                                custom
                                 
                                 Encoding: user-defined alphabet""")
                         .hasArg()
+                        .type(Path.class)
+                        .build()
+        );
+        options.addOption(
+                Option.builder()
+                        .longOpt("filtering")
+                        .desc("""
+                                Choose one of the follwing filtering options for the reads:
+                                
+                                -
+                                
+                                COMPLEXITY
+                                
+                                keep k-mers with more than n unique characters
+                                
+                                syntax: --filtering c <n>
+                                
+                                keep complexity maximizer in window of size w
+                                
+                                syntax: --filtering cm <w>
+                                
+                                -
+                                
+                                PROBABILITY
+                                
+                                keep k-mers below certain probability p (e.g. 1e-12)
+                                
+                                syntax: --filtering p <p>
+                                
+                                keep probability minimizer in window of size w
+                                
+                                syntax: --filtering pm <w>
+                                
+                                -
+                                
+                                default --filtering c 3
+                                """)
+                        .numberOfArgs(2)
                         .type(Path.class)
                         .build()
         );
@@ -246,10 +263,13 @@ public class Main {
                         .build()
         );
 
+        // print help message
         if (args.length == 0 || args[0].equals("-h") || args[0].equals("--help")) {
-            printHelp(options);
+            CliUtils.printHelp(options);
             System.exit(0);
         }
+
+        // parse command line arguments
         CommandLine cli = null;
         try {
             CommandLineParser parser = new DefaultParser();
@@ -260,165 +280,29 @@ public class Main {
         }
 
         // parse arguments or set default values
-        GlobalSettings globalSettings = parseGlobalSettings(args, cli, options);
+        GlobalSettings globalSettings = new GlobalSettings(args, cli, options);
 
+        // prepare additional options for the different tasks and start them
         if (cli.hasOption("preprocess")) {
-            preprocess(globalSettings, cli);
+            Preprocessing.preprocess(cli, globalSettings);
         } else if (cli.hasOption("indexdb")) {
-            indexdb(globalSettings, cli);
+            DBIndexing.indexDB(cli, globalSettings);
         } else if (cli.hasOption("indexreads")) {
-            indexreads(globalSettings, cli);
+            ReadIndexing.indexReads(cli, globalSettings);
         } else if (cli.hasOption("assignreads")) {
             assignreads(globalSettings, cli);
         } else if (cli.hasOption("analyze-db-index")) {
             analyzeDBIndex(globalSettings, cli);
         } else {
             System.err.println("No computation option selected");
-            printHelp(options);
+            CliUtils.printHelp(options);
             System.exit(1);
-        }
-    }
-
-    private static GlobalSettings parseGlobalSettings(String[] args, CommandLine cli, Options options) {
-        int maxThreads = Runtime.getRuntime().availableProcessors();
-        try {
-            Integer parsedThreads = cli.getParsedOptionValue("t");
-            if (parsedThreads != null) {
-                maxThreads = parsedThreads;
-            }
-        } catch (ParseException e) {
-            System.err.printf("Invalid number of threads: \"%s\"\n", cli.getOptionValue("t"));
-            printHelp(options);
-            System.exit(1);
-        }
-        int maxMemory = (int) (Runtime.getRuntime().maxMemory() * 1e-9);
-        try {
-            Integer parsedMemory = cli.getParsedOptionValue("m");
-            if (parsedMemory != null) {
-                maxMemory = parsedMemory;
-            }
-        } catch (ParseException e) {
-            System.err.printf("Invalid amount of memory: \"%s\"\n", cli.getOptionValue("m"));
-            printHelp(options);
-            System.exit(1);
-        }
-        int bucketsPerCycle = cli.hasOption("b") ? Integer.parseInt(cli.getOptionValue("b")) : maxThreads;
-        return new GlobalSettings(
-                args, maxThreads, bucketsPerCycle, maxMemory, cli.hasOption("keep-in-memory"), cli.hasOption("debug"), cli.hasOption("statistics"), cli.hasOption("only-standard-ranks"));
-    }
-
-    private static void preprocess(GlobalSettings globalSettings, CommandLine cli) {
-        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
-        checkNumberOfPositionalArguments(cli, 3);
-        Path database = getFile(cli.getArgs()[0], true);
-        Path output = getFile(cli.getArgs()[1], false);
-        if (!output.toString().endsWith(".gz")) {
-            output = output.getParent().resolve(output.getFileName() + ".gz");
-        }
-        writeLogBegin(globalSettings, output.getParent().resolve("run.log"));
-        String runInfo;
-
-        AccessionMapping accessionMapping;
-        ArrayList<Path> mappingFiles = new ArrayList<>();
-        for (int i = 2; i < cli.getArgs().length; i++) {
-            mappingFiles.add(getFile(cli.getArgs()[i], true));
-        }
-        try (SequenceSupplier<String, String> sequenceSupplier = new SequenceSupplier<>(
-                new FastaReader(database), SequenceSupplier.getEmptyConverter(), globalSettings.KEEP_IN_MEMORY)) {
-            Tree tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
-            if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {
-                accessionMapping = new MeganMapping(mappingFiles.getFirst());
-                runInfo = NCBIReader.preprocessNRBuffered(output, tree, accessionMapping, sequenceSupplier);
-            } else {
-                HashMap<String, Integer> accession2Taxid = NCBIReader.extractAccessions(sequenceSupplier);
-                accessionMapping = new NCBIMapping(
-                        mappingFiles,
-                        tree,
-                        accession2Taxid);
-                sequenceSupplier.reset();
-                runInfo = NCBIReader.preprocessNR(output, tree, accessionMapping, sequenceSupplier);
-            }
-        } catch (IOException e) {
-            writeLogEnd(e.toString(), output.getParent().resolve("run.log"));
-            throw new RuntimeException(e);
-        }
-        writeLogEnd(runInfo, output.getParent().resolve("run.log"));
-    }
-
-    private static void indexdb(GlobalSettings globalSettings, CommandLine cli) {
-        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
-        checkNumberOfPositionalArguments(cli, 2);
-        boolean[] mask = getMask(cli);
-        Path database = getFile(cli.getArgs()[0], true);
-        Path output = getFolder(cli.getArgs()[1], false);
-        writeLogBegin(globalSettings, output.resolve("run.log"));
-
-        // parse tree
-        Tree tree;
-        try {
-            tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
-        } catch (Exception e) {
-            writeLogEnd(e.toString(), output.resolve("run.log"));
-            throw new RuntimeException(e);
-        }
-        // run indexing with specified alphabet
-        ReducedAlphabet alphabet = getAlphabet(cli);
-        Encoder encoder = new W15(alphabet, output, null, mask, globalSettings.BITS_FOR_IDS);
-        try (SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
-                new FastaIdReader(database), alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
-            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
-            int estimatedBucketSize = statisticsEstimator.getMaxBucketSize();
-            String runInfo = statisticsEstimator.toString();
-            if (!cli.hasOption("b")) {
-                int suggestedNrOfBuckets = statisticsEstimator.getSuggestedNumberOfBuckets();
-                if (suggestedNrOfBuckets < 1) {
-                    System.err.println("Indexing one bucket could exceed the available memory." +
-                            "\nIf --keep-in-memory is set, consider removing it or increase the maximum heap size.");
-                    suggestedNrOfBuckets = 1;
-                }
-                System.out.printf("Suggested number of buckets: %d\n", suggestedNrOfBuckets);
-                globalSettings.setBUCKETS_PER_CYCLE(suggestedNrOfBuckets);
-            }
-//            DBIndexer2 dbIndexer = new DBIndexer2(sup, dbAnalyzer.getMaxBucketSize(), tree, encoder, globalSettings);
-            DBIndexer dbIndexer = new DBIndexer(sup, tree, estimatedBucketSize, encoder, globalSettings);
-            runInfo += dbIndexer.index();
-            writeLogEnd(runInfo, output.resolve("run.log"));
-        } catch (Exception e) {
-            writeLogEnd(e.toString(), output.resolve("run.log"));
-            throw new RuntimeException(e);
-        }
-    }
-
-    private static void indexreads(GlobalSettings globalSettings, CommandLine cli) {
-        checkNumberOfPositionalArguments(cli, 2);
-        boolean[] mask = getMask(cli);
-        Path reads = getFile(cli.getArgs()[0], true);
-        Path output = getFolder(cli.getArgs()[1], false);
-        writeLogBegin(globalSettings, output.resolve("run.log"));
-
-        ReducedAlphabet alphabet = getAlphabet(cli);
-        Encoder encoder = new W15(alphabet, null, output, mask, globalSettings.BITS_FOR_IDS);
-        try (   FastqIdReader fastqIdReader = new FastqIdReader(reads);
-                SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
-                        fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 1_000);
-            String runInfo = statisticsEstimator.toString();
-            int estimatedBucketSize = statisticsEstimator.getMaxBucketSize();
-            int suggestedNrOfBuckets = statisticsEstimator.getSuggestedNumberOfBuckets();
-            globalSettings.BUCKETS_PER_CYCLE = suggestedNrOfBuckets;
-            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, estimatedBucketSize, encoder, globalSettings);
-//            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
-            runInfo += readIndexer.index();
-            writeLogEnd(runInfo, output.resolve("run.log"));
-        } catch (Exception e) {
-            writeLogEnd(e.toString(), output.resolve("run.log"));
-            throw new RuntimeException(e);
         }
     }
 
     private static void assignreads(GlobalSettings globalSettings, CommandLine cli) {
-        checkNumberOfPositionalArguments(cli, 3);
-        boolean[] mask = getMask(cli);
+        CliUtils.checkNumberOfPositionalArguments(cli, 3);
+        boolean[] mask = CliUtils.getMask(cli);
         Path dbIndex = getFolder(cli.getArgs()[0], true);
         Path readsIndex = getFolder(cli.getArgs()[1], true);
         Path output = getFolder(cli.getArgs()[2], false);
@@ -444,9 +328,9 @@ public class Main {
         ReadAssignment readAssignment = null;
 
         String runInfo = "";
-        ReducedAlphabet alphabet = getAlphabet(cli);
-        Encoder encoder = new W15(alphabet,
-                dbIndex, readsIndex, mask, globalSettings.BITS_FOR_IDS);
+        ReducedAlphabet alphabet = CliUtils.getAlphabet(cli);
+        Encoder encoder = new Encoder(alphabet,
+                dbIndex, readsIndex, mask, null, globalSettings.BITS_FOR_IDS);
         ReadAssigner readAssigner = new ReadAssigner(encoder, globalSettings);
 
         try {
@@ -474,29 +358,17 @@ public class Main {
     }
     
     private static void analyzeDBIndex(GlobalSettings globalSettings, CommandLine cli) {
-        checkNumberOfPositionalArguments(cli, 2);
+        CliUtils.checkNumberOfPositionalArguments(cli, 2);
         Path dbIndex = getFolder(cli.getArgs()[0], true);
         Path output = getFolder(cli.getArgs()[1], false);
         writeLogBegin(globalSettings, output.resolve("db-analyze-run.log"));
 
-        boolean[] mask = getMask(cli);
-        ReducedAlphabet alphabet = getAlphabet(cli);
-        Encoder encoder = new W15(alphabet, dbIndex, null, mask, globalSettings.BITS_FOR_IDS);
+        boolean[] mask = CliUtils.getMask(cli);
+        ReducedAlphabet alphabet = CliUtils.getAlphabet(cli);
+        Encoder encoder = new Encoder(alphabet, dbIndex, null, mask, null, globalSettings.BITS_FOR_IDS);
         DBIndexAnalyzer dbIndexAnalyzer = new DBIndexAnalyzer(output, encoder, globalSettings);
         String runInfo = dbIndexAnalyzer.analyze();
         writeLogEnd(runInfo, output.resolve("db-analyze-run.log"));
-    }
-
-    /**
-     * Print help message.
-     * @param options command line options
-     */
-    private static void printHelp(Options options) {
-        HelpFormatter helpFormatter = new HelpFormatter();
-        // disable alphabetical sorting of options
-        helpFormatter.setOptionComparator(null);
-        helpFormatter.printHelp("diamer2 {--preprocess | --indexdb | --assignreads | --statistics} " +
-                "[options] <input> <output>", options);
     }
 
     /**
@@ -524,67 +396,4 @@ public class Main {
         }
     }
 
-    /**
-     * Check if the number of positional arguments is at least minExpected.
-     * @param cli command line arguments
-     * @param minExpected minimum number of positional arguments
-     */
-    private static void checkNumberOfPositionalArguments(CommandLine cli, int minExpected) {
-        if (cli.getArgs().length < minExpected) {
-            System.err.printf("Expected %d positional arguments, got %d\n", minExpected, cli.getArgs().length);
-            System.exit(1);
-        }
-    }
-
-    /**
-     * @param cli command line arguments
-     * @return pair of NCBI nodes and names dump files
-     */
-    private static Pair<Path, Path> getNodesAndNames(CommandLine cli) {
-        if (!cli.hasOption("no") || !cli.hasOption("na")) {
-            System.err.println("At least one of the required NCBI taxonomy files is missing: " +
-                    "nodes.dmp (option -no), names.dmp (option -na)");
-            System.exit(1);
-        }
-        return new Pair<>(getFile(cli.getOptionValue("no"), true), getFile(cli.getOptionValue("na"), true));
-    }
-
-    /**
-     * @param cli command line arguments
-     * @return mask from cli or default mask
-     */
-    private static boolean[] getMask(CommandLine cli) {
-        return cli.hasOption("mask") ? parseMask(cli.getOptionValue("mask")) : parseMask("11111101101100111000100001");
-    }
-
-    /**
-     * Parse a mask string with 1 and 0 into a boolean array.
-     * @param mask mask string
-     * @return boolean array
-     */
-    public static boolean[] parseMask(String mask) {
-        mask = mask.replaceAll("^0+", "").replaceAll("0+$", "");
-        boolean[] result = new boolean[mask.length()];
-        for (int i = 0; i < mask.length(); i++) {
-            result[i] = mask.charAt(i) == '1';
-        }
-        return result;
-    }
-
-    /**
-     * Get the alphabet specified in the command line arguments.
-     */
-    public static ReducedAlphabet getAlphabet(CommandLine cli) {
-        ReducedAlphabet alphabet;
-        if (!cli.hasOption("alphabet") || cli.getOptionValue("alphabet").equals("base11")) {
-            alphabet = new Base11Alphabet();
-        } else if (cli.getOptionValue("alphabet").equals("base11uniform")) {
-            alphabet = new Base11Uniform();
-        } else if (cli.getOptionValue("alphabet").equals("base11nuc")) {
-            alphabet = new Base11WithStop();
-        } else {
-            alphabet = new CustomAlphabet(cli.getOptionValue("alphabet"));
-        }
-        return alphabet;
-    }
 }

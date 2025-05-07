@@ -39,6 +39,13 @@ public class KmerEncoder {
      * @param mask bitmask
      */
     public KmerEncoder(int base, boolean[] mask, double[] letterLikelihoods) {
+        this(base, mask);
+        for (int i = 0; i < letterLikelihoods.length; i++) {
+            this.letterLikelihoods[i] = letterLikelihoods[i];
+        }
+    }
+
+    public KmerEncoder(int base, boolean[] mask) {
         this.base = base;
         // remove trailing zeros (the least significant bits with value 0)
         this.mask = mask;
@@ -67,7 +74,8 @@ public class KmerEncoder {
                 letterMultiples[i][j] = (long) (i * Math.pow(base, j));
             }
         }
-        this.letterLikelihoods = letterLikelihoods;
+        letterLikelihoods = new double[base];
+        Arrays.fill(letterLikelihoods, 1.0 / base);
         encoding = 0;
     }
 

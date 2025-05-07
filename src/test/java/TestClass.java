@@ -13,7 +13,6 @@ import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.Main;
 import org.husonlab.diamer2.main.encoders.Encoder;
-import org.husonlab.diamer2.main.encoders.W15;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.readAssignment.algorithms.OVA;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
@@ -34,14 +33,14 @@ import java.util.concurrent.ThreadLocalRandom;
 import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
 import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
 import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
-import static org.husonlab.diamer2.main.Main.parseMask;
+import static org.husonlab.diamer2.main.CliUtils.parseMask;
 import static org.junit.Assert.assertEquals;
 
 public class TestClass {
     @Test
     public void analyze_kraken_result() {
         Path output = Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2_processed");
-        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, 3, false, true, true, false);
+        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, false, true, true, false);
         Tree tree = readTaxonomy(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/nodes.dmp"), Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/names.dmp"), true);
         ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2/raw_kraken2.txt"), settings);
         readAssignment.addKmerCountsToTree();
@@ -173,15 +172,15 @@ public class TestClass {
 
     @Test
     public void testW15() {
-        W15 w15 = new W15(new Base11Alphabet(), null, null, new boolean[]{true, true, true}, 22);
+        Encoder encoder = new Encoder(new Base11Alphabet(), null, null, new boolean[]{true, true, true}, null, 22);
         long kmer = 13665795155445L;
 //        long kmer = 0xFFFFFFFFFFFFFL;
-        int bucket = w15.getBucketNameFromKmer(kmer);
-        long kmerWithoutBucket = w15.getKmerWithoutBucketName(kmer);
-        long indexEntry = w15.getIndexEntry(0, kmerWithoutBucket);
-        int id = w15.getIdFromIndexEntry(indexEntry);
-        long kmerFromIndexEntry = w15.getKmerFromIndexEntry(indexEntry);
-        long restoredKmer = w15.getKmerFromIndexEntry(bucket, indexEntry);
+        int bucket = encoder.getBucketNameFromKmer(kmer);
+        long kmerWithoutBucket = encoder.getKmerWithoutBucketName(kmer);
+        long indexEntry = encoder.getIndexEntry(0, kmerWithoutBucket);
+        int id = encoder.getIdFromIndexEntry(indexEntry);
+        long kmerFromIndexEntry = encoder.getKmerFromIndexEntry(indexEntry);
+        long restoredKmer = encoder.getKmerFromIndexEntry(bucket, indexEntry);
         System.out.println("Kmer: " + kmer);
         System.out.println("Kmer: " + Long.toBinaryString(kmer));
         System.out.println("Bucket: " + bucket);
@@ -194,7 +193,7 @@ public class TestClass {
         System.out.println("Kmer from index entry: " + Long.toBinaryString(kmerFromIndexEntry));
         System.out.println("Restored kmer: " + restoredKmer);
         System.out.println("Restored kmer: " + Long.toBinaryString(restoredKmer));
-        System.out.println(w15.getBucketNameFromKmer(10));
+        System.out.println(encoder.getBucketNameFromKmer(10));
     }
 
     @Test
@@ -243,8 +242,8 @@ public class TestClass {
 
         boolean[] mask = parseMask("111111111111111");
         ReducedAlphabet alphabet = new Base11Alphabet();
-        Encoder encoder = new W15(alphabet, null, output, mask, 22);
-        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, true, true, false, false);
+        Encoder encoder = new Encoder(alphabet, null, output, mask, null, 22);
+        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, true, true, false, false);
 
         try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
              SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
@@ -263,8 +262,8 @@ public class TestClass {
 
         boolean[] mask = parseMask("1111111111111");
         ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
-        Encoder encoder = new W15(alphabet, null, null, mask, 22);
-        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, true, true, false, false);
+        Encoder encoder = new Encoder(alphabet, null, null, mask, null, 22);
+        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, true, true, false, false);
 
         int[] bucketSizes;
         int maxBucketSize;
@@ -290,8 +289,8 @@ public class TestClass {
 
         boolean[] mask = parseMask("1111111111111");
         ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
-        Encoder encoder = new W15(alphabet, null, null, mask, 22);
-        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, 13, false, true, false, false);
+        Encoder encoder = new Encoder(alphabet, null, null, mask, null, 22);
+        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, false, true, false, false);
 
         int[] bucketSizes;
         int maxBucketSize;

@@ -10,7 +10,7 @@ import java.nio.file.Path;
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
  */
-public abstract class Encoder {
+public class Encoder {
 
     protected final ReducedAlphabet targetAlphabet;
     protected final Path dbIndex;
@@ -23,11 +23,27 @@ public abstract class Encoder {
      * number of spaces between the bits of the mask
      */
     protected final int s;
+    /**
+     * bit mask to use for spaced kmer extraction
+     */
     protected final boolean[] mask;
+    /**
+     * kmer extractor to use for spaced kmer extraction
+     */
+    protected final KmerExtractor kmerExtractor;
     /**
      * number of bits required to represent the ids (taxon ids or sequence ids)
      */
     protected final int bitsForIds;
+    /**
+     * number of bits in the bucket that are used to encode the kmer
+     */
+    protected final int nrOfBitsRequiredForKmer;
+    /**
+     * number of bits that do not fit in the bucket and are stored in the bucket names.
+     */
+    protected final int nrOfBitsBucketNames;
+    protected final int nrOfBuckets;
 
     /**
      * @param targetAlphabet the alphabet used to encode the kmers of database and query (probably a reduced protein
@@ -35,11 +51,12 @@ public abstract class Encoder {
      * @param mask           bit mask to use for spaced kmer extraction
      * @param bitsForIds     number of bits required to represent the ids of the sequences (taxon ids or read ids)
      */
-    public Encoder(ReducedAlphabet targetAlphabet, Path dbIndex, Path readsIndex, boolean[] mask, int bitsForIds) {
+    public Encoder(ReducedAlphabet targetAlphabet, Path dbIndex, Path readsIndex, boolean[] mask, KmerExtractor kmerExtractor, int bitsForIds) {
         this.targetAlphabet = targetAlphabet;
         this.dbIndex = dbIndex;
         this.readsIndex = readsIndex;
         this.mask = mask;
+        this.kmerExtractor = kmerExtractor;
         // calculate position of the most significant bit (length of the mask / size of the window)
         this.k = mask.length;
         // calculate the number of spaces between the bits of the mask
@@ -51,6 +68,9 @@ public abstract class Encoder {
         }
         this.s = sTemp;
         this.bitsForIds = bitsForIds;
+        nrOfBitsRequiredForKmer = bitsRequired(this.targetAlphabet.getBase(), k - s);
+        nrOfBitsBucketNames = 10;
+        nrOfBuckets = (int)Math.pow(2, nrOfBitsBucketNames);
     }
 
     /**
@@ -86,16 +106,12 @@ public abstract class Encoder {
     }
 
     /**
-     * @return a KmerEncoder that can be used to encode kmers
-     */
-    protected abstract double[] getLetterLikelihoods();
-
-    /**
      * @return a KmerExtractor that can be used to extract kmers from sequences
      */
     public KmerExtractor getKmerExtractor(){
-        KmerEncoder kmerEncoder = new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods());
-        return new KmerExtractorFiltered(kmerEncoder, (kmer) -> kmerEncoder.getComplexity() > 3);
+        return kmerExtractor;
+//        KmerEncoder kmerEncoder = new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods());
+//        return new KmerExtractorFiltered(kmerEncoder, (kmer) -> kmerEncoder.getComplexity() > 3);
 
 //        KmerEncoder kmerEncoder = new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods());
 //        return new KmerExtractorComplexityMaximizer(kmerEncoder, 15);
@@ -131,68 +147,107 @@ public abstract class Encoder {
         return targetAlphabet;
     }
 
-    /**
-     * @return the mask used to extract kmers
-     */
-    public boolean[] getMask() {
-        return mask;
+    public long getIndexEntry(int id, long kmerWithoutBucketName) {
+        return (kmerWithoutBucketName << bitsForIds) | id;
     }
 
-    /**
-     * Combines an id and a kmer to an index entry. The bucket name is not included in the result.
-     * @param id taxon id or sequence id the kmer belongs to
-     * @param kmerWithoutBucketName the number representing the kmer
-     * @return index entry
-     */
-    public abstract long getIndexEntry(int id, long kmerWithoutBucketName);
+    public int getBucketNameFromKmer(long kmer) {
+        // return (int) kmer & (1 << nrOfBitsBucketNames) - 1;
 
-    /**
-     * Extracts the bucket name from a kmer.
-     * @param kmer the number representing the kmer
-     * @return the bucket name
-     */
-    public abstract int getBucketNameFromKmer(long kmer);
+        return (int) (kmer & 0b1111111111) ^ 0b1010101010;
 
-    /**
-     * Removes the bits from the bucket that are captured in the bucket name.
-     *
-     * @return remaining bits of the kmer packed to the left 54 bits.
-     */
-    public abstract long getKmerWithoutBucketName(long kmer);
+        // extract specific bits
+        // 1111111111111111111111111110010111010111011111101101011011111111
+        // 0000000000000000000000000001101000101000100000010010100100000000
+        // 36, 35, 33, 29, 27, 23, 16, 13, 11, 8
+        // 6   1   2   7   0   8   9   5   4   3
+//        return (int)   ((((kmer >> 27) & 1)) |      // 27 -> 0
+//                        (((kmer >> 35) & 1) << 1) | // 35 -> 1
+//                        (((kmer >> 33) & 1) << 2) | // 33 -> 2
+//                        (((kmer >> 8 ) & 1) << 3) | // ...
+//                        (((kmer >> 11) & 1) << 4) |
+//                        (((kmer >> 13) & 1) << 5) |
+//                        (((kmer >> 36) & 1) << 6) |
+//                        (((kmer >> 29) & 1) << 7) |
+//                        (((kmer >> 23) & 1) << 8) |
+//                        (((kmer >> 16) & 1) << 9));
 
-    /**
-     * Extracts the id (taxon id or read id) from an index entry.
-     * @param kmerIndex the number representing the index entry of the kmer (without the bucket name).
-     * @return the taxon or read id
-     */
-    public abstract int getIdFromIndexEntry(long kmerIndex);
+        // hash bucket name for equal distribution
+//        int bucket = (int) ((((kmer >> 27) & 1)) |      // 27 -> 0
+//                (((kmer >> 35) & 1) << 1) | // 35 -> 1
+//                (((kmer >> 33) & 1) << 2) | // 33 -> 2
+//                (((kmer >> 8 ) & 1) << 3) | // ...
+//                (((kmer >> 11) & 1) << 4) |
+//                (((kmer >> 13) & 1) << 5) |
+//                (((kmer >> 36) & 1) << 6) |
+//                (((kmer >> 29) & 1) << 7) |
+//                (((kmer >> 23) & 1) << 8) |
+//                (((kmer >> 16) & 1) << 9));
+//        return hashFunction(bucket) & 0b1111111111;
+    }
+
+    private static int hashFunction(long value) {
+        value = (value ^ (value >>> 33)) * 0xff51afd7ed558ccdL;
+        value = (value ^ (value >>> 33)) * 0xc4ceb9fe1a85ec53L;
+        return (int) (value ^ (value >>> 33));
+    }
+
+    public long getKmerWithoutBucketName(long kmer) {
+                       // 0000000000000000000000000001101000101000100000010010100100000000
+//        return ( kmer & 0b0000000000000000000000000000000000000000000000000000000011111111L) |
+//               ((kmer & 0b0000000000000000000000000000000000000000000000000000011000000000L) >>> 1) |
+//               ((kmer & 0b0000000000000000000000000000000000000000000000000001000000000000L) >>> 2) |
+//               ((kmer & 0b0000000000000000000000000000000000000000000000001100000000000000L) >>> 3) |
+//               ((kmer & 0b0000000000000000000000000000000000000000011111100000000000000000L) >>> 4) |
+//               ((kmer & 0b0000000000000000000000000000000000000111000000000000000000000000L) >>> 5) |
+//               ((kmer & 0b0000000000000000000000000000000000010000000000000000000000000000L) >>> 6) |
+//               ((kmer & 0b0000000000000000000000000000000111000000000000000000000000000000L) >>> 7) |
+//               ((kmer & 0b0000000000000000000000000000010000000000000000000000000000000000L) >>> 8) |
+//               ((kmer & 0b1111111111111111111111111110000000000000000000000000000000000000L) >>> 10);
+        return kmer >>> nrOfBitsBucketNames;
+    }
+
+    public int getIdFromIndexEntry(long kmerIndex) {
+        return (int) kmerIndex & ((1 << bitsForIds) - 1);
+    }
 
     public long getMaxKmerValue() {
         return (long) Math.pow(targetAlphabet.getBase(), getW()) - 1;
     }
 
-    /**
-     * Combines a bucket name and a kmerIndex index entry to the number representing the kmer.
-     * @param bucketName the bucket name
-     * @param kmerIndex the index entry of the kmer (without the bucket name)
-     * @return the number representing the kmer
-     */
-    @Deprecated
-    public abstract long getKmerFromIndexEntry(int bucketName, long kmerIndex);
+    public long getKmerFromIndexEntry(int bucketName, long kmerIndex) {
+        // return ((kmerIndex >>> bitsForIds) << nrOfBitsBucketNames) | bucketName;
 
-    /**
-     * Extracts the part of the kmer that is stored in the bucket (and not its name) from an index entry.
-     * @param kmerIndex the index entry of the kmer
-     * @return the part of the kmer that is stored in the bucket
-     */
-    public abstract long getKmerFromIndexEntry(long kmerIndex);
+        return ((kmerIndex >>> bitsForIds) << nrOfBitsBucketNames) | (bucketName ^ 0b1010101010);
 
-    /**
-     * @return the number of bits that remain and make up the names of the buckets.
-     */
-    public abstract int getNrOfBitsBucketNames();
+        // insert specific bits
+                             // 0000000000000001101000101000100000010010100100000000
+//        return  ((kmerIndex & 0b1111111111111110000000000000000000000000000000000000000000000000L) >>> (bitsForIds - 10)) | ((bucketName & 0b0001000000L) << 30)
+//                                                                                                                          | ((bucketName & 0b0000000010L) << 34) |
+//                ((kmerIndex & 0b0000000000000001000000000000000000000000000000000000000000000000L) >>> (bitsForIds - 8 )) | ((bucketName & 0b0000000100L) << 31) |
+//                ((kmerIndex & 0b0000000000000000111000000000000000000000000000000000000000000000L) >>> (bitsForIds - 7 )) | ((bucketName & 0b0010000000L) << 22) |
+//                ((kmerIndex & 0b0000000000000000000100000000000000000000000000000000000000000000L) >>> (bitsForIds - 6 )) | ((bucketName & 0b0000000001L) << 27) |
+//                ((kmerIndex & 0b0000000000000000000011100000000000000000000000000000000000000000L) >>> (bitsForIds - 5 )) | ((bucketName & 0b0100000000L) << 15) |
+//                ((kmerIndex & 0b0000000000000000000000011111100000000000000000000000000000000000L) >>> (bitsForIds - 4 )) | ((bucketName & 0b1000000000L) << 7) |
+//                ((kmerIndex & 0b0000000000000000000000000000011000000000000000000000000000000000L) >>> (bitsForIds - 3 )) | ((bucketName & 0b0000100000L) << 8 ) |
+//                ((kmerIndex & 0b0000000000000000000000000000000100000000000000000000000000000000L) >>> (bitsForIds - 2 )) | ((bucketName & 0b0000010000L) << 7 ) |
+//                ((kmerIndex & 0b0000000000000000000000000000000011000000000000000000000000000000L) >>> (bitsForIds - 1 )) | ((bucketName & 0b0000001000L) << 5 ) |
+//                ((kmerIndex & 0b0000000000000000000000000000000000111111110000000000000000000000L) >>> bitsForIds);
+    }
 
-    public abstract int getNrOfBitsRequiredForKmer();
+    public long getKmerFromIndexEntry(long kmerIndex) {
+        return kmerIndex >>> bitsForIds;
+    }
 
-    public abstract int getNrOfBuckets();
+    public int getNrOfBitsBucketNames() {
+        return nrOfBitsBucketNames;
+    }
+
+    public int getNrOfBitsRequiredForKmer() {
+        return nrOfBitsRequiredForKmer;
+    }
+
+    public int getNrOfBuckets() {
+        return nrOfBuckets;
+    }
 }

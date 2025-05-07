@@ -20,26 +20,19 @@ public class CompleteRunTest {
         Path db = Utilities.getFile("src/test/resources/database/db.fsa", true);
         Path dbPreprocessed = Utilities.getFile("src/test/resources/test_output/db_preprocessed/db_preprocessed.fsa.gz", false);
         Path dbPreprocessedExpected = Utilities.getFile("src/test/resources/expected_output/db_preprocessed/db_preprocessed.fsa.gz", true);
-        Path dbPreprocessedNTExpected = Utilities.getFile("src/test/resources/expected_output/db_preprocessed_nt/test_nt.fsa", true);
         Path reads = Utilities.getFile("src/test/resources/reads/reads.fq", true);
         Path dbIndex = Utilities.getFolder("src/test/resources/test_output/db_index", false);
         Path dbIndexExpected = Utilities.getFolder("src/test/resources/expected_output/db_index", true);
         Path dbIndexSpaced = Utilities.getFolder("src/test/resources/test_output/db_index_spaced", false);
         Path dbIndexSpacedExpected = Utilities.getFolder("src/test/resources/expected_output/db_index_spaced", true);
-        Path dbIndexNT = Utilities.getFolder("src/test/resources/test_output/db_index_nt", false);
-        Path dbIndexNTExpected = Utilities.getFolder("src/test/resources/expected_output/db_index_nt", true);
         Path readsIndex = Utilities.getFolder("src/test/resources/test_output/reads_index", false);
         Path readsIndexExpected = Utilities.getFolder("src/test/resources/expected_output/reads_index", true);
         Path readsIndexSpaced = Utilities.getFolder("src/test/resources/test_output/reads_index_spaced", false);
         Path readsIndexSpacedExpected = Utilities.getFolder("src/test/resources/expected_output/reads_index_spaced", true);
-        Path readsIndexNuc = Utilities.getFolder("src/test/resources/test_output/reads_index_nuc", false);
-        Path readsIndexNucExpected = Utilities.getFolder("src/test/resources/expected_output/reads_index_nuc", true);
         Path output = Utilities.getFolder("src/test/resources/test_output/assignment", false);
         Path outputExpected = Utilities.getFolder("src/test/resources/expected_output/assignment", true);
         Path outputSpaced = Utilities.getFolder("src/test/resources/test_output/assignment_spaced", false);
         Path outputSpacedExpected = Utilities.getFolder("src/test/resources/expected_output/assignment_spaced", true);
-        Path outputNT = Utilities.getFolder("src/test/resources/test_output/assignment_nt", false);
-        Path outputNTExpected = Utilities.getFolder("src/test/resources/expected_output/assignment_nt", true);
 
         // Preprocess DB
         Main.main(new String[]{"--preprocess", "-t", "12", "--debug", "--statistics",
@@ -54,7 +47,7 @@ public class CompleteRunTest {
 
         // Generate DB index
         Main.main(new String[]{
-                "--indexdb", "-t", "1", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
+                "--indexdb", "-t", "1", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics", "--filtering", "c", "0",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(), "--alphabet", "[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]",
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {
@@ -62,26 +55,20 @@ public class CompleteRunTest {
             exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 1064, 1065))));
             assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
         }
-
         Main.main(new String[]{
-                "--indexdb", "-t", "12", "-b", "127", "--mask", "111111011110011100011", "--debug", "--statistics",
+                "--indexdb", "-t", "12", "-b", "127", "--mask", "111111011110011100011", "--debug", "--statistics", "--filtering", "c", "0",
+                "--alphabet", "[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbPreprocessed.toString(), dbIndexSpaced.toString()});
         if (assertInbetween) {
             assertDirectoriesEqual(dbIndexSpacedExpected.toFile(), dbIndexSpaced.toFile(), exclusionRules);
         }
 
-        Main.main(new String[]{
-                "--indexdb", "--debug", "--statistics", "--alphabet", "base11nuc",
-                "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
-                dbPreprocessedNTExpected.toString(), dbIndexNT.toString()});
-        if (assertInbetween) {
-            assertDirectoriesEqual(dbIndexNTExpected.toFile(), dbIndexNT.toFile(), exclusionRules);
-        }
 
         // Generate read index
         String[] args = new String[]{
-                "--indexreads", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics",
+                "--indexreads", "-t", "12", "-b", "1024", "--mask", "111111111111111", "--debug", "--statistics", "--filtering", "c", "0",
+                "--alphabet", "[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]",
                 reads.toString(), readsIndex.toString()};
         Main.main(args);
         if (assertInbetween) {
@@ -91,19 +78,12 @@ public class CompleteRunTest {
         }
 
         args = new String[]{
-                "--indexreads", "-t", "1", "-b", "127", "--keep-in-memory", "--mask", "111111011110011100011", "--debug", "--statistics",
+                "--indexreads", "-t", "1", "-b", "127", "--keep-in-memory", "--mask", "111111011110011100011", "--debug", "--statistics", "--filtering", "c", "0",
+                "--alphabet", "[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]",
                 reads.toString(), readsIndexSpaced.toString()};
         Main.main(args);
         if (assertInbetween) {
             assertDirectoriesEqual(readsIndexSpacedExpected.toFile(), readsIndexSpaced.toFile(), exclusionRules);
-        }
-
-        args = new String[]{
-                "--indexreads", "--debug", "--statistics", "--alphabet", "base11nuc",
-                reads.toString(), readsIndexNuc.toString()};
-        Main.main(args);
-        if (assertInbetween) {
-            assertDirectoriesEqual(readsIndexNucExpected.toFile(), readsIndexNuc.toFile(), exclusionRules);
         }
 
         // Assign reads
@@ -117,22 +97,13 @@ public class CompleteRunTest {
             assertDirectoriesEqual(output.toFile(), outputExpected.toFile(), exclusionRules);
         }
         args = new String[]{
-                "--assignreads", "-m", "12", "-t", "1", "-b", "12", "--debug", "--statistics",
+                "--assignreads", "-t", "1", "-b", "12", "--debug", "--statistics",
                 "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndexSpaced.toString(), readsIndexSpaced.toString(), outputSpaced.toString()};
         Main.main(args);
         if (assertInbetween) {
             assertDirectoriesEqual(outputSpaced.toFile(), outputSpacedExpected.toFile(), exclusionRules);
-        }
-        args = new String[]{
-                "--assignreads", "--debug", "--statistics",
-                "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
-                "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
-                dbIndexNT.toString(), readsIndexNuc.toString(), outputNT.toString()};
-        Main.main(args);
-        if (assertInbetween) {
-            assertDirectoriesEqual(outputNT.toFile(), outputNTExpected.toFile(), exclusionRules);
         }
 
         // Compare output with expected output

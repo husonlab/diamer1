@@ -5,6 +5,7 @@ import org.husonlab.diamer2.io.indexing.BucketIO;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer2.io.seq.SequenceSupplier;
+import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.seq.SequenceRecord;
@@ -84,8 +85,6 @@ public class DBIndexer {
             readerThread.start();
 
             Thread[] processingThreads = new Thread[settings.MAX_THREADS];
-            processedSequences.set(0);
-            skippedSequences.set(0);
             for (int j = 0; j < settings.MAX_THREADS; j++) {
                 processingThreads[j] = new Thread(new BatchProcessor(queue, tree, buckets, encoder, readingFinished, i, settings.BUCKETS_PER_CYCLE));
                 processingThreads[j].start();
@@ -132,6 +131,9 @@ public class DBIndexer {
             }
         }
 
+        // Export tree with number of kmers that map to each node
+        TreeIO.saveTree(tree, dbIndexIO.getIndexFolder().resolve("tree.txt"));
+
         StringBuilder report = new StringBuilder("input file: ").append(sup.getFile()).append("\n")
                 .append("output directory: ").append(dbIndexIO.getIndexFolder()).append("\n")
                 .append("processed sequence records: ").append(processedSequences).append("\n")
@@ -150,9 +152,6 @@ public class DBIndexer {
 
     private static void writeBucket(FlexibleBucket bucket, Tree tree, Encoder encoder, BucketIO bucketIO, int[] bucketSizes) {
         int i = 0;
-        if (bucket.size() == 0) {
-            return;
-        }
         while (i < bucket.size() && bucket.getValue(i) == Long.MAX_VALUE) {
             i++;
         }
