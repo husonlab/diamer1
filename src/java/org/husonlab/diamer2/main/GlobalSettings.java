@@ -3,10 +3,20 @@ package org.husonlab.diamer2.main;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
+import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
+import org.husonlab.diamer2.util.logging.LogFileWriter;
+import org.husonlab.diamer2.util.logging.Logger;
 
-import static org.husonlab.diamer2.main.CliUtils.printHelp;
+import java.nio.file.Path;
+import java.util.List;
+
+import static org.husonlab.diamer2.main.CliUtils.*;
+import static org.husonlab.diamer2.main.CliUtils.parseAlgorithms;
 
 public class GlobalSettings {
+    public final Logger logger;
+    public final LogFileWriter logFileWriter;
     /**
      * cli arguments
      */
@@ -54,7 +64,18 @@ public class GlobalSettings {
      */
     public final boolean ONLY_STANDARD_RANKS;
 
-    public GlobalSettings(String[] args, CommandLine cli, Options options) {
+    public ReducedAlphabet ALPHABET;
+    public boolean[] MASK;
+    public List<AssignmentAlgorithm> ALGORITHMS;
+
+    public Path INPUT;
+    public final Path OUTPUT;
+    public Path DB_INDEX;
+    public Path READS_INDEX;
+
+    public GlobalSettings(String[] args, CommandLine cli, Options options, Path output, Path logFile) {
+        this.logger = new Logger("DIAMER");
+        this.logFileWriter = new LogFileWriter(logFile);
         this.args = args;
         int maxThreads = Runtime.getRuntime().availableProcessors();
         try {
@@ -82,21 +103,30 @@ public class GlobalSettings {
         DEBUG = cli.hasOption("debug");
         COLLECT_STATS = cli.hasOption("statistics");
         ONLY_STANDARD_RANKS = cli.hasOption("only-standard-ranks");
+
+        ALPHABET = getAlphabet(cli, "[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]");
+        MASK = getMask(cli, "11111101101100111000100001");
+        ALGORITHMS = parseAlgorithms(cli);
+        OUTPUT = output;
     }
 
-    public GlobalSettings(String[] args, int MAX_THREADS, int BUCKETS_PER_CYCLE, boolean KEEP_IN_MEMORY, boolean DEBUG, boolean COLLECT_STATS, boolean onlyStandardRanks) {
-        this.args = args;
-        this.MAX_THREADS = MAX_THREADS;
-        this.BUCKETS_PER_CYCLE = BUCKETS_PER_CYCLE;
-        this.KEEP_IN_MEMORY = KEEP_IN_MEMORY;
-        this.QUEUE_SIZE = MAX_THREADS * 2;
-        this.DEBUG = DEBUG;
-        this.COLLECT_STATS = COLLECT_STATS;
-        ONLY_STANDARD_RANKS = onlyStandardRanks;
+    public GlobalSettings(String[] args, CommandLine cli, Options options, Path output) {
+        this(args, cli, options, output, output.resolve("run.log"));
     }
 
     @Override
     public String toString() {
+        StringBuilder maskString = new StringBuilder();
+        for (boolean b : MASK) {
+            maskString.append(b ? "1" : "0");
+        }
+        StringBuilder algorithmsString = new StringBuilder();
+        for (AssignmentAlgorithm algorithm : ALGORITHMS) {
+            algorithmsString.append(algorithm.toString()).append(", ");
+        }
+        if (!algorithmsString.isEmpty()) {
+            algorithmsString.setLength(algorithmsString.length() - 2);
+        }
         return String.join(" ", args) + "\n" +
                 "VERSION:\t" + VERSION + "\n" +
                 "MAX_THREADS:\t" + MAX_THREADS + "\n" +
@@ -108,10 +138,13 @@ public class GlobalSettings {
                 "QUEUE_SIZE:\t" + QUEUE_SIZE + "\n" +
                 "DEBUG:\t" + DEBUG + "\n" +
                 "COLLECT_STATS:\t" + COLLECT_STATS + "\n" +
-                "ONLY_STANDARD_RANKS:\t" + ONLY_STANDARD_RANKS + "\n";
-    }
-
-    public void setBUCKETS_PER_CYCLE(int BUCKETS_PER_CYCLE) {
-        this.BUCKETS_PER_CYCLE = BUCKETS_PER_CYCLE;
+                "ONLY_STANDARD_RANKS:\t" + ONLY_STANDARD_RANKS + "\n" +
+                "ALPHABET:\t" + ALPHABET + "\n" +
+                "MASK:\t" + maskString + "\n" +
+                "ALGORITHMS:\t" + algorithmsString + "\n" +
+                "INPUT:\t" + INPUT + "\n" +
+                "OUTPUT:\t" + OUTPUT + "\n" +
+                "DB_INDEX:\t" + DB_INDEX + "\n" +
+                "READS_INDEX:\t" + READS_INDEX + "\n";
     }
 }

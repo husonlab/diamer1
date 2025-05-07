@@ -156,7 +156,7 @@ public class ReadIndexer {
                 .append("skipped translations because length < ").append(encoder.getK()).append(": ")
                 .append(skippedTranslations).append("\n");
         long totalKmers = 0;
-        StringBuilder bucketSizesString = new StringBuilder().append("bucket sizes: ").append("\n");
+        StringBuilder bucketSizesString = new StringBuilder().append("bucket sizes:").append("\n");
         for (int i = 0; i < bucketSizes.length; i++) {
             bucketSizesString.append(i).append("\t").append(bucketSizes[i]).append("\n");
             totalKmers += bucketSizes[i];

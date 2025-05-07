@@ -58,8 +58,27 @@ public class CustomAlphabet extends ReducedAlphabet {
     @Override
     public String toString(Iterable<Byte> seq) {
         StringBuilder sb = new StringBuilder();
-        for (Byte symbol : seq) {
-            sb.append(symbol).append(" ");
+        for (Byte b : seq) {
+            if (b < base) {
+                sb.append(aaToCustom[b]);
+            } else {
+                sb.append("?");
+            }
+        }
+        return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < base; i++) {
+            sb.append("[");
+            for (int j = 0; j < aaToCustom.length; j++) {
+                if (aaToCustom[j] == i) {
+                    sb.append((char) j);
+                }
+            }
+            sb.append("]");
         }
         return sb.toString();
     }

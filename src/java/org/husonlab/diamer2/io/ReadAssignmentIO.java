@@ -217,6 +217,7 @@ public class ReadAssignmentIO {
         }
 
         StringBuilder info = new StringBuilder();
+        info.append("\nAssignment summary for each algorithm and the counts used for the assignment:\n");
 
         for (int i = 0; i < nrOfAssignmentAlgorithms; i++) {
             info.append(readAssignment.getAssignmentAlgorithms().get(i)).append("\n");

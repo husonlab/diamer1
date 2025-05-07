@@ -132,7 +132,7 @@ public class StatisticsEstimator {
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append("Statistics on the first ").append(sampleSize)
+        sb.append("\nStatistics on the first ").append(sampleSize)
                 .append(" sequences of the input file: ").append(file).append("\n");
         sb.append("Character counts:\n");
         for (int i = 0; i < charFrequencies.length; i++) {

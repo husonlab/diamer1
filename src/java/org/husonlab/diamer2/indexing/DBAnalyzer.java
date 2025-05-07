@@ -92,7 +92,7 @@ public class DBAnalyzer {
         StringBuilder report = new StringBuilder("input file: ").append(sup.getFile()).append("\n")
                 .append("output directory: ").append(encoder.getDBIndexIO().getIndexFolder()).append("\n")
                 .append("processed sequenceRecords: ").append(processedSequenceRecords).append("\n");
-        StringBuilder bucketSizesString = new StringBuilder().append("raw bucket sizes: ").append("\n");
+        StringBuilder bucketSizesString = new StringBuilder().append("raw bucket sizes:").append("\n");
         for (int i = 0; i < bucketSizes.length; i++) {
             if (bucketSizes[i] > maxBucketSize) {
                 maxBucketSize = bucketSizes[i];

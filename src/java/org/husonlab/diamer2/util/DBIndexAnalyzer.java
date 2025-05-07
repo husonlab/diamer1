@@ -27,8 +27,8 @@ public class DBIndexAnalyzer {
     private final HashMap<String, Long> kmerPerRank;
     private final DBIndexIO dbIndexIO;
 
-    public DBIndexAnalyzer(Path output, Encoder encoder, GlobalSettings settings) {
-        this.output = output;
+    public DBIndexAnalyzer(Encoder encoder, GlobalSettings settings) {
+        this.output = settings.OUTPUT;
         this.encoder = encoder;
         this.settings = settings;
         this.dbIndexIO = encoder.getDBIndexIO();

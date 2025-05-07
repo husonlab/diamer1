@@ -37,39 +37,39 @@ import static org.husonlab.diamer2.main.CliUtils.parseMask;
 import static org.junit.Assert.assertEquals;
 
 public class TestClass {
-    @Test
-    public void analyze_kraken_result() {
-        Path output = Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2_processed");
-        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, false, true, true, false);
-        Tree tree = readTaxonomy(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/nodes.dmp"), Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/names.dmp"), true);
-        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2/raw_kraken2.txt"), settings);
-        readAssignment.addKmerCountsToTree();
-        readAssignment.sortKmerCounts();
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.1f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.2f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.3f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.4f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.5f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.6f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.7f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.8f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.9f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(1.0f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.1f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.2f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.3f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.4f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.5f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.6f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.7f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.8f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.9f));
-        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(1.0f));
-        readAssignment.addReadCountsToTree();
-        ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, settings);
-        TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
-        TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
-    }
+//    @Test
+//    public void analyze_kraken_result() {
+//        Path output = Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2_processed");
+//        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, false, true, true, false);
+//        Tree tree = readTaxonomy(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/nodes.dmp"), Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/names.dmp"), true);
+//        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2/raw_kraken2.txt"), settings);
+//        readAssignment.addKmerCountsToTree();
+//        readAssignment.sortKmerCounts();
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.1f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.2f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.3f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.4f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.5f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.6f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.7f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.8f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.9f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(1.0f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.1f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.2f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.3f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.4f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.5f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.6f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.7f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.8f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.9f));
+//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(1.0f));
+//        readAssignment.addReadCountsToTree();
+//        ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, settings);
+//        TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
+//        TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
+//    }
 
     @Test
     public void analyseDBIndex() {
@@ -170,31 +170,31 @@ public class TestClass {
         }
     }
 
-    @Test
-    public void testW15() {
-        Encoder encoder = new Encoder(new Base11Alphabet(), null, null, new boolean[]{true, true, true}, null, 22);
-        long kmer = 13665795155445L;
-//        long kmer = 0xFFFFFFFFFFFFFL;
-        int bucket = encoder.getBucketNameFromKmer(kmer);
-        long kmerWithoutBucket = encoder.getKmerWithoutBucketName(kmer);
-        long indexEntry = encoder.getIndexEntry(0, kmerWithoutBucket);
-        int id = encoder.getIdFromIndexEntry(indexEntry);
-        long kmerFromIndexEntry = encoder.getKmerFromIndexEntry(indexEntry);
-        long restoredKmer = encoder.getKmerFromIndexEntry(bucket, indexEntry);
-        System.out.println("Kmer: " + kmer);
-        System.out.println("Kmer: " + Long.toBinaryString(kmer));
-        System.out.println("Bucket: " + bucket);
-        System.out.println("Kmer without bucket: " + kmerWithoutBucket);
-        System.out.println("Kmer without bucket: " + Long.toBinaryString(kmerWithoutBucket));
-        System.out.println("Index entry: " + indexEntry);
-        System.out.println("Index entry: " + Long.toBinaryString(indexEntry));
-        System.out.println("ID: " + id);
-        System.out.println("Kmer from index entry: " + kmerFromIndexEntry);
-        System.out.println("Kmer from index entry: " + Long.toBinaryString(kmerFromIndexEntry));
-        System.out.println("Restored kmer: " + restoredKmer);
-        System.out.println("Restored kmer: " + Long.toBinaryString(restoredKmer));
-        System.out.println(encoder.getBucketNameFromKmer(10));
-    }
+//    @Test
+//    public void testW15() {
+//        Encoder encoder = new Encoder(new Base11Alphabet(), null, null, new boolean[]{true, true, true}, null, 22);
+//        long kmer = 13665795155445L;
+////        long kmer = 0xFFFFFFFFFFFFFL;
+//        int bucket = encoder.getBucketNameFromKmer(kmer);
+//        long kmerWithoutBucket = encoder.getKmerWithoutBucketName(kmer);
+//        long indexEntry = encoder.getIndexEntry(0, kmerWithoutBucket);
+//        int id = encoder.getIdFromIndexEntry(indexEntry);
+//        long kmerFromIndexEntry = encoder.getKmerFromIndexEntry(indexEntry);
+//        long restoredKmer = encoder.getKmerFromIndexEntry(bucket, indexEntry);
+//        System.out.println("Kmer: " + kmer);
+//        System.out.println("Kmer: " + Long.toBinaryString(kmer));
+//        System.out.println("Bucket: " + bucket);
+//        System.out.println("Kmer without bucket: " + kmerWithoutBucket);
+//        System.out.println("Kmer without bucket: " + Long.toBinaryString(kmerWithoutBucket));
+//        System.out.println("Index entry: " + indexEntry);
+//        System.out.println("Index entry: " + Long.toBinaryString(indexEntry));
+//        System.out.println("ID: " + id);
+//        System.out.println("Kmer from index entry: " + kmerFromIndexEntry);
+//        System.out.println("Kmer from index entry: " + Long.toBinaryString(kmerFromIndexEntry));
+//        System.out.println("Restored kmer: " + restoredKmer);
+//        System.out.println("Restored kmer: " + Long.toBinaryString(restoredKmer));
+//        System.out.println(encoder.getBucketNameFromKmer(10));
+//    }
 
     @Test
     public void testDeltaCompression() throws IOException {
@@ -235,77 +235,77 @@ public class TestClass {
         System.out.println(bucket.getName());
     }
 
-    @Test
-    public void testReadIndexer2() {
-        Path reads = Utilities.getFile("src/test/resources/reads/reads.fq", true);
-        Path output = Utilities.getFolder("C:/Users/nk035/Downloads/test_index", false);
+//    @Test
+//    public void testReadIndexer2() {
+//        Path reads = Utilities.getFile("src/test/resources/reads/reads.fq", true);
+//        Path output = Utilities.getFolder("C:/Users/nk035/Downloads/test_index", false);
+//
+//        boolean[] mask = parseMask("111111111111111");
+//        ReducedAlphabet alphabet = new Base11Alphabet();
+//        Encoder encoder = new Encoder(alphabet, null, output, mask, null, 22);
+//        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, true, true, false, false);
+//
+//        try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
+//             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+//                     fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
+//            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, 1000, encoder, globalSettings);
+////            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
+//            readIndexer.index();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
 
-        boolean[] mask = parseMask("111111111111111");
-        ReducedAlphabet alphabet = new Base11Alphabet();
-        Encoder encoder = new Encoder(alphabet, null, output, mask, null, 22);
-        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, true, true, false, false);
-
-        try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
-             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
-                     fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, 1000, encoder, globalSettings);
-//            ReadIndexer readIndexer = new ReadIndexer(sup, fastqIdReader, output, encoder, globalSettings);
-            readIndexer.index();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Test
-    public void testBucketSizeEstimatorFastq() {
-        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\Zymo-GridION-EVEN-3Peaks-R103-merged.fq.gz", true);
-
-        boolean[] mask = parseMask("1111111111111");
-        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
-        Encoder encoder = new Encoder(alphabet, null, null, mask, null, 22);
-        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, true, true, false, false);
-
-        int[] bucketSizes;
-        int maxBucketSize;
-        try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
-             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
-                     fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
-            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
-            bucketSizes = statisticsEstimator.getEstimatedBucketSizes();
-            maxBucketSize = statisticsEstimator.getMaxBucketSize();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Maximum bucket size: " + maxBucketSize);
-        for (int i = 0; i < bucketSizes.length; i++) {
-            System.out.println("Bucket " + i + ": " + bucketSizes[i]);
-        }
-    }
-
-    @Test
-    public void testBucketSizeEstimatorFasta() {
+//    @Test
+//    public void testBucketSizeEstimatorFastq() {
+//        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\Zymo-GridION-EVEN-3Peaks-R103-merged.fq.gz", true);
+//
+//        boolean[] mask = parseMask("1111111111111");
+//        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
+//        Encoder encoder = new Encoder(alphabet, null, null, mask, null, 22);
+//        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, true, true, false, false);
+//
+//        int[] bucketSizes;
+//        int maxBucketSize;
+//        try (FastqIdReader fastqIdReader = new FastqIdReader(reads);
+//             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+//                     fastqIdReader, alphabet::translateRead, globalSettings.KEEP_IN_MEMORY)) {
+//            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
+//            bucketSizes = statisticsEstimator.getEstimatedBucketSizes();
+//            maxBucketSize = statisticsEstimator.getMaxBucketSize();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println("Maximum bucket size: " + maxBucketSize);
+//        for (int i = 0; i < bucketSizes.length; i++) {
+//            System.out.println("Bucket " + i + ": " + bucketSizes[i]);
+//        }
+//    }
+//
+//    @Test
+//    public void testBucketSizeEstimatorFasta() {
+////        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr50\\nr50_preprocessed.fsa", true);
 //        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr50\\nr50_preprocessed.fsa", true);
-        Path reads = Utilities.getFile("F:\\Studium\\Master\\semester5\\thesis\\data\\NCBI\\nr50\\nr50_preprocessed.fsa", true);
-
-        boolean[] mask = parseMask("1111111111111");
-        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
-        Encoder encoder = new Encoder(alphabet, null, null, mask, null, 22);
-        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, false, true, false, false);
-
-        int[] bucketSizes;
-        int maxBucketSize;
-        try (FastaIdReader fastaIdReader = new FastaIdReader(reads);
-             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
-                     fastaIdReader, alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
-            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 1_000_000);
-            bucketSizes = statisticsEstimator.getEstimatedBucketSizes();
-            maxBucketSize = statisticsEstimator.getMaxBucketSize();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        System.out.println("Maximum bucket size: " + maxBucketSize);
-        for (int i = 0; i < bucketSizes.length; i++) {
-            System.out.println("Bucket " + i + ": " + bucketSizes[i]);
-        }
-    }
+//
+//        boolean[] mask = parseMask("1111111111111");
+//        ReducedAlphabet alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF]");
+//        Encoder encoder = new Encoder(alphabet, null, null, mask, null, 22);
+//        GlobalSettings globalSettings = new GlobalSettings(new String[0], 1, 1024, false, true, false, false);
+//
+//        int[] bucketSizes;
+//        int maxBucketSize;
+//        try (FastaIdReader fastaIdReader = new FastaIdReader(reads);
+//             SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<Integer, byte[]>(
+//                     fastaIdReader, alphabet::translateDBSequence, globalSettings.KEEP_IN_MEMORY)) {
+//            StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 1_000_000);
+//            bucketSizes = statisticsEstimator.getEstimatedBucketSizes();
+//            maxBucketSize = statisticsEstimator.getMaxBucketSize();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//        System.out.println("Maximum bucket size: " + maxBucketSize);
+//        for (int i = 0; i < bucketSizes.length; i++) {
+//            System.out.println("Bucket " + i + ": " + bucketSizes[i]);
+//        }
+//    }
 }

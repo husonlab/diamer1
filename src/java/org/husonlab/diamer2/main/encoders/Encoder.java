@@ -3,18 +3,17 @@ package org.husonlab.diamer2.main.encoders;
 import org.husonlab.diamer2.indexing.kmers.*;
 import org.husonlab.diamer2.io.indexing.DBIndexIO;
 import org.husonlab.diamer2.io.indexing.ReadIndexIO;
+import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
-
-import java.nio.file.Path;
 
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
  */
 public class Encoder {
 
+    private final GlobalSettings globalSettings;
+
     protected final ReducedAlphabet targetAlphabet;
-    protected final Path dbIndex;
-    protected final Path readsIndex;
     /**
      * length of the mask (kmer with spaces)
      */
@@ -45,17 +44,10 @@ public class Encoder {
     protected final int nrOfBitsBucketNames;
     protected final int nrOfBuckets;
 
-    /**
-     * @param targetAlphabet the alphabet used to encode the kmers of database and query (probably a reduced protein
-     *                       alphabet)
-     * @param mask           bit mask to use for spaced kmer extraction
-     * @param bitsForIds     number of bits required to represent the ids of the sequences (taxon ids or read ids)
-     */
-    public Encoder(ReducedAlphabet targetAlphabet, Path dbIndex, Path readsIndex, boolean[] mask, KmerExtractor kmerExtractor, int bitsForIds) {
-        this.targetAlphabet = targetAlphabet;
-        this.dbIndex = dbIndex;
-        this.readsIndex = readsIndex;
-        this.mask = mask;
+    public Encoder(GlobalSettings globalSettings, KmerExtractor kmerExtractor) {
+        this.targetAlphabet = globalSettings.ALPHABET;
+        this.globalSettings = globalSettings;
+        this.mask = globalSettings.MASK;
         this.kmerExtractor = kmerExtractor;
         // calculate position of the most significant bit (length of the mask / size of the window)
         this.k = mask.length;
@@ -67,7 +59,7 @@ public class Encoder {
             }
         }
         this.s = sTemp;
-        this.bitsForIds = bitsForIds;
+        this.bitsForIds = globalSettings.BITS_FOR_IDS;
         nrOfBitsRequiredForKmer = bitsRequired(this.targetAlphabet.getBase(), k - s);
         nrOfBitsBucketNames = 10;
         nrOfBuckets = (int)Math.pow(2, nrOfBitsBucketNames);
@@ -130,14 +122,14 @@ public class Encoder {
      * @return The DB <strong>Index</strong> IO class to read and write the database index.
      */
     public DBIndexIO getDBIndexIO() {
-        return new DBIndexIO(dbIndex, getNrOfBuckets());
+        return new DBIndexIO(globalSettings.DB_INDEX, getNrOfBuckets());
     }
 
     /**
      * @return The Read <strong>Index</strong> IO class to read and write the read index.
      */
     public ReadIndexIO getReadIndexIO() {
-        return new ReadIndexIO(readsIndex, getNrOfBuckets());
+        return new ReadIndexIO(globalSettings.READS_INDEX, getNrOfBuckets());
     }
 
     /**

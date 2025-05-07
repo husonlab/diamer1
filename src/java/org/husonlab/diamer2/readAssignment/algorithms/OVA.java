@@ -80,4 +80,9 @@ public class OVA extends AssignmentAlgorithmOnWeightedSubtree {
     public String getName() {
         return "OVA (%.2f)".formatted(ratio);
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

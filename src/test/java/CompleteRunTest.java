@@ -12,7 +12,7 @@ import java.util.*;
 public class CompleteRunTest {
     @Test
     public void runAndCompareWithExpectedResult() throws IOException {
-        boolean assertInbetween = false;
+        boolean assertInbetween = true;
         Path nodesDmp = Utilities.getFile("src/test/resources/database/taxdmp/nodes.dmp", true);
         Path namesDmp = Utilities.getFile("src/test/resources/database/taxdmp/names.dmp", true);
         Path ncbiAccession2Taxid = Utilities.getFile("src/test/resources/database/taxmap/prot.accession2taxid.gz", true);
@@ -41,7 +41,7 @@ public class CompleteRunTest {
 
         ArrayList<ExclusionRule> exclusionRules = new ArrayList<>();
         if (assertInbetween) {
-            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 3, 6, 10, 11, 13, 14))));
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 17, 18, 21, 22, 23, 24, 25))));
             assertDirectoriesEqual(dbPreprocessedExpected.getParent().toFile(), dbPreprocessed.getParent().toFile(), exclusionRules);
         }
 
@@ -52,7 +52,7 @@ public class CompleteRunTest {
                 dbPreprocessed.toString(), dbIndex.toString()});
         if (assertInbetween) {
             exclusionRules = new ArrayList<>();
-            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 1064, 1065))));
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 17, 18, 19, 21, 24, 1076, 1077, 1078))));
             assertDirectoriesEqual(dbIndexExpected.toFile(), dbIndex.toFile(), exclusionRules);
         }
         Main.main(new String[]{
@@ -73,7 +73,7 @@ public class CompleteRunTest {
         Main.main(args);
         if (assertInbetween) {
             exclusionRules = new ArrayList<>();
-            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 14))));
+            exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 17, 18, 20, 21, 24, 1076, 1077, 1078))));
             assertDirectoriesEqual(readsIndexExpected.toFile(), readsIndex.toFile(), exclusionRules);
         }
 
@@ -89,16 +89,18 @@ public class CompleteRunTest {
         // Assign reads
         args = new String[]{
                 "--assignreads", "-t", "12", "-b", "12", "--debug", "--statistics",
-                "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
+                "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0", "--ova", "0.7",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndex.toString(), readsIndex.toString(), output.toString()};
         Main.main(args);
+        exclusionRules = new ArrayList<>();
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 18, 19, 20, 21, 22))));
         if (assertInbetween) {
             assertDirectoriesEqual(output.toFile(), outputExpected.toFile(), exclusionRules);
         }
         args = new String[]{
                 "--assignreads", "-t", "1", "-b", "12", "--debug", "--statistics",
-                "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0",
+                "--ovo", "0.2,0.5,0.6,0.8,0.9,1.0", "--ova", "0.7",
                 "-no", nodesDmp.toString(), "-na", namesDmp.toString(),
                 dbIndexSpaced.toString(), readsIndexSpaced.toString(), outputSpaced.toString()};
         Main.main(args);
@@ -110,8 +112,7 @@ public class CompleteRunTest {
         File expectedOutput = new File("src/test/resources/expected_output");
         File actualOutput = new File("src/test/resources/test_output");
         exclusionRules = new ArrayList<>();
-        exclusionRules.add(new ExclusionRule("report.txt", new HashSet<>(List.of(1, 2, 3))));
-        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 3, 6, 7, 8, 10, 11, 13, 1064, 1065))));
+        exclusionRules.add(new ExclusionRule("run.log", new HashSet<>(List.of(1, 2, 17, 18, 19, 20, 21, 22, 23, 24, 25, 1076, 1077, 1078))));
         assertDirectoriesEqual(expectedOutput, actualOutput, exclusionRules);
     }
 

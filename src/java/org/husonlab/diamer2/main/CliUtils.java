@@ -4,11 +4,16 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.husonlab.diamer2.io.NCBIReader;
+import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
+import org.husonlab.diamer2.readAssignment.algorithms.OVA;
+import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.seq.alphabet.*;
 import org.husonlab.diamer2.taxonomy.Tree;
 import org.husonlab.diamer2.util.Pair;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.husonlab.diamer2.io.Utilities.getFile;
 
@@ -51,11 +56,12 @@ public class CliUtils {
     }
 
     /**
-     * @param cli command line arguments
+     * @param cli           command line arguments
+     * @param defaultMask   default mask
      * @return mask from cli or default mask
      */
-    public static boolean[] getMask(CommandLine cli) {
-        return cli.hasOption("mask") ? parseMask(cli.getOptionValue("mask")) : parseMask("11111101101100111000100001");
+    public static boolean[] getMask(CommandLine cli, String defaultMask) {
+        return cli.hasOption("mask") ? parseMask(cli.getOptionValue("mask")) : parseMask(defaultMask);
     }
 
     /**
@@ -75,10 +81,10 @@ public class CliUtils {
     /**
      * Get the alphabet specified in the command line arguments.
      */
-    public static ReducedAlphabet getAlphabet(CommandLine cli) {
+    public static ReducedAlphabet getAlphabet(CommandLine cli, String defaultAlphabet) {
         ReducedAlphabet alphabet;
         if (!cli.hasOption("alphabet") || cli.getOptionValue("alphabet").equals("uniform11")) {
-            alphabet = new CustomAlphabet("[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]");
+            alphabet = new CustomAlphabet(defaultAlphabet);
         } else {
             alphabet = new CustomAlphabet(cli.getOptionValue("alphabet"));
         }
@@ -94,5 +100,26 @@ public class CliUtils {
             throw new RuntimeException(e);
         }
         return tree;
+    }
+
+    public static List<AssignmentAlgorithm> parseAlgorithms(CommandLine cli) {
+        List<AssignmentAlgorithm> algorithms = new ArrayList<>();
+        if (cli.hasOption("ovo")) {
+            String[] thresholds = cli.getOptionValue("ovo").split(",");
+            for (String threshold : thresholds) {
+                algorithms.add(new OVO(Float.parseFloat(threshold)));
+            }
+        } else {
+            // default is the algorithm of Kraken 2:
+            algorithms.add(new OVO(1.0f));
+        }
+        if (cli.hasOption("ova")) {
+            String[] thresholds = cli.getOptionValue("ova").split(",");
+            for (String threshold : thresholds) {
+                algorithms.add(new OVA(Float.parseFloat(threshold)));
+            }
+        }
+
+        return algorithms;
     }
 }

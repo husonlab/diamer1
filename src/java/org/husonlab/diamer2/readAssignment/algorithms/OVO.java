@@ -90,4 +90,8 @@ public class OVO extends AssignmentAlgorithmOnWeightedSubtree {
         }
     }
 
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

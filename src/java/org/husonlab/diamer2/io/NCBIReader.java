@@ -433,9 +433,10 @@ public class NCBIReader {
                 .append("output file\t").append(output).append("\n")
                 .append("processed sequenceRecords\t").append(processedFastas).append("\n")
                 .append("kept sequenceRecords\t").append(processedFastas - skippedNoTaxId - skippedRank).append("\n")
-                .append("skipped sequenceRecords without accession\t").append(skippedNoTaxId).append("\n")
-                .append("skipped sequenceRecords with rank too high (")
-                .append(String.join(", ", highRanks)).append(")\t").append(skippedRank).append("\n");
+                .append("skipped sequenceRecords without accession\t").append(skippedNoTaxId).append("\n");
+                // disabled for now
+                //.append("skipped sequenceRecords with rank too high (")
+                //.append(String.join(", ", highRanks)).append(")\t").append(skippedRank).append("\n");
         rankMapping.entrySet().stream()
                 .sorted((e1, e2) -> e2.getValue().compareTo(e1.getValue()))
                 .forEach(entry -> {
