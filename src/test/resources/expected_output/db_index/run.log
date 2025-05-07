@@ -19,7 +19,7 @@ OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 READS_INDEX:	null
 Indexing started: 2025-05-07T18:12:02.501204500
-Invalid complexity threshold, no filtering.
+No filtering.
 
 Statistics on the first 10000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 Character counts:

@@ -19,7 +19,7 @@ OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_in
 DB_INDEX:	null
 READS_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
 Indexing started: 2025-05-07T18:15:10.297548
-Invalid complexity threshold, no filtering.
+No filtering.
 
 Statistics on the first 1000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 Character counts:
