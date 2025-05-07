@@ -1,23 +1,9 @@
 package org.husonlab.diamer2.main;
 
 import org.apache.commons.cli.*;
-import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.Computations.*;
-import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
-import org.husonlab.diamer2.readAssignment.algorithms.OVA;
-import org.husonlab.diamer2.readAssignment.algorithms.OVO;
-import org.husonlab.diamer2.readAssignment.ReadAssigner;
-import org.husonlab.diamer2.io.ReadAssignmentIO;
-import org.husonlab.diamer2.main.encoders.Encoder;
-import org.husonlab.diamer2.seq.alphabet.*;
-import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.util.DBIndexAnalyzer;
 
-import java.io.*;
 import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.husonlab.diamer2.io.Utilities.getFile;
 import static org.husonlab.diamer2.io.Utilities.getFolder;
@@ -42,8 +28,8 @@ public class Main {
                                 
                                 <output>: output file
                                 
-                                <mapping>: accession -> taxid mapping file(s), can be either a MEGAN mapping file 
-                                (.db or .mdb) or NCBI accession2taxid mapping file(s).""")
+                                <mapping>: accession -> taxid mapping file(s), can be either a MEGAN mapping file
+                                 (.db or .mdb) or NCBI accession2taxid mapping file(s).""")
                         .build()
         );
         computationOptions.addOption(

@@ -1,4 +1,4 @@
-2025-05-07T18:33:04.922810300
+2025-05-07T19:47:46.852673900
 --indexdb -t 12 -b 127 --mask 111111011110011100011 --debug --statistics --filtering c 0 --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 VERSION:	1.0.0
 MAX_THREADS:	12
@@ -18,7 +18,7 @@ INPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_prepro
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 READS_INDEX:	null
-Indexing started: 2025-05-07T18:33:04.922810300
+Indexing started: 2025-05-07T19:47:46.853944800
 Invalid complexity threshold, no filtering.
 
 Statistics on the first 10000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
@@ -1073,7 +1073,7 @@ Estimated bucket sizes:
 1022: 1
 1023: 1
 
-Indexing finished: 2025-05-07T18:33:06.216184500
+Indexing finished: 2025-05-07T19:47:48.210450100
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 processed sequence records: 6

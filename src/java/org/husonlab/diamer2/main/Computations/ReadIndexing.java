@@ -3,7 +3,6 @@ package org.husonlab.diamer2.main.Computations;
 import org.apache.commons.cli.CommandLine;
 import org.husonlab.diamer2.indexing.ReadIndexer;
 import org.husonlab.diamer2.indexing.StatisticsEstimator;
-import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.io.seq.FastqIdReader;
 import org.husonlab.diamer2.io.seq.SequenceSupplierCompressed;
 import org.husonlab.diamer2.main.GlobalSettings;
@@ -12,7 +11,7 @@ import org.husonlab.diamer2.main.encoders.Encoder;
 import static org.husonlab.diamer2.io.Utilities.getFile;
 import static org.husonlab.diamer2.io.Utilities.getFolder;
 import static org.husonlab.diamer2.main.CliUtils.*;
-import static org.husonlab.diamer2.main.Computations.DBIndexing.setupKmerExtractor;
+import static org.husonlab.diamer2.main.Computations.DBIndexing.setupEncoder;
 
 public class ReadIndexing {
     public static void indexReads(CommandLine cli, GlobalSettings settings) {
@@ -25,8 +24,7 @@ public class ReadIndexing {
         settings.logFileWriter.writeTimeStamp("Indexing started");
 
         // setup kmer extractor and encoder with filtering options:
-        KmerExtractor kmerExtractor = setupKmerExtractor(settings.ALPHABET::translateRead, cli, settings);
-        Encoder encoder = new Encoder(settings, kmerExtractor);
+        Encoder encoder = setupEncoder(new FastqIdReader(settings.INPUT), settings.ALPHABET::translateRead, cli, settings);
 
         try (FastqIdReader fastqIdReader = new FastqIdReader(settings.INPUT);
                 SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
@@ -34,6 +32,12 @@ public class ReadIndexing {
             // estimate bucket sizes with first 10,000 sequences
             StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 1_000);
             int estimatedBucketSize = statisticsEstimator.getMaxBucketSize();
+            if (estimatedBucketSize < 1) {
+                settings.logFileWriter.writeLog("Estimated bucket size is too small (" + estimatedBucketSize +
+                        "), consider using different filtering options.");
+                throw new RuntimeException("Estimated bucket size is too small (" + estimatedBucketSize +
+                        "), consider using different filtering options.");
+            }
             settings.logFileWriter.writeLog(statisticsEstimator.toString());
             if (!cli.hasOption("b")) {
                 int suggestedNrOfBuckets = statisticsEstimator.getSuggestedNumberOfBuckets();

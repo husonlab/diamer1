@@ -1,11 +1,13 @@
 package org.husonlab.diamer2.main.Computations;
 
 import org.apache.commons.cli.CommandLine;
+import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.CliUtils;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
+import org.husonlab.diamer2.main.encoders.EncoderWithoutKmerExtractor;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
 import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
@@ -25,7 +27,7 @@ public class ReadAssigning {
         settings.logFileWriter.writeTimeStamp("Read assignment started");
 
         // setup read assigner
-        Encoder encoder = new Encoder(settings, null);
+        Encoder encoder = new EncoderWithoutKmerExtractor(settings);
         ReadAssigner readAssigner = new ReadAssigner(encoder, settings);
 
         // run assignment

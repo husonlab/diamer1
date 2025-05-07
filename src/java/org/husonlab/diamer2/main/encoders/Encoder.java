@@ -9,7 +9,7 @@ import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
 /**
  * Class to collect all settings that can be changed when indexing a database and a query.
  */
-public class Encoder {
+public abstract class Encoder {
 
     private final GlobalSettings globalSettings;
 
@@ -27,10 +27,6 @@ public class Encoder {
      */
     protected final boolean[] mask;
     /**
-     * kmer extractor to use for spaced kmer extraction
-     */
-    protected final KmerExtractor kmerExtractor;
-    /**
      * number of bits required to represent the ids (taxon ids or sequence ids)
      */
     protected final int bitsForIds;
@@ -44,11 +40,10 @@ public class Encoder {
     protected final int nrOfBitsBucketNames;
     protected final int nrOfBuckets;
 
-    public Encoder(GlobalSettings globalSettings, KmerExtractor kmerExtractor) {
+    public Encoder(GlobalSettings globalSettings) {
         this.targetAlphabet = globalSettings.ALPHABET;
         this.globalSettings = globalSettings;
         this.mask = globalSettings.MASK;
-        this.kmerExtractor = kmerExtractor;
         // calculate position of the most significant bit (length of the mask / size of the window)
         this.k = mask.length;
         // calculate the number of spaces between the bits of the mask
@@ -98,10 +93,11 @@ public class Encoder {
     }
 
     /**
+     * Has to be implemented so that every thread can get its own instance.
      * @return a KmerExtractor that can be used to extract kmers from sequences
      */
-    public KmerExtractor getKmerExtractor(){
-        return kmerExtractor;
+    public abstract KmerExtractor getKmerExtractor();
+//        return kmerExtractor;
 //        KmerEncoder kmerEncoder = new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods());
 //        return new KmerExtractorFiltered(kmerEncoder, (kmer) -> kmerEncoder.getComplexity() > 3);
 
@@ -112,7 +108,6 @@ public class Encoder {
 //        return new KmerExtractorProbabilityMinimizer(kmerEncoder, 15);
 
 //        return new KmerExtractor(new KmerEncoder(targetAlphabet.getBase(), mask, getLetterLikelihoods()));
-    }
 
     public int getNrOfKmerBitsInBucketEntry() {
         return 64 - bitsForIds;

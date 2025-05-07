@@ -4,11 +4,10 @@ import org.apache.commons.cli.CommandLine;
 import org.husonlab.diamer2.indexing.DBIndexer;
 import org.husonlab.diamer2.indexing.StatisticsEstimator;
 import org.husonlab.diamer2.indexing.kmers.*;
-import org.husonlab.diamer2.io.seq.FastaIdReader;
-import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.io.seq.SequenceSupplierCompressed;
+import org.husonlab.diamer2.io.seq.*;
 import org.husonlab.diamer2.main.GlobalSettings;
 import org.husonlab.diamer2.main.encoders.Encoder;
+import org.husonlab.diamer2.main.encoders.EncoderWithoutKmerExtractor;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.Objects;
@@ -35,14 +34,19 @@ public class DBIndexing {
         Tree tree = readTree(cli);
 
         // setup kmer extractor and encoder with filtering options:
-        KmerExtractor kmerExtractor = setupKmerExtractor(settings.ALPHABET::translateDBSequence, cli, settings);
+        Encoder encoder = setupEncoder(new FastaIdReader(settings.INPUT), settings.ALPHABET::translateDBSequence, cli, settings);
 
-        Encoder encoder = new Encoder(settings, kmerExtractor);
         try (SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
                 new FastaIdReader(settings.INPUT), settings.ALPHABET::translateDBSequence, settings.KEEP_IN_MEMORY)) {
             // estimate bucket sizes with first 10,000 sequences
             StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
             int estimatedBucketSize = statisticsEstimator.getMaxBucketSize();
+            if (estimatedBucketSize < 1) {
+                settings.logFileWriter.writeLog("Estimated bucket size is too small (" + estimatedBucketSize +
+                        "), consider using different filtering options.");
+                throw new RuntimeException("Estimated bucket size is too small (" + estimatedBucketSize +
+                        "), consider using different filtering options.");
+            }
             settings.logFileWriter.writeLog(statisticsEstimator.toString());
             if (!cli.hasOption("b")) {
                 int suggestedNrOfBuckets = statisticsEstimator.getSuggestedNumberOfBuckets();
@@ -61,12 +65,16 @@ public class DBIndexing {
         }
     }
 
-    private static double[] estimateProbabilities(SequenceSupplier.Converter<byte[]> converter, GlobalSettings settings) {
+    private static double[] estimateProbabilities(SequenceReader<Integer, char[]> reader, SequenceSupplier.Converter<byte[]> converter, GlobalSettings settings) {
         // setup encoder without filtering to estimate AA probabilities
-        KmerExtractor kmerExtractor = new KmerExtractor(new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK));
-        Encoder encoder = new Encoder(settings, kmerExtractor);
-        try (SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
-                new FastaIdReader(settings.INPUT), converter, false)) {
+        Encoder encoder = new Encoder(settings) {
+            @Override
+            public KmerExtractor getKmerExtractor() {
+                return new KmerExtractor(new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK));
+            }
+        };
+        try (SequenceSupplier<Integer, byte[]> sup = new SequenceSupplier<>(
+                reader, converter, false)) {
             StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
             return statisticsEstimator.getCharFrequencies();
         } catch (Exception e) {
@@ -74,11 +82,7 @@ public class DBIndexing {
         }
     }
 
-    static KmerExtractor setupKmerExtractor(SequenceSupplier.Converter<byte[]> converter, CommandLine cli, GlobalSettings settings) {
-
-        // setup default encoder with complexity filtering
-        KmerEncoder kmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK);
-        KmerExtractor kmerExtractor = new KmerExtractorFiltered(kmerEncoder, (_) -> kmerEncoder.getComplexity() > 3);
+    static Encoder setupEncoder(SequenceReader<Integer, char[]> reader, SequenceSupplier.Converter<byte[]> converter, CommandLine cli, GlobalSettings settings) {
 
         // parse filtering options
         if (cli.hasOption("filtering")) {
@@ -94,14 +98,30 @@ public class DBIndexing {
                     throw new RuntimeException("Invalid complexity threshold: " + options[1]);
                 }
                 if (threshold > 0) {
+                    if (threshold > new EncoderWithoutKmerExtractor(settings).getW()) {
+                        settings.logFileWriter.writeLog("Complexity threshold is too high: " + threshold);
+                        throw new RuntimeException("Complexity threshold is too high: " + threshold);
+                    }
                     settings.logFileWriter.writeLog("Filtering: c > " + threshold);
                     settings.logger.logInfo("Filtering: c > " + threshold);
-                    return new KmerExtractorFiltered(kmerEncoder, (kmer) -> kmerEncoder.getComplexity() > threshold);
+                    return new Encoder(settings) {
+                        @Override
+                        public KmerExtractor getKmerExtractor() {
+                            // setup default encoder with complexity filtering
+                            KmerEncoder kmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK);
+                            return new KmerExtractorFiltered(kmerEncoder, (_) -> kmerEncoder.getComplexity() > threshold);
+                        }
+                    };
                 } else {
                     // without any filtering
-                    settings.logFileWriter.writeLog("Invalid complexity threshold, no filtering.");
-                    settings.logger.logInfo("Invalid complexity threshold, no filtering.");
-                    return new KmerExtractor(new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK));
+                    settings.logFileWriter.writeLog("No filtering.");
+                    settings.logger.logInfo("No filtering.");
+                    return new Encoder(settings) {
+                        @Override
+                        public KmerExtractor getKmerExtractor() {
+                            return new KmerExtractor(new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK));
+                        }
+                    };
                 }
 
             } else if (Objects.equals(options[0], "p")) {   // probability filtering
@@ -114,18 +134,32 @@ public class DBIndexing {
                     throw new RuntimeException("Invalid probability threshold: " + options[1]);
                 }
                 if (threshold < 1) {
+                    if (threshold < 0) {
+                        settings.logFileWriter.writeLog("Probability threshold is too low: " + threshold);
+                        throw new RuntimeException("Probability threshold is too low: " + threshold);
+                    }
                     // estimate AA probabilities
-                    double[] letterLikelihoods = estimateProbabilities(converter, settings);
+                    double[] letterLikelihoods = estimateProbabilities(reader, converter, settings);
                     // setup encoder with probability filtering
-                    KmerEncoder finalKmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK, letterLikelihoods);
                     settings.logger.logInfo("Filtering: p < " + threshold);
                     settings.logFileWriter.writeLog("Filtering: p < " + threshold);
-                    return new KmerExtractorFiltered(finalKmerEncoder, (_) -> finalKmerEncoder.getProbability() > threshold);
+                    return new Encoder(settings) {
+                        @Override
+                        public KmerExtractor getKmerExtractor() {
+                            KmerEncoder kmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK, letterLikelihoods);
+                            return new KmerExtractorFiltered(kmerEncoder, (_) -> kmerEncoder.getProbability() < threshold);
+                        }
+                    };
                 } else {
                     // without any filtering
-                    settings.logFileWriter.writeLog("Invalid probability threshold, no filtering.");
-                    settings.logger.logInfo("Invalid probability threshold, no filtering.");
-                    return new KmerExtractor(new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK));
+                    settings.logFileWriter.writeLog("No filtering.");
+                    settings.logger.logInfo("No filtering.");
+                    return new Encoder(settings) {
+                        @Override
+                        public KmerExtractor getKmerExtractor() {
+                            return new KmerExtractor(new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK));
+                        }
+                    };
                 }
             } else if (Objects.equals(options[0], "cm") || Objects.equals(options[0], "pm")) {
                 // parse window size
@@ -136,24 +170,45 @@ public class DBIndexing {
                     settings.logFileWriter.writeLog("Invalid window size: " + options[1]);
                     throw new RuntimeException("Invalid window size: " + options[1]);
                 }
+                if (windowSize <= settings.MASK.length) {
+                    settings.logFileWriter.writeLog("Window size is too small: " + windowSize);
+                    throw new RuntimeException("Window size is too small: " + windowSize);
+                }
                 if (Objects.equals(options[0], "cm")) {  // complexity maximization
                     settings.logFileWriter.writeLog("Filtering: w=" + windowSize + " (complexity maximizer)");
                     settings.logger.logInfo("Filtering: w=" + windowSize + " (complexity maximizer)");
-                    return new KmerExtractorComplexityMaximizer(kmerEncoder, windowSize);
+                    return new Encoder(settings) {
+                        @Override
+                        public KmerExtractor getKmerExtractor() {
+                            KmerEncoder kmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK);
+                            return new KmerExtractorComplexityMaximizer(kmerEncoder, windowSize);
+                        }
+                    };
                 } else if (Objects.equals(options[0], "pm")) {  // probability maximization
                     // estimate AA probabilities
-                    double[] letterLikelihoods = estimateProbabilities(converter, settings);
+                    double[] letterLikelihoods = estimateProbabilities(reader, converter, settings);
                     // setup encoder with probability minimizer
-                    KmerEncoder finalKmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK, letterLikelihoods);
                     settings.logFileWriter.writeLog("Filtering: w=" + windowSize + " (probability minimizer)");
                     settings.logger.logInfo("Filtering: w=" + windowSize + " (probability minimizer)");
-                    return new KmerExtractorProbabilityMinimizer(finalKmerEncoder, windowSize);
+                    return new Encoder(settings) {
+                        @Override
+                        public KmerExtractor getKmerExtractor() {
+                            KmerEncoder finalKmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK, letterLikelihoods);
+                            return new KmerExtractorProbabilityMinimizer(finalKmerEncoder, windowSize);
+                        }
+                    };
                 }
             }
         }
 
         settings.logFileWriter.writeLog("Filtering: c > 3 (default)");
         settings.logger.logInfo("Filtering: c > 3 (default)");
-        return kmerExtractor;
+        return new Encoder(settings) {
+            @Override
+            public KmerExtractor getKmerExtractor() {
+                KmerEncoder kmerEncoder = new KmerEncoder(settings.ALPHABET.getBase(), settings.MASK);
+                return new KmerExtractorFiltered(kmerEncoder, (_) -> kmerEncoder.getComplexity() > 3);
+            }
+        };
     }
 }
