@@ -6,7 +6,7 @@ import org.husonlab.diamer2.util.logging.Logger;
 import org.husonlab.diamer2.util.logging.OneLineLogger;
 import org.husonlab.diamer2.util.logging.ProgressBar;
 import org.husonlab.diamer2.util.logging.Time;
-import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
+import org.husonlab.diamer2.readAssignment.algorithms.ClassificationAlgorithm;
 import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.*;
@@ -175,7 +175,7 @@ public class ReadAssignment {
      * <p>The results will be added to the {@link ReadAssignment} as well as the nodes of the tree.</p>
      * @param algorithm Assignment algorithm to run
      */
-    public void runAssignmentAlgorithmOnKmerCounts(AssignmentAlgorithm algorithm) {
+    public void runAssignmentAlgorithmOnKmerCounts(ClassificationAlgorithm algorithm) {
         ProgressBar progressBar = new ProgressBar(size, 20);
         try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 settings.MAX_THREADS,
@@ -201,7 +201,7 @@ public class ReadAssignment {
      * <p>The results will be added to the {@link ReadAssignment} as well as the nodes of the tree.</p>
      * @param algorithm Assignment algorithm to run
      */
-    public void runAssignmentAlgorithmOnNormalizedKmerCounts(AssignmentAlgorithm algorithm) {
+    public void runAssignmentAlgorithmOnNormalizedKmerCounts(ClassificationAlgorithm algorithm) {
         ProgressBar progressBar = new ProgressBar(size, 20);
         try (ThreadPoolExecutor threadPoolExecutor = new CustomThreadPoolExecutor(
                 settings.MAX_THREADS,

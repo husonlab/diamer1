@@ -4,7 +4,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.husonlab.diamer2.io.NCBIReader;
-import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
+import org.husonlab.diamer2.readAssignment.algorithms.ClassificationAlgorithm;
 import org.husonlab.diamer2.readAssignment.algorithms.OVA;
 import org.husonlab.diamer2.readAssignment.algorithms.OVO;
 import org.husonlab.diamer2.seq.alphabet.*;
@@ -102,8 +102,8 @@ public class CliUtils {
         return tree;
     }
 
-    public static List<AssignmentAlgorithm> parseAlgorithms(CommandLine cli) {
-        List<AssignmentAlgorithm> algorithms = new ArrayList<>();
+    public static List<ClassificationAlgorithm> parseAlgorithms(CommandLine cli) {
+        List<ClassificationAlgorithm> algorithms = new ArrayList<>();
         if (cli.hasOption("ovo")) {
             String[] thresholds = cli.getOptionValue("ovo").split(",");
             for (String threshold : thresholds) {

@@ -3,7 +3,7 @@ package org.husonlab.diamer2.readAssignment.algorithms;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
 
-public class OVA extends AssignmentAlgorithmOnWeightedSubtree {
+public class OVA extends ClassificationAlgorithmOnWeightedSubtree {
 
     /**
      * <strong>One Versus All</strong> algorithm for assigning reads to taxonomic nodes.

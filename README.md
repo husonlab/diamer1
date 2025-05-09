@@ -207,8 +207,10 @@ kraken2 --db kraken2db Zymo-GridION-EVEN-3Peaks-R103-merged.fq >
 * new form for use of AI (does it replace the old sentences?)
 
 # TODO
+* Use more than one reader thread for readline?
+* provide possibility to supply letter likelihoods
+* fix output labels of per_read_assignment files
 * Implement kraken2s O(1) algorithm to determine a minimizer
-* use xor to flip every second bit of the bucket id to get rid of uneven distribution
 * only sort used parts of the array
 * remap kmers to buckets to make the sizes equal
 * can bracken be used with my output?

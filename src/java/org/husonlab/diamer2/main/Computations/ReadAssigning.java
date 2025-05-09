@@ -1,7 +1,6 @@
 package org.husonlab.diamer2.main.Computations;
 
 import org.apache.commons.cli.CommandLine;
-import org.husonlab.diamer2.indexing.kmers.KmerExtractor;
 import org.husonlab.diamer2.io.ReadAssignmentIO;
 import org.husonlab.diamer2.io.taxonomy.TreeIO;
 import org.husonlab.diamer2.main.CliUtils;
@@ -10,7 +9,7 @@ import org.husonlab.diamer2.main.encoders.Encoder;
 import org.husonlab.diamer2.main.encoders.EncoderWithoutKmerExtractor;
 import org.husonlab.diamer2.readAssignment.ReadAssigner;
 import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
+import org.husonlab.diamer2.readAssignment.algorithms.ClassificationAlgorithm;
 
 import java.util.List;
 
@@ -50,7 +49,7 @@ public class ReadAssigning {
         readAssignment.normalizeKmerCounts();
 
         // run assignment algorithms
-        for (AssignmentAlgorithm algorithm : settings.ALGORITHMS) {
+        for (ClassificationAlgorithm algorithm : settings.ALGORITHMS) {
             readAssignment.runAssignmentAlgorithmOnKmerCounts(algorithm);
             readAssignment.runAssignmentAlgorithmOnNormalizedKmerCounts(algorithm);
         }

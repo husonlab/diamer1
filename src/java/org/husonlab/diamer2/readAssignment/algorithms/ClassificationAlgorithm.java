@@ -9,7 +9,7 @@ import java.util.List;
  * Class to implement algorithms that take all kmer matches of a read as input and calculate a taxonomic assignment
  * on a given taxonomic tree.
  */
-public interface AssignmentAlgorithm {
+public interface ClassificationAlgorithm {
 
     /**
      * Assigns a read to a taxon based on the kmer matches of the read.

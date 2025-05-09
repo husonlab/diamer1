@@ -3,7 +3,7 @@ package org.husonlab.diamer2.main;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-import org.husonlab.diamer2.readAssignment.algorithms.AssignmentAlgorithm;
+import org.husonlab.diamer2.readAssignment.algorithms.ClassificationAlgorithm;
 import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
 import org.husonlab.diamer2.util.logging.LogFileWriter;
 import org.husonlab.diamer2.util.logging.Logger;
@@ -66,7 +66,7 @@ public class GlobalSettings {
 
     public ReducedAlphabet ALPHABET;
     public boolean[] MASK;
-    public List<AssignmentAlgorithm> ALGORITHMS;
+    public List<ClassificationAlgorithm> ALGORITHMS;
 
     public Path INPUT;
     public final Path OUTPUT;
@@ -121,7 +121,7 @@ public class GlobalSettings {
             maskString.append(b ? "1" : "0");
         }
         StringBuilder algorithmsString = new StringBuilder();
-        for (AssignmentAlgorithm algorithm : ALGORITHMS) {
+        for (ClassificationAlgorithm algorithm : ALGORITHMS) {
             algorithmsString.append(algorithm.toString()).append(", ");
         }
         if (!algorithmsString.isEmpty()) {

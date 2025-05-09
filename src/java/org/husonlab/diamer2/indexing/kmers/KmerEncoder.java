@@ -30,6 +30,10 @@ public class KmerEncoder {
     private final long[][] letterMultiples;
     // array to store the likelihood of each letter of the alphabet in the kmer
     private final double[] letterLikelihoods;
+    // flag to indicate wether the mask has spaces or not
+    private final boolean hasSpaces;
+    // the number a letter has to be multiplied with to shift it to the MSD in the base of the alphabet
+    private final long multiplicator;
     // current encoding of the kmer
     private long encoding;
 
@@ -76,6 +80,8 @@ public class KmerEncoder {
         }
         letterLikelihoods = new double[base];
         Arrays.fill(letterLikelihoods, 1.0 / base);
+        hasSpaces = s > 0;
+        multiplicator = (long) Math.pow(base, k - s - 1);
         encoding = 0;
     }
 
@@ -89,7 +95,7 @@ public class KmerEncoder {
     public long addFront(byte value) {
         System.arraycopy(kmerLetters, 0, kmerLetters, 1, k - 1);
         kmerLetters[0] = value;
-        encoding = encode();
+        encoding = encodeSpaced();
         return encoding;
     }
 
@@ -99,9 +105,14 @@ public class KmerEncoder {
      * @return the new encoding of the kmer
      */
     public long addBack(byte value) {
+        byte removedLetter = kmerLetters[0];
         System.arraycopy(kmerLetters, 1, kmerLetters, 0, k - 1);
         kmerLetters[k - 1] = value;
-        encoding = encode();
+        if (hasSpaces) {
+            encoding = encodeSpaced();
+        } else {
+            encoding = encode(removedLetter);
+        }
         return encoding;
     }
 
@@ -109,7 +120,7 @@ public class KmerEncoder {
      * Adds all masked elements of the kmer array to get the encoding of the kmer.
      * @return the encoding of the kmer
      */
-    private long encode() {
+    private long encodeSpaced() {
         if (k - s == 15) {
             return letterMultiples[kmerLetters[maskIndices[0]]][14]
                    + letterMultiples[kmerLetters[maskIndices[1]]][13]
@@ -126,6 +137,60 @@ public class KmerEncoder {
                    + letterMultiples[kmerLetters[maskIndices[12]]][2]
                    + letterMultiples[kmerLetters[maskIndices[13]]][1]
                    + letterMultiples[kmerLetters[maskIndices[14]]][0];
+        } else if (k - s == 14) {
+            return letterMultiples[kmerLetters[maskIndices[0]]][13]
+                   + letterMultiples[kmerLetters[maskIndices[1]]][12]
+                   + letterMultiples[kmerLetters[maskIndices[2]]][11]
+                   + letterMultiples[kmerLetters[maskIndices[3]]][10]
+                   + letterMultiples[kmerLetters[maskIndices[4]]][9]
+                   + letterMultiples[kmerLetters[maskIndices[5]]][8]
+                   + letterMultiples[kmerLetters[maskIndices[6]]][7]
+                   + letterMultiples[kmerLetters[maskIndices[7]]][6]
+                   + letterMultiples[kmerLetters[maskIndices[8]]][5]
+                   + letterMultiples[kmerLetters[maskIndices[9]]][4]
+                   + letterMultiples[kmerLetters[maskIndices[10]]][3]
+                   + letterMultiples[kmerLetters[maskIndices[11]]][2]
+                   + letterMultiples[kmerLetters[maskIndices[12]]][1]
+                   + letterMultiples[kmerLetters[maskIndices[13]]][0];
+        } else if (k - s == 13) {
+            return letterMultiples[kmerLetters[maskIndices[0]]][12]
+                   + letterMultiples[kmerLetters[maskIndices[1]]][11]
+                   + letterMultiples[kmerLetters[maskIndices[2]]][10]
+                   + letterMultiples[kmerLetters[maskIndices[3]]][9]
+                   + letterMultiples[kmerLetters[maskIndices[4]]][8]
+                   + letterMultiples[kmerLetters[maskIndices[5]]][7]
+                   + letterMultiples[kmerLetters[maskIndices[6]]][6]
+                   + letterMultiples[kmerLetters[maskIndices[7]]][5]
+                   + letterMultiples[kmerLetters[maskIndices[8]]][4]
+                   + letterMultiples[kmerLetters[maskIndices[9]]][3]
+                   + letterMultiples[kmerLetters[maskIndices[10]]][2]
+                   + letterMultiples[kmerLetters[maskIndices[11]]][1]
+                   + letterMultiples[kmerLetters[maskIndices[12]]][0];
+        } else if (k - s == 12) {
+            return letterMultiples[kmerLetters[maskIndices[0]]][11]
+                   + letterMultiples[kmerLetters[maskIndices[1]]][10]
+                   + letterMultiples[kmerLetters[maskIndices[2]]][9]
+                   + letterMultiples[kmerLetters[maskIndices[3]]][8]
+                   + letterMultiples[kmerLetters[maskIndices[4]]][7]
+                   + letterMultiples[kmerLetters[maskIndices[5]]][6]
+                   + letterMultiples[kmerLetters[maskIndices[6]]][5]
+                   + letterMultiples[kmerLetters[maskIndices[7]]][4]
+                   + letterMultiples[kmerLetters[maskIndices[8]]][3]
+                   + letterMultiples[kmerLetters[maskIndices[9]]][2]
+                   + letterMultiples[kmerLetters[maskIndices[10]]][1]
+                   + letterMultiples[kmerLetters[maskIndices[11]]][0];
+        } else if (k - s == 11) {
+            return letterMultiples[kmerLetters[maskIndices[0]]][10]
+                   + letterMultiples[kmerLetters[maskIndices[1]]][9]
+                   + letterMultiples[kmerLetters[maskIndices[2]]][8]
+                   + letterMultiples[kmerLetters[maskIndices[3]]][7]
+                   + letterMultiples[kmerLetters[maskIndices[4]]][6]
+                   + letterMultiples[kmerLetters[maskIndices[5]]][5]
+                   + letterMultiples[kmerLetters[maskIndices[6]]][4]
+                   + letterMultiples[kmerLetters[maskIndices[7]]][3]
+                   + letterMultiples[kmerLetters[maskIndices[8]]][2]
+                   + letterMultiples[kmerLetters[maskIndices[9]]][1]
+                   + letterMultiples[kmerLetters[maskIndices[10]]][0];
         } else {
             long result = 0;
             for (int i = 0, j = maskIndices.length - 1; i < maskIndices.length; i++, j--) {
@@ -133,6 +198,10 @@ public class KmerEncoder {
             }
             return result;
         }
+    }
+
+    private long encode(byte removedLetter) {
+        return (encoding - removedLetter * multiplicator) * base + kmerLetters[k - 1];
     }
 
     /**

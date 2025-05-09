@@ -6,11 +6,11 @@ import org.husonlab.diamer2.taxonomy.Tree;
 
 import java.util.List;
 
-public abstract class AssignmentAlgorithmOnWeightedSubtree implements AssignmentAlgorithm {
+public abstract class ClassificationAlgorithmOnWeightedSubtree implements ClassificationAlgorithm {
 
     protected final float ratio;
 
-    public AssignmentAlgorithmOnWeightedSubtree(float ratio) {
+    public ClassificationAlgorithmOnWeightedSubtree(float ratio) {
         this.ratio = ratio;
     }
 

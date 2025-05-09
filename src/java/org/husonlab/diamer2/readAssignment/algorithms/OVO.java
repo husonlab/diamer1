@@ -3,7 +3,7 @@ package org.husonlab.diamer2.readAssignment.algorithms;
 import org.husonlab.diamer2.taxonomy.Node;
 import org.husonlab.diamer2.taxonomy.Tree;
 
-public class OVO extends AssignmentAlgorithmOnWeightedSubtree {
+public class OVO extends ClassificationAlgorithmOnWeightedSubtree {
 
     /**
      * @param ratio Between 0 and 1, the ratio of the highest weight to the second-highest weight that is required to
