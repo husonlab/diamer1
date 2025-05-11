@@ -1,12 +1,6 @@
-import org.husonlab.diamer2.taxonomy.Tree;
-import org.husonlab.diamer2.io.NCBIReader;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Arrays;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;

@@ -1,7 +1,7 @@
-//import org.husonlab.diamer2.indexing.Bucket;
-//import org.husonlab.diamer2.indexing.ReadIndexer;
-//import org.husonlab.diamer2.io.indexing.BucketIO;
-//import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
+//import org.husonlab.diamer.indexing.Bucket;
+//import org.husonlab.diamer.indexing.ReadIndexer;
+//import org.husonlab.diamer.io.indexing.BucketIO;
+//import org.husonlab.diamer.seq.alphabet.Base11Alphabet;
 //import org.junit.Test;
 //
 //import java.io.File;

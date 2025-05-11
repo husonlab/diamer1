@@ -1,11 +1,10 @@
-import static org.husonlab.diamer2.indexing.Sorting.radixSortNBits;
+import static org.husonlab.diamer.indexing.Sorting.radixSortNBits;
 import org.junit.Test;
 
 import java.util.Arrays;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
+import static org.husonlab.diamer.indexing.Sorting.radixInPlaceParallel;
 import static org.junit.Assert.*;
 
 public class SortingTest {

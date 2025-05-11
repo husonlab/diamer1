@@ -1,5 +1,5 @@
-//import org.husonlab.diamer2.io.seq.FastaReader;
-//import org.husonlab.diamer2.seq.SequenceRecord;
+//import org.husonlab.diamer.io.seq.FastaReader;
+//import org.husonlab.diamer.seq.SequenceRecord;
 //import org.junit.Test;
 //
 //import java.io.BufferedWriter;
@@ -10,7 +10,7 @@
 //import java.util.List;
 //import java.util.Map;
 //
-//import static org.husonlab.diamer2.seq.converter.Utilities.encodeAABase11Uniform;
+//import static org.husonlab.diamer.seq.converter.Utilities.encodeAABase11Uniform;
 //
 //public class AminoAcidFrequencies {
 //    @Test

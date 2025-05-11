@@ -1,5 +1,5 @@
-//import org.husonlab.diamer2.io.NCBIReader;
-//import org.husonlab.diamer2.taxonomy.Tree;
+//import org.husonlab.diamer.io.NCBIReader;
+//import org.husonlab.diamer.taxonomy.Tree;
 //import org.junit.Test;
 //
 //import static org.junit.Assert.*;

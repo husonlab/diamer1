@@ -1,6 +1,6 @@
-//import org.husonlab.diamer2.io.seq.FASTAReader;
-//import org.husonlab.diamer2.io.seq.SequenceSupplier;
-//import org.husonlab.diamer2.seq.SequenceRecord;
+//import org.husonlab.diamer.io.seq.FASTAReader;
+//import org.husonlab.diamer.io.seq.SequenceSupplier;
+//import org.husonlab.diamer.seq.SequenceRecord;
 //import org.junit.Test;
 //
 //import java.io.File;

@@ -1,5 +1,5 @@
-import org.husonlab.diamer2.io.Utilities;
-import org.husonlab.diamer2.main.Main;
+import org.husonlab.diamer.io.Utilities;
+import org.husonlab.diamer.main.Main;
 import org.junit.Test;
 
 import java.io.BufferedReader;

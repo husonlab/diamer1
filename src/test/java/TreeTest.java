@@ -1,8 +1,8 @@
-//import org.husonlab.diamer2.taxonomy.Tree;
+//import org.husonlab.diamer.taxonomy.Tree;
 //import org.junit.Test;
 //import static org.junit.Assert.*;
 //
-//import org.husonlab.diamer2.taxonomy.Node;
+//import org.husonlab.diamer.taxonomy.Node;
 //
 //import java.util.ArrayList;
 //import java.util.Arrays;

@@ -1,9 +1,9 @@
-//import org.husonlab.diamer2.indexing.DBIndexer;
-//import org.husonlab.diamer2.io.indexing.BucketIO;
-//import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-//import org.husonlab.diamer2.taxonomy.Tree;
-//import org.husonlab.diamer2.indexing.Bucket;
-//import org.husonlab.diamer2.io.NCBIReader;
+//import org.husonlab.diamer.indexing.DBIndexer;
+//import org.husonlab.diamer.io.indexing.BucketIO;
+//import org.husonlab.diamer.seq.alphabet.Base11Alphabet;
+//import org.husonlab.diamer.taxonomy.Tree;
+//import org.husonlab.diamer.indexing.Bucket;
+//import org.husonlab.diamer.io.NCBIReader;
 //import org.junit.Test;
 //
 //import java.io.File;

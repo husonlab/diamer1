@@ -92,7 +92,7 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 ## 1. Annotating nr database with taxon ids
 * ~ 600 gb is enough (05.04.2025)
 ````shell
-java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings="/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2;/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1"
+java -Xmx1400g -jar diamer.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d ../../data/ncbi/nr.fsa -o /beegfs/HPCscratch/noel/preprocessed_nr/nr_preprocessed.fsa --mappings="/beegfs/HPCscratch/noel/dead_prot.accession2taxid.gz,1,2;/beegfs/HPCscratch/noel/prot.accession2taxid.FULL.gz,0,1"
 ````
 ### 1.1 Reading nodes and names
 ### 1.2 reading prot.accession2taxid map
@@ -116,7 +116,7 @@ java -Xmx1400g -jar diamer2.jar --preprocess -no ../../data/ncbi/taxdmp/nodes.dm
 * Indexing start 27.11.2024
   * ~45 min per run (64 buckets)
 ```shell
-java -Xmx600g -jar diamer2.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/nr_taxid_full.fsa -o /beegfs/HPCscratch/noel/dbindex/
+java -Xmx600g -jar diamer.jar --indexdb -t 64 -b 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/nr_taxid_full.fsa -o /beegfs/HPCscratch/noel/dbindex/
 
 java -Xmx12g -jar .\diamer2.jar --indexdb -t 16 -b 8 -no F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\nodes.dmp -na F:\Studium\Master\semester5\thesis\data\NCBI\taxdmp\names.dmp -d F:\Studium\Master\semester5\thesis\data\NCBI\100\nr100_preprocessed.fsa -o F:\Studium\Master\semester5\thesis\data\NCBI\100\index_longspaced
 java -Xmx12g -jar .\diamer2.jar --indexreads -t 16 -b 8 -d F:\Studium\Master\semester5\thesis\data\test_dataset\Zymo-GridION-EVEN-3Peaks-R103-merged.fq -o F:\Studium\Master\semester5\thesis\data\test_dataset\index_longspaced
@@ -126,12 +126,12 @@ java -Xmx12g -jar .\diamer2.jar --assignreads -t 16 -no F:\Studium\Master\semest
 ## 3. Read Assignment
 
 ````shell
-java -jar diamer2.jar --assignreads -t 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/dbindex/ /beegfs/HPCscratch/noel/test_dataset/index/ -o /beegfs/HPCscratch/noel/test_dataset/read_assignments.tsv
+java -jar diamer.jar --assignreads -t 128 -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/dbindex/ /beegfs/HPCscratch/noel/test_dataset/index/ -o /beegfs/HPCscratch/noel/test_dataset/read_assignments.tsv
 ````
 
 ## 4. Statistics
 ````shell
-java -jar diamer2.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/test_dataset/read_assignments.tsv -o /beegfs/HPCscratch/noel/test_dataset/statistics/
+java -jar diamer.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../../data/ncbi/taxdmp/names.dmp -d /beegfs/HPCscratch/noel/test_dataset/read_assignments.tsv -o /beegfs/HPCscratch/noel/test_dataset/statistics/
 ````
 
 * 64 buckets, 16 threads, 5gb
@@ -145,12 +145,12 @@ java -jar diamer2.jar --statistics -no ../../data/ncbi/taxdmp/nodes.dmp -na ../.
 ## NR
 ### preprocess:
 ````shell
-java -Xmx200g -jar ~/Documents/diamer2/diamer2.jar --preprocess -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr.gz preprocess_ncbi/nr_preprocessed_ncbi.fsa ~/Documents/ncbi/taxmapping/dead_prot.accession2taxid.FULL.gz ~/Documents/ncbi/taxmapping/prot.accession2taxid.FULL.gz
+java -Xmx200g -jar ~/Documents/diamer/diamer.jar --preprocess -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr.gz preprocess_ncbi/nr_preprocessed_ncbi.fsa ~/Documents/ncbi/taxmapping/dead_prot.accession2taxid.FULL.gz ~/Documents/ncbi/taxmapping/prot.accession2taxid.FULL.gz
 ````
 ~ 5h
 ### indexdb
 ````shell
-java -Xmx200g -jar ~/Documents/diamer2/diamer2.jar --indexdb -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr_preprocessed_ncbi.fsa index_longspaced/
+java -Xmx200g -jar ~/Documents/diamer/diamer.jar --indexdb -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr_preprocessed_ncbi.fsa index_longspaced/
 ````
 
 
@@ -159,22 +159,22 @@ java -Xmx200g -jar ~/Documents/diamer2/diamer2.jar --indexdb -t 16 -b 16 -no ~/D
 ~ 30 min
 ### indexdb
 ````shell
-java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexdb --keep-in-memory -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr50_preprocesses.fsa index_longspaced/
+java -Xmx50g -jar ~/Documents/diamer/diamer.jar --indexdb --keep-in-memory -t 16 -b 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp nr50_preprocesses.fsa index_longspaced/
 ````
 ~ 2:35h
 ### indexreads
 ````shell
-java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory -t 16 -b 16 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
+java -Xmx50g -jar ~/Documents/diamer/diamer.jar --indexreads --keep-in-memory -t 16 -b 16 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
 ````
 ~ 40 GB would have been enough
 ~ 2 h
 ````shell
-java -Xmx80g -jar ~/Documents/diamer2/diamer2.jar --indexreads --keep-in-memory -t 16 -b 64 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
+java -Xmx80g -jar ~/Documents/diamer/diamer.jar --indexreads --keep-in-memory -t 16 -b 64 Zymo-GridION-EVEN-3Peaks-R103-merged.fq index_longspaced/
 ````
 ~ 2 h
 ### assignreads
 ````shell
-java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --assignreads -t 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp ../ncbi/nr50/index_longspaced ../test_dataset/index_longspaced/ read_assignment
+java -Xmx50g -jar ~/Documents/diamer/diamer.jar --assignreads -t 16 -no ~/Documents/ncbi/taxdmp/nodes.dmp -na ~/Documents/ncbi/taxdmp/names.dmp ../ncbi/nr50/index_longspaced ../test_dataset/index_longspaced/ read_assignment
 ````
 ~ 30 GB
 ~ 20 min
@@ -188,7 +188,7 @@ java -Xmx50g -jar ~/Documents/diamer2/diamer2.jar --assignreads -t 16 -no ~/Docu
   * Finished 11:25, but only because file system was slow for about 20 min
 * Started 28.11.2024 14:05
 ````shell
-java -Xmx100g -jar diamer2.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/noel/test_dataset/Zymo-GridION-EVEN-3Peaks-R103-merged.fq -o /beegfs/HPCscratch/noel/test_dataset/index/ 
+java -Xmx100g -jar diamer.jar --indexreads -t 32 -b 128 -d /beegfs/HPCscratch/noel/test_dataset/Zymo-GridION-EVEN-3Peaks-R103-merged.fq -o /beegfs/HPCscratch/noel/test_dataset/index/ 
 ````
 
 # Kraken2
@@ -294,12 +294,12 @@ zip -r output.zip input/
 * [Megan mapping file](https://software-ab.cs.uni-tuebingen.de/download/megan7/welcome.html)
 
 ## generate reduced NCBI database dataset
-* Extracting the accessions that are part of the nr.fsa file with the [ExtractNrAcessions](src/java/org/husonlab/diamer2/reduceDatasets/ExtractNrAcessions.java) to see if all accessions in the taxon map are required to process the nr.fsa.
+* Extracting the accessions that are part of the nr.fsa file with the [ExtractNrAcessions](src/java/org/husonlab/diamer/reduceDatasets/ExtractNrAcessions.java) to see if all accessions in the taxon map are required to process the nr.fsa.
   * Extracted 812,194,751 accession ids.
-* Reducing the accessions by 100 with the [Reduce100](src/java/org/husonlab/diamer2/reduceDatasets/Reduce100.java) script.
+* Reducing the accessions by 100 with the [Reduce100](src/java/org/husonlab/diamer/reduceDatasets/Reduce100.java) script.
   * 8,121,948 accessions remaining.
-* Extracted the sequenceRecords that belong to the reduced accessions from the nr.fsa flie -> nr100.fsa with the [ExtractByAccession](src/java/org/husonlab/diamer2/reduceDatasets/ExtractByAccession.java) script.
-* Extracted the taxon ids that belong to the reduced accessions from the prot.accession2taxid.gz file -> prot.accession2taxid100.gz with the [ReduceAccession2Taxid](src/java/org/husonlab/diamer2/reduceDatasets/ReduceAccession2Taxid.java) script.
+* Extracted the sequenceRecords that belong to the reduced accessions from the nr.fsa flie -> nr100.fsa with the [ExtractByAccession](src/java/org/husonlab/diamer/reduceDatasets/ExtractByAccession.java) script.
+* Extracted the taxon ids that belong to the reduced accessions from the prot.accession2taxid.gz file -> prot.accession2taxid100.gz with the [ReduceAccession2Taxid](src/java/org/husonlab/diamer/reduceDatasets/ReduceAccession2Taxid.java) script.
 
 
 ### k-mer counts

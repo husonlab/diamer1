@@ -1,5 +1,5 @@
-2025-05-08T19:35:01.510991800
---assignreads -t 1 -b 12 --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 --ova 0.7 -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment_spaced
+2025-05-11T11:59:57.343839
+--assignreads -t 1 -b 12 --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 --ova 0.7 -no C:\Users\noel\Documents\diamer\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_index_spaced C:\Users\noel\Documents\diamer\src\test\resources\test_output\reads_index_spaced C:\Users\noel\Documents\diamer\src\test\resources\test_output\assignment_spaced
 VERSION:	1.0.0
 MAX_THREADS:	1
 MAX_IO_THREADS:	16
@@ -15,11 +15,11 @@ ALPHABET:	[L][A][CG][*BOUVWZ][HS][EMX][TY][QR][DN][FI][KP]
 MASK:	11111101101100111000100001
 ALGORITHMS:	OVO (0.20), OVO (0.50), OVO (0.60), OVO (0.80), OVO (0.90), OVO (1.00), OVA (0.70)
 INPUT:	null
-OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment_spaced
-DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
-READS_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
-Read assignment started: 2025-05-08T19:35:01.511994600
-Read assignment finished: 2025-05-08T19:35:02.074102700
+OUTPUT:	C:\Users\noel\Documents\diamer\src\test\resources\test_output\assignment_spaced
+DB_INDEX:	C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_index_spaced
+READS_INDEX:	C:\Users\noel\Documents\diamer\src\test\resources\test_output\reads_index_spaced
+Read assignment started: 2025-05-11T11:59:57.344835200
+Read assignment finished: 2025-05-11T11:59:57.572541
 Buckets skipped: 0
 Reads with matches: 2
 Reads without matches: 4

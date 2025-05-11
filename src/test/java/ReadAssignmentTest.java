@@ -1,8 +1,8 @@
-//import org.husonlab.diamer2.io.ReadAssignmentIO;
-//import org.husonlab.diamer2.readAssignment.ReadAssignment;
-//import org.husonlab.diamer2.taxonomy.Tree;
-//import org.husonlab.diamer2.io.NCBIReader;
-//import org.husonlab.diamer2.readAssignment.ReadAssigner;
+//import org.husonlab.diamer.io.ReadAssignmentIO;
+//import org.husonlab.diamer.readAssignment.ReadAssignment;
+//import org.husonlab.diamer.taxonomy.Tree;
+//import org.husonlab.diamer.io.NCBIReader;
+//import org.husonlab.diamer.readAssignment.ReadAssigner;
 //import org.junit.Test;
 //
 //import java.io.File;

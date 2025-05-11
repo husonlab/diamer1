@@ -1,4 +1,4 @@
-import org.husonlab.diamer2.indexing.kmers.*;
+import org.husonlab.diamer.indexing.kmers.*;
 import org.junit.Test;
 
 import java.util.Arrays;
@@ -11,7 +11,12 @@ public class MinimizerTest {
         KmerEncoder kmerEncoder = new KmerEncoder(11, new boolean[]{true, true}, letterLikelihoods);
         KmerExtractor kmerExtractor1 = new KmerExtractor(kmerEncoder);
         KmerExtractor kmerExtractor2 = new KmerExtractorMinimizer(kmerEncoder, 6);
-        KmerExtractor kmerExtractor3 = new KmerExtractorFiltered(kmerEncoder, (kmer) -> kmer < 50);
+        KmerExtractor kmerExtractor3 = new KmerExtractorFiltered(kmerEncoder) {
+            @Override
+            public boolean keep(long kmer) {
+                return kmer < 50;
+            }
+        };
         KmerExtractor kmerExtractor4 = new KmerExtractorProbabilityMinimizer(kmerEncoder, 6);
         KmerExtractor kmerExtractor5 = new KmerExtractorComplexityMaximizer(kmerEncoder, 6);
         System.out.println(Arrays.toString(kmerExtractor1.extractKmers(sequence)));

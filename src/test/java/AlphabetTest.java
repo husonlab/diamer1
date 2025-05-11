@@ -1,11 +1,11 @@
-//import org.husonlab.diamer2.seq.*;
-//import org.husonlab.diamer2.seq.CharSequence;
-//import org.husonlab.diamer2.seq.alphabet.DNA;
-//import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-//import org.husonlab.diamer2.seq.converter.Converter;
-//import org.husonlab.diamer2.seq.converter.DNAtoBase11;
-//import org.husonlab.diamer2.seq.encoder.Encoder;
-//import org.husonlab.diamer2.seq.encoder.K15Base11Encoder;
+//import org.husonlab.diamer.seq.*;
+//import org.husonlab.diamer.seq.CharSequence;
+//import org.husonlab.diamer.seq.alphabet.DNA;
+//import org.husonlab.diamer.seq.alphabet.Base11Alphabet;
+//import org.husonlab.diamer.seq.converter.Converter;
+//import org.husonlab.diamer.seq.converter.DNAtoBase11;
+//import org.husonlab.diamer.seq.encoder.Encoder;
+//import org.husonlab.diamer.seq.encoder.K15Base11Encoder;
 //import org.junit.Test;
 //
 //public class AlphabetTest {

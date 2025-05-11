@@ -1,39 +1,22 @@
-import org.husonlab.diamer2.indexing.Bucket;
-import org.husonlab.diamer2.indexing.ReadIndexer;
-import org.husonlab.diamer2.indexing.StatisticsEstimator;
-import org.husonlab.diamer2.indexing.kmers.KmerEncoder;
-import org.husonlab.diamer2.io.ReadAssignmentIO;
-import org.husonlab.diamer2.io.Utilities;
-import org.husonlab.diamer2.io.indexing.BucketIO;
-import org.husonlab.diamer2.io.seq.FastaIdReader;
-import org.husonlab.diamer2.io.seq.FastqIdReader;
-import org.husonlab.diamer2.io.seq.FutureSequenceRecords;
-import org.husonlab.diamer2.io.seq.SequenceSupplier;
-import org.husonlab.diamer2.io.taxonomy.TreeIO;
-import org.husonlab.diamer2.main.GlobalSettings;
-import org.husonlab.diamer2.main.Main;
-import org.husonlab.diamer2.main.encoders.Encoder;
-import org.husonlab.diamer2.readAssignment.ReadAssignment;
-import org.husonlab.diamer2.readAssignment.algorithms.OVA;
-import org.husonlab.diamer2.readAssignment.algorithms.OVO;
-import org.husonlab.diamer2.seq.SequenceRecord;
-import org.husonlab.diamer2.seq.alphabet.Base11Alphabet;
-import org.husonlab.diamer2.seq.alphabet.CustomAlphabet;
-import org.husonlab.diamer2.seq.alphabet.ReducedAlphabet;
-import org.husonlab.diamer2.taxonomy.Tree;
+import org.husonlab.diamer.indexing.Bucket;
+import org.husonlab.diamer.indexing.kmers.KmerEncoder;
+import org.husonlab.diamer.io.indexing.BucketIO;
+import org.husonlab.diamer.io.seq.FastaIdReader;
+import org.husonlab.diamer.io.seq.FutureSequenceRecords;
+import org.husonlab.diamer.io.seq.SequenceSupplier;
+import org.husonlab.diamer.main.Main;
+import org.husonlab.diamer.seq.SequenceRecord;
+import org.husonlab.diamer.seq.alphabet.Base11Alphabet;
 import org.junit.Test;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
-import static org.husonlab.diamer2.indexing.Sorting.radixInPlaceParallel;
-import static org.husonlab.diamer2.io.ReadAssignmentIO.readRawKrakenAssignment;
-import static org.husonlab.diamer2.io.NCBIReader.readTaxonomy;
-import static org.husonlab.diamer2.main.CliUtils.parseMask;
+import static org.husonlab.diamer.indexing.Sorting.radixInPlaceParallel;
+import static org.husonlab.diamer.main.CliUtils.parseMask;
 import static org.junit.Assert.assertEquals;
 
 public class TestClass {
@@ -76,7 +59,7 @@ public class TestClass {
         String args[] = new String[]{
                 "--analyze-db-index", "--only-standard-ranks",
                 "F:/Studium/Master/semester5/thesis/data/NCBI/100/index_longspaced",
-                "C:/Users/noel/Documents/diamer2/statistics/KmerHistogramPerRankNr100Longspaced"
+                "C:/Users/noel/Documents/diamer/statistics/KmerHistogramPerRankNr100Longspaced"
         };
         Main.main(args);
     }
@@ -96,7 +79,7 @@ public class TestClass {
                 }
             }
         }
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/nk035/Documents/diamer2/statistics/protein_lengths.tsv"))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter("C:/Users/nk035/Documents/diamer/statistics/protein_lengths.tsv"))) {
             bw.write("length\tcount\n");
             for (Integer length : lengths.keySet()) {
                 bw.write(length + "\t" + lengths.get(length) + "\n");
@@ -132,11 +115,11 @@ public class TestClass {
                         kmerEncoder.reset();
                         // add the first k-1 characters to the encoder
                         for (int i = 0; i < 15 - 1; i++) {
-                            kmerEncoder.addBack(sequence[i]);
+                            kmerEncoder.add(sequence[i]);
                         }
                         // add the remaining characters to the encoder and store the resulting encoding
                         for (int i = 15 - 1; i < seqLength; i++) {
-                            kmerEncoder.addBack(sequence[i]);
+                            kmerEncoder.add(sequence[i]);
                             complexity[kmerEncoder.getComplexity()]++;
                         }
                     }
