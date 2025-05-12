@@ -1,4 +1,4 @@
-2025-05-07T17:59:34.719342400
+2025-05-12T23:13:21.501608300
 --assignreads -t 1 -b 12 --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 --ova 0.7 -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment_spaced
 VERSION:	1.0.0
 MAX_THREADS:	1
@@ -18,67 +18,67 @@ INPUT:	null
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment_spaced
 DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 READS_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
-Read assignment started: 2025-05-07T17:59:34.720356800
-Read assignment finished: 2025-05-07T17:59:35.468367
+Read assignment started: 2025-05-12T23:13:21.502613900
+Read assignment finished: 2025-05-12T23:13:22.262758200
 Buckets skipped: 0
 Reads with matches: 2
 Reads without matches: 4
 Matching kmers: 86
 
 Assignment summary for each algorithm and the counts used for the assignment:
-OVO (0.20) read count
+OVO (0.20) kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.20) read count (norm. kmers)
+OVO (0.20) norm. kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.50) read count
+OVO (0.50) kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.50) read count (norm. kmers)
+OVO (0.50) norm. kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.60) read count
+OVO (0.60) kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.60) read count (norm. kmers)
+OVO (0.60) norm. kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.80) read count
+OVO (0.80) kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.80) read count (norm. kmers)
+OVO (0.80) norm. kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.90) read count
+OVO (0.90) kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (0.90) read count (norm. kmers)
+OVO (0.90) norm. kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (1.00) read count
+OVO (1.00) kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVO (1.00) read count (norm. kmers)
+OVO (1.00) norm. kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVA (0.70) read count
+OVA (0.70) kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 
-OVA (0.70) read count (norm. kmers)
+OVA (0.70) norm. kmer count
 Total assignments: 2 (33.33%)
 1 from root: 2
 

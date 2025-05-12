@@ -1,4 +1,4 @@
-2025-05-07T17:59:34.269999100
+2025-05-12T23:13:21.033012400
 --assignreads -t 12 -b 12 --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 --ova 0.7 -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment
 VERSION:	1.0.0
 MAX_THREADS:	12
@@ -18,93 +18,93 @@ INPUT:	null
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment
 DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 READS_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
-Read assignment started: 2025-05-07T17:59:34.272010800
-Read assignment finished: 2025-05-07T17:59:34.699763400
+Read assignment started: 2025-05-12T23:13:21.036012
+Read assignment finished: 2025-05-12T23:13:21.483585800
 Buckets skipped: 0
 Reads with matches: 4
 Reads without matches: 2
 Matching kmers: 103
 
 Assignment summary for each algorithm and the counts used for the assignment:
-OVO (0.20) read count
+OVO (0.20) kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.20) read count (norm. kmers)
+OVO (0.20) norm. kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.50) read count
+OVO (0.50) kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.50) read count (norm. kmers)
+OVO (0.50) norm. kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.60) read count
+OVO (0.60) kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.60) read count (norm. kmers)
+OVO (0.60) norm. kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.80) read count
+OVO (0.80) kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.80) read count (norm. kmers)
+OVO (0.80) norm. kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.90) read count
+OVO (0.90) kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (0.90) read count (norm. kmers)
+OVO (0.90) norm. kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (1.00) read count
+OVO (1.00) kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVO (1.00) read count (norm. kmers)
+OVO (1.00) norm. kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVA (0.70) read count
+OVA (0.70) kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2
 2 from root: 1
 
-OVA (0.70) read count (norm. kmers)
+OVA (0.70) norm. kmer count
 Total assignments: 4 (66.67%)
 1 from root: 1
 no rank: 2

@@ -16,15 +16,17 @@ def read_per_taxon_assignment(path: str, rank: str = None, kmer_threshold: int =
     """
     df = pd.read_csv(path, header=0, sep="\t", index_col="label")
     # change old naming scheme
-    df.columns = [x.replace("0000", "").replace("ratio: ", "").replace("(accumulated)", "cumulative") for x in
-                  df.columns]
+    df.columns = [x.replace("0000", "").replace("ratio: ", "").replace(" cumulative", " (cumulative)")
+                  .replace("(accumulated)", "(cumulative)")
+                  .replace(" read count (norm. kmers)", " norm. kmer count")
+                  .replace("read count", "kmer count") for x in df.columns]
     if rank:
         df = df[(df['rank'] == rank) & (df["kmer count"] >= kmer_threshold) &
-                (df["OVO (1.00) read count cumulative"] >= ovo_1_threshold)] \
+                (df["OVO (1.00) kmer count (cumulative)"] >= ovo_1_threshold)] \
             .sort_values(["kmer count"], ascending=False)
     else:
         df = df[(df["kmer count"] >= kmer_threshold) &
-                (df["OVO (1.00) read count cumulative"] >= ovo_1_threshold)] \
+                (df["OVO (1.00) kmer count (cumulative)"] >= ovo_1_threshold)] \
             .sort_values(["kmer count"], ascending=False)
     return df
 
@@ -43,6 +45,22 @@ def extract_algorithm_info(df: pd.DataFrame) -> pd.DataFrame:
     df_melted["algorithm parameter"] = df_melted["algorithm parameter"].astype(float)
     df_melted.rename(columns={"algorithmData": "algorithm data"}, inplace=True)
     return df_melted
+
+
+def get_precision_recall_reads(df: pd.DataFrame, total: int) -> pd.DataFrame:
+    """
+    Calculate precision and recall for each algorithm and algorithm data combination and for each rank
+    based on a column called label, that marks true positives and false positives
+    """
+    df = df.groupby(["algorithm", "algorithm data", "algorithm parameter", "rank", "true positive"])\
+        .sum().reset_index().drop(columns=["label"])
+    df = df.pivot(index=["algorithm", "algorithm data", "algorithm parameter", "rank"],
+                  columns="true positive", values="read count")\
+        .reset_index().rename(columns={False: "false positive", True: "true positive"}).dropna(subset=["true positive"])
+    df["precision"] = df["true positive"] / (df["true positive"] + df["false positive"])
+    df["recall"] = df["true positive"] / total
+    return df
+
 
 def true_positives(df: pd.DataFrame, total_reads: int, true_labels: list, rank: str):
     """

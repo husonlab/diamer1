@@ -1,4 +1,4 @@
-2025-05-12T13:20:21.519345400
+2025-05-12T23:15:29.864217800
 --indexreads -t 1 -b 127 --keep-in-memory --mask 111111011110011100011 --debug --statistics --filtering c 0 --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
 VERSION:	1.0.0
 MAX_THREADS:	1
@@ -18,7 +18,7 @@ INPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
 DB_INDEX:	null
 READS_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
-Indexing started: 2025-05-12T13:20:21.521345300
+Indexing started: 2025-05-12T23:15:29.864723300
 No filtering.
 
 Statistics on the first 1000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
@@ -1073,7 +1073,7 @@ Estimated bucket sizes:
 1022: 1
 1023: 1
 
-Indexing finished: 2025-05-12T13:20:23.030052300
+Indexing finished: 2025-05-12T23:15:31.351148900
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
 processed reads: 6

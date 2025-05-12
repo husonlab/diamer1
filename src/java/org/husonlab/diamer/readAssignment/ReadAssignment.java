@@ -144,7 +144,7 @@ public class ReadAssignment {
             }
         }
         logger.logInfo("Accumulating kmer counts ...");
-        tree.accumulateLongProperty("kmer count", "kmer count (accumulated)");
+        tree.accumulateLongProperty("kmer count", "kmer count (cumulative)");
     }
 
     /**
@@ -157,13 +157,13 @@ public class ReadAssignment {
         if (!tree.hasLongProperty("kmers in database")) {
             throw new RuntimeException("Tree does not have the property 'kmers in database'.");
         }
-        tree.addDoubleProperty("normalized kmer count", 0);
+        tree.addDoubleProperty("norm. kmer count", 0);
         for (int i = 0; i < size; i++) {
             normalizedKmerCounts[i] = new ArrayList<>();
             for (KmerCount<Integer> kmerCount : kmerCounts[i]) {
                 int taxId = kmerCount.getTaxId();
                 double normalizedKmerMatch = (double) kmerCount.getCount() / tree.getLongProperty(taxId, "kmers in database");
-                tree.addToProperty(taxId, "normalized kmer count", normalizedKmerMatch);
+                tree.addToProperty(taxId, "norm. kmer count", normalizedKmerMatch);
                 normalizedKmerCounts[i].add(new KmerCount<>(kmerCount.taxonId, normalizedKmerMatch));
             }
         }
@@ -184,7 +184,7 @@ public class ReadAssignment {
             logger.logInfo("Running assignment algorithm on kmer counts: " + algorithm.getName());
             new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
 
-            assignmentAlgorithms.add(algorithm.getName() + " read count");
+            assignmentAlgorithms.add(algorithm.getName() + " kmer count");
             for (int i = 0; i < size; i++) {
                 int finalI = i;
                 threadPoolExecutor.submit(() -> {
@@ -210,7 +210,7 @@ public class ReadAssignment {
             logger.logInfo("Running assignment algorithm on normalized kmer counts: " + algorithm.getName());
             new OneLineLogger("ReadAssignment", 500).addElement(progressBar);
 
-            assignmentAlgorithms.add(algorithm.getName() + " read count (norm. kmers)");
+            assignmentAlgorithms.add(algorithm.getName() + " norm. kmer count");
             for (int i = 0; i < size; i++) {
                 int finalI = i;
                 threadPoolExecutor.submit(() -> {
@@ -235,7 +235,7 @@ public class ReadAssignment {
                     tree.addToProperty(taxId, algorithm, 1);
                 }
             }
-            tree.accumulateLongProperty(algorithm, algorithm + " cumulative");
+            tree.accumulateLongProperty(algorithm, algorithm + " (cumulative)");
         }
     }
 

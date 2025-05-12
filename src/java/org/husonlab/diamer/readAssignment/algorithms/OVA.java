@@ -68,6 +68,7 @@ public class OVA extends ClassificationAlgorithmOnWeightedSubtree {
                 highestNode = child;
             }
         }
+        sumWeight -= highestWeight;
 
         // if the highest weight is not much higher (dependent on the ratio), the current node is returned
         if (highestWeight * ratio > sumWeight) {

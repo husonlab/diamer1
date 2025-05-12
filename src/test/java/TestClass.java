@@ -33,10 +33,10 @@ import static org.junit.Assert.assertEquals;
 public class TestClass {
     @Test
     public void analyze_kraken_result() {
-        Path output = Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr_processed2");
+        Path output = Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\zymo_mock\\assignment_kraken2_nr_processed2");
         GlobalSettings settings = new GlobalSettings(new String[0], null, null, null, output.resolve("run.log"));
         Tree tree = readTaxonomy(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/nodes.dmp"), Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/names.dmp"), true);
-        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr\\output.txt"), settings);
+        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\zymo_mock\\assignment_kraken2_nr\\output.txt"), settings);
         readAssignment.addKmerCountsToTree();
         readAssignment.sortKmerCounts();
         ReadAssignmentIO.writeRawAssignment(readAssignment, output.resolve("raw_assignments.tsv"));

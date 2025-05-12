@@ -83,6 +83,7 @@ java -jar diamer.jar --assignreads [optional arguments] <path to database index>
 ````
 
 # Output files
+
 DIAMER produces four different output files:
 1) `raw_assignments.tsv`
    * the first row holds the number of remaining rows
@@ -104,7 +105,36 @@ DIAMER produces four different output files:
      * cell format for assignment algorithms: (rank) label (taxId)
    ````
    1160526
-   ReadID	OVO (0.20) read count	OVO (0.20) read count (norm. kmers)	OVA (1.00) read count	OVA (1.00) read count (norm. kmers)	...
+   ReadID	OVO (0.20) read count	OVO (0.20) norm. kmers	OVA (1.00) kmer count	OVA (1.00) norm. kmers	...
    0	(superkingdom) Bacteria (2)	(no rank) cellular organisms (131567)	(species) Staphylococcus aureus (1280)	(species) Photobacterium kishitanii (318456)	...
    ...
    ````
+3) `per_taxon_assignment.tsv`
+   * one row per taxon in the reference taxonomy
+     * the first row contains column names
+   * some columns to identify taxa
+     * taxId
+     * rank
+     * label
+   * four columns with k-mer counts
+     * k-mer count that a taxon has in the reference database
+     * k-mer count the taxon has in the reads
+     * the cumulative k-mer count of the reads
+     * a normalized k-mer count with (k-mer count reads)/(k-mer count db)
+   * one column per algorithm (with threshold and weight)
+   ````
+   node id	rank	label	kmers in database	kmer count	kmer count (cumulative)	OVA (1.00) read count	OVA (1.00) read count (cumulative)	OVA (1.00) norm. kmer count	OVA (1.00) norm. kmer count (cumulative)	norm. kmer count ...
+   1	no rank	root	76325325	45559852	626282761	2926	1132107	12478	1132107	1949 ...
+   ...
+   ````
+
+## Syntax of Algorithm columns
+Multiple of the DIAMER output files contain columns where the results of different algorithms are listed.
+The column names contain the name of the algorithm used, the threshold parameter and the weights used.
+Additionally, there can be a `(cumulative)` flag to discriminate between raw and accumulated values.
+
+Example: `OVA (1.00) norm. kmer count (cumulative)`
+* _one-vs-all_ algorithm
+* threshold: 1
+* the algorithm used normalized k-mer counts as weights for the subtree
+* the value in this column is accumulated over the taxonomic tree

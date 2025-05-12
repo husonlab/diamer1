@@ -1,4 +1,4 @@
-2025-05-12T13:20:16.921984800
+2025-05-12T23:15:25.364304500
 --indexdb -t 1 -b 1024 --mask 111111111111111 --debug --statistics --filtering c 0 -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 VERSION:	1.0.0
 MAX_THREADS:	1
@@ -18,7 +18,7 @@ INPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_prepro
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 READS_INDEX:	null
-Indexing started: 2025-05-12T13:20:16.929495
+Indexing started: 2025-05-12T23:15:25.379360100
 No filtering.
 
 Statistics on the first 10000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
@@ -1073,7 +1073,7 @@ Estimated bucket sizes:
 1022: 0
 1023: 0
 
-Indexing finished: 2025-05-12T13:20:17.748074400
+Indexing finished: 2025-05-12T23:15:26.064522500
 input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 processed sequence records: 6
