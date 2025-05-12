@@ -15,6 +15,7 @@ import org.husonlab.diamer.util.FlexibleIntArray;
 import org.husonlab.diamer.util.Pair;
 import org.husonlab.diamer.util.logging.*;
 
+import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -151,10 +152,16 @@ public class DBIndexer {
     }
 
     private static void writeBucket(FlexibleBucket bucket, Tree tree, Encoder encoder, BucketIO bucketIO, int[] bucketSizes) {
+
+        // skip unused entries in the front (should not happen)
         int i = 0;
         while (i < bucket.size() && bucket.getValue(i) == Long.MAX_VALUE) {
             i++;
         }
+        if (i == bucket.size()) {
+            return;
+        }
+
         long lastIndexEntry = bucket.getValue(i++);
         long lastKmer = encoder.getKmerFromIndexEntry(lastIndexEntry);
         int lastTaxId = encoder.getIdFromIndexEntry(lastIndexEntry);
@@ -264,9 +271,10 @@ public class DBIndexer {
                 int currentIndexOfMatchingBucket;
                 int nextFreeIndex;
                 while (true) {
+                    // try to get batch for processing for 5 minutes
                     FutureSequenceRecords<Integer, byte[]>[] batch = queue.poll(100, TimeUnit.MILLISECONDS);
                     if (batch == null) {
-                        if (finished.get()) {
+                        if (finished.get()) { // iteration finished
                             break;
                         } else {
                             if (pollFailCount > 0 && pollFailCount % 500 == 0) {
@@ -274,7 +282,7 @@ public class DBIndexer {
                             }
                             pollFailCount++;
                             if (pollFailCount++ > 30000) {
-                                throw new RuntimeException("Polling failed for 5 minutes. Supplier too slow?");
+                                throw new RuntimeException("Polling failed for 5 minutes. Filesystem too slow?");
                             }
                             continue;
                         }
@@ -286,11 +294,13 @@ public class DBIndexer {
                             break;
                         }
                         for (SequenceRecord<Integer, byte[]> sequenceRecord : futureSequenceRecords.getSequenceRecords()) {
+                            // sequence too short
                             if (sequenceRecord.sequence().length < encoder.getK()) {
                                 skippedSequences.incrementAndGet();
                                 continue;
                             }
                             int id = sequenceRecord.id();
+                            // taxId not in the taxonomic tree
                             if (!tree.hasNode(id)) {
                                 continue;
                             }

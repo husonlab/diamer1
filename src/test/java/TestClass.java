@@ -1,58 +1,70 @@
+import org.apache.commons.cli.CommandLine;
 import org.husonlab.diamer.indexing.Bucket;
 import org.husonlab.diamer.indexing.kmers.KmerEncoder;
+import org.husonlab.diamer.io.ReadAssignmentIO;
 import org.husonlab.diamer.io.indexing.BucketIO;
 import org.husonlab.diamer.io.seq.FastaIdReader;
 import org.husonlab.diamer.io.seq.FutureSequenceRecords;
 import org.husonlab.diamer.io.seq.SequenceSupplier;
+import org.husonlab.diamer.io.taxonomy.TreeIO;
+import org.husonlab.diamer.main.GlobalSettings;
 import org.husonlab.diamer.main.Main;
+import org.husonlab.diamer.readAssignment.ReadAssignment;
+import org.husonlab.diamer.readAssignment.algorithms.OVA;
+import org.husonlab.diamer.readAssignment.algorithms.OVO;
 import org.husonlab.diamer.seq.SequenceRecord;
 import org.husonlab.diamer.seq.alphabet.Base11Alphabet;
+import org.husonlab.diamer.taxonomy.Tree;
 import org.junit.Test;
 
 import java.io.*;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.husonlab.diamer.indexing.Sorting.radixInPlaceParallel;
+import static org.husonlab.diamer.io.NCBIReader.readTaxonomy;
+import static org.husonlab.diamer.io.ReadAssignmentIO.readRawKrakenAssignment;
 import static org.husonlab.diamer.main.CliUtils.parseMask;
 import static org.junit.Assert.assertEquals;
 
 public class TestClass {
-//    @Test
-//    public void analyze_kraken_result() {
-//        Path output = Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2_processed");
-//        GlobalSettings settings = new GlobalSettings(new String[0], 12, 1, false, true, true, false);
-//        Tree tree = readTaxonomy(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/nodes.dmp"), Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/names.dmp"), true);
-//        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:/Studium/Master/semester5/thesis/data/test_datasets/zymo_oral/assignment_kraken2/raw_kraken2.txt"), settings);
-//        readAssignment.addKmerCountsToTree();
-//        readAssignment.sortKmerCounts();
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.1f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.2f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.3f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.4f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.5f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.6f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.7f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.8f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.9f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(1.0f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.1f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.2f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.3f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.4f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.5f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.6f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.7f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.8f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.9f));
-//        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(1.0f));
-//        readAssignment.addReadCountsToTree();
-//        ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, settings);
-//        TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
-//        TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
-//    }
+    @Test
+    public void analyze_kraken_result() {
+        Path output = Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr_processed2");
+        GlobalSettings settings = new GlobalSettings(new String[0], null, null, null, output.resolve("run.log"));
+        Tree tree = readTaxonomy(Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/nodes.dmp"), Path.of("F:/Studium/Master/semester5/thesis/data/NCBI/taxdmp/names.dmp"), true);
+        ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("F:\\Studium\\Master\\semester5\\thesis\\data\\test_dataset\\assignment_kraken2_nr\\output.txt"), settings);
+        readAssignment.addKmerCountsToTree();
+        readAssignment.sortKmerCounts();
+        ReadAssignmentIO.writeRawAssignment(readAssignment, output.resolve("raw_assignments.tsv"));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.1f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.2f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.3f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.4f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.5f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.6f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.7f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.8f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(0.9f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVO(1.0f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.1f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.2f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.3f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.4f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.5f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.6f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.7f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.8f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(0.9f));
+        readAssignment.runAssignmentAlgorithmOnKmerCounts(new OVA(1.0f));
+        readAssignment.addReadCountsToTree();
+        ReadAssignmentIO.writePerReadAssignments(readAssignment, output.resolve("per_read_assignments.tsv"), false, true, settings);
+        TreeIO.savePerTaxonAssignment(readAssignment.getTree(), output.resolve("per_taxon_assignments.tsv"));
+        TreeIO.saveForMegan(readAssignment.getTree(), output.resolve("megan.tsv"), List.of(new String[]{"kmer count"}), List.of(new String[0]));
+    }
 
     @Test
     public void analyseDBIndex() {

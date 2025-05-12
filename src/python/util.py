@@ -247,3 +247,14 @@ def plot_true_assigned_per_rank(df: pd.DataFrame, total: int = 100, title: str =
     plt.ylabel(y_axis)
     plt.title(title, pad=20)
     plt.show()
+
+
+def classify_assigned_taxa(df: pd.DataFrame, taxa: dict) -> pd.DataFrame:
+    """
+    Classify assigned taxa into true positives, false positives, and false negatives. Adds the row "true positive" to the DataFrame
+    :param df: DataFrame with assigned reads per taxon
+    :param taxa: dict with {rank: [tax1, tax2], rank2: [tax3, tax4]} for all true taxa
+    :return: DataFrame with classified taxa
+    """
+    df["true positive"] = df.apply(lambda x: x.name in taxa[x["rank"]] if x["rank"] in taxa.keys() else False, axis=1)
+    return df

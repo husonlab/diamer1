@@ -14,6 +14,7 @@ import org.husonlab.diamer.util.Pair;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.husonlab.diamer.io.Utilities.getFile;
 
@@ -61,7 +62,7 @@ public class CliUtils {
      * @return mask from cli or default mask
      */
     public static boolean[] getMask(CommandLine cli, String defaultMask) {
-        return cli.hasOption("mask") ? parseMask(cli.getOptionValue("mask")) : parseMask(defaultMask);
+        return !Objects.isNull(cli) && cli.hasOption("mask") ? parseMask(cli.getOptionValue("mask")) : parseMask(defaultMask);
     }
 
     /**
@@ -83,7 +84,7 @@ public class CliUtils {
      */
     public static ReducedAlphabet getAlphabet(CommandLine cli, String defaultAlphabet) {
         ReducedAlphabet alphabet;
-        if (!cli.hasOption("alphabet") || cli.getOptionValue("alphabet").equals("uniform11")) {
+        if (Objects.isNull(cli) || !cli.hasOption("alphabet") || cli.getOptionValue("alphabet").equals("uniform11")) {
             alphabet = new CustomAlphabet(defaultAlphabet);
         } else {
             alphabet = new CustomAlphabet(cli.getOptionValue("alphabet"));
@@ -104,7 +105,7 @@ public class CliUtils {
 
     public static List<ClassificationAlgorithm> parseAlgorithms(CommandLine cli) {
         List<ClassificationAlgorithm> algorithms = new ArrayList<>();
-        if (cli.hasOption("ovo")) {
+        if (!Objects.isNull(cli) && cli.hasOption("ovo")) {
             String[] thresholds = cli.getOptionValue("ovo").split(",");
             for (String threshold : thresholds) {
                 algorithms.add(new OVO(Float.parseFloat(threshold)));
@@ -113,7 +114,7 @@ public class CliUtils {
             // default is the algorithm of Kraken 2:
             algorithms.add(new OVO(1.0f));
         }
-        if (cli.hasOption("ova")) {
+        if (!Objects.isNull(cli) && cli.hasOption("ova")) {
             String[] thresholds = cli.getOptionValue("ova").split(",");
             for (String threshold : thresholds) {
                 algorithms.add(new OVA(Float.parseFloat(threshold)));

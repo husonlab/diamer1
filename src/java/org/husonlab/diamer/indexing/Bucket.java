@@ -30,22 +30,6 @@ public class Bucket {
     }
 
     /**
-     * Creates a bucket with the provided content of a concurrent HashMap as used for index generation.
-     * @param bucketMap Content of the bucket as a concurrent HashMap of kmer and taxId/readId.
-     * @param name Name (number) of the bucket.
-     */
-    public Bucket(int name, @NotNull ConcurrentHashMap<Long, Integer> bucketMap, @NotNull Encoder encoder) {
-        this.name = name;
-        content = new long[bucketMap.size()];
-        int i = 0;
-        for (ConcurrentHashMap.Entry<Long, Integer> entry : bucketMap.entrySet()) {
-            content[i] = encoder.getIndexEntry(entry.getValue(), entry.getKey());
-            i++;
-        }
-        sort(encoder.getNrOfKmerBitsInBucketEntry());
-    }
-
-    /**
      * Creates a bucket with the provided content of a concurrent LinkedQueue as used in read index generation.
      * @param name Name (number) of the bucket.
      * @param bucketList Content of the bucket as a concurrent linked queue.

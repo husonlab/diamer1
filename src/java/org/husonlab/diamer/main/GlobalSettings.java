@@ -10,6 +10,7 @@ import org.husonlab.diamer.util.logging.Logger;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 
 import static org.husonlab.diamer.main.CliUtils.*;
 import static org.husonlab.diamer.main.CliUtils.parseAlgorithms;
@@ -78,19 +79,22 @@ public class GlobalSettings {
         this.logFileWriter = new LogFileWriter(logFile);
         this.args = args;
         int maxThreads = Runtime.getRuntime().availableProcessors();
-        try {
-            Integer parsedThreads = cli.getParsedOptionValue("t");
-            if (parsedThreads != null) {
-                maxThreads = parsedThreads;
+        if (!Objects.isNull(cli) && cli.hasOption("threads")) {
+            try {
+                Integer parsedThreads = cli.getParsedOptionValue("t");
+                if (parsedThreads != null) {
+                    maxThreads = parsedThreads;
+                }
+            } catch (ParseException e) {
+                System.err.printf("Invalid number of threads: \"%s\"\n", cli.getOptionValue("t"));
+                printHelp(options);
+                System.exit(1);
             }
-        } catch (ParseException e) {
-            System.err.printf("Invalid number of threads: \"%s\"\n", cli.getOptionValue("t"));
-            printHelp(options);
-            System.exit(1);
         }
+
         MAX_THREADS = maxThreads;
-        KEEP_IN_MEMORY = cli.hasOption("keep-in-memory");
-        if (cli.hasOption("b")) {
+        KEEP_IN_MEMORY = !Objects.isNull(cli) && cli.hasOption("keep-in-memory");
+        if (!Objects.isNull(cli) && cli.hasOption("b")) {
             try {
                 BUCKETS_PER_CYCLE = Integer.parseInt(cli.getOptionValue("b"));
             } catch (NumberFormatException e) {
@@ -100,9 +104,9 @@ public class GlobalSettings {
             }
         }
         QUEUE_SIZE = MAX_THREADS * 2;
-        DEBUG = cli.hasOption("debug");
-        COLLECT_STATS = cli.hasOption("statistics");
-        ONLY_STANDARD_RANKS = cli.hasOption("only-standard-ranks");
+        DEBUG = !Objects.isNull(cli) && cli.hasOption("debug");
+        COLLECT_STATS = !Objects.isNull(cli) && cli.hasOption("statistics");
+        ONLY_STANDARD_RANKS = !Objects.isNull(cli) && cli.hasOption("only-standard-ranks");
 
         ALPHABET = getAlphabet(cli, "[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]");
         MASK = getMask(cli, "11111101101100111000100001");

@@ -19,7 +19,7 @@ public class OVA extends ClassificationAlgorithmOnWeightedSubtree {
         if (root.isLeaf()){
             return root.getTaxId();
 
-            // Directly jump to child if it is the only one
+        // Directly jump to child if it is the only one
         } else if (root.getChildren().size() == 1) {
             return recursiveLong(subTree, root.getChildren().getFirst(), ratio);
         }
@@ -36,6 +36,7 @@ public class OVA extends ClassificationAlgorithmOnWeightedSubtree {
                 highestNode = child;
             }
         }
+        sumWeight -= highestWeight;
 
         // if the highest weight is not much higher (dependent on the ratio), the current node is returned
         if (highestWeight * ratio > sumWeight) {

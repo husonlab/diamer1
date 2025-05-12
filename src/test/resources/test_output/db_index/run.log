@@ -1,5 +1,5 @@
-2025-05-11T11:59:51.278787300
---indexdb -t 1 -b 1024 --mask 111111111111111 --debug --statistics --filtering c 0 -no C:\Users\noel\Documents\diamer\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer\src\test\resources\database\taxdmp\names.dmp --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_index
+2025-05-12T13:20:16.921984800
+--indexdb -t 1 -b 1024 --mask 111111111111111 --debug --statistics --filtering c 0 -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 VERSION:	1.0.0
 MAX_THREADS:	1
 MAX_IO_THREADS:	16
@@ -14,14 +14,14 @@ ONLY_STANDARD_RANKS:	false
 ALPHABET:	[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 MASK:	111111111111111
 ALGORITHMS:	OVO (1.00)
-INPUT:	C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
-OUTPUT:	C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_index
-DB_INDEX:	C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_index
+INPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
+DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 READS_INDEX:	null
-Indexing started: 2025-05-11T11:59:51.287875700
+Indexing started: 2025-05-12T13:20:16.929495
 No filtering.
 
-Statistics on the first 10000 sequences of the input file: C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+Statistics on the first 10000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 Character counts:
 0: 437
 1: 316
@@ -1073,9 +1073,9 @@ Estimated bucket sizes:
 1022: 0
 1023: 0
 
-Indexing finished: 2025-05-11T11:59:52.283902600
-input file: C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
-output directory: C:\Users\noel\Documents\diamer\src\test\resources\test_output\db_index
+Indexing finished: 2025-05-12T13:20:17.748074400
+input file: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index
 processed sequence records: 6
 skipped sequences because length < 15: 1
 total extracted kmers:	1309

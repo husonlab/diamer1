@@ -10,7 +10,8 @@ public class FlexibleBucket {
     private final int CONTINGENT_SIZE;
     private final AtomicInteger capacity;
     private final AtomicInteger size;
-    public final ArrayList<long[]> chunks;
+    private final ArrayList<long[]> chunks;
+    private long lastFillValue;
 
     public FlexibleBucket(int INITIAL_CAPACITY, int CHUNK_SIZE, int CONTINGENT_SIZE) {
         this.INITIAL_CAPACITY = INITIAL_CAPACITY;
@@ -20,6 +21,7 @@ public class FlexibleBucket {
         this.size = new AtomicInteger(0);
         this.chunks = new ArrayList<>();
         chunks.add(new long[INITIAL_CAPACITY]);
+        this.lastFillValue = 0;
     }
 
     public FlexibleBucket(int INITIAL_CAPACITY) {
@@ -27,6 +29,7 @@ public class FlexibleBucket {
     }
 
     public void fill(long value) {
+        lastFillValue = value;
         for (long[] chunk : chunks) {
             Arrays.fill(chunk, value);
         }
@@ -61,6 +64,7 @@ public class FlexibleBucket {
                 return new Pair<>(size, size + CONTINGENT_SIZE);
             } else {
                 long[] newLongChunk = new long[CHUNK_SIZE];
+                Arrays.fill(newLongChunk, lastFillValue);
                 chunks.add(newLongChunk);
                 this.capacity.set(capacity + CHUNK_SIZE);
                 this.size.addAndGet(CONTINGENT_SIZE);
