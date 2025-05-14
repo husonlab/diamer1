@@ -171,7 +171,7 @@ public class Utilities {
             } else if (!exists && result.getParent() != null) {
                 result.getParent().toFile().mkdirs();
                 if (!result.getParent().toFile().exists() || !result.getParent().toFile().isDirectory()) {
-                    System.err.printf("Could not create directory \"%s\"\n", result.getParent());
+                    System.err.printf("Could not create folder \"%s\"\n", result.getParent());
                     System.exit(1);
                 }
             }

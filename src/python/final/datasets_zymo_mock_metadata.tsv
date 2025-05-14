@@ -1,0 +1,6 @@
+database	alphabet	kmer size	seed shape	minimizer window	filtering	path	minimizer criterion	DB Index size
+NR90	Uniform11S	11	11111111111	12	c > 3	zymo_mock/assignment_nr90_uniform11s_11-mer/per_taxon_assignments.tsv
+NR90	Uniform11S	12	111111111111	13	c > 3	zymo_mock/assignment_nr90_uniform11s_12-mer/per_taxon_assignments.tsv
+NR90	Uniform11S	13	1111111111111	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv
+NR90	Uniform11S	14	11111111111111	14	c > 3	zymo_mock/assignment_nr90_uniform11s_14-mer/per_taxon_assignments.tsv
+NR90	Uniform11S	15	111111111111111	15	c > 3	zymo_mock/assignment_nr90_uniform11s_15-mer/per_taxon_assignments.tsv

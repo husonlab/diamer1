@@ -105,7 +105,7 @@ DIAMER produces four different output files:
      * cell format for assignment algorithms: (rank) label (taxId)
    ````
    1160526
-   ReadID	OVO (0.20) read count	OVO (0.20) norm. kmers	OVA (1.00) kmer count	OVA (1.00) norm. kmers	...
+   ReadID	OVO (0.20) kmer count	OVO (0.20) norm. kmers	OVA (1.00) kmer count	OVA (1.00) norm. kmers	...
    0	(superkingdom) Bacteria (2)	(no rank) cellular organisms (131567)	(species) Staphylococcus aureus (1280)	(species) Photobacterium kishitanii (318456)	...
    ...
    ````
@@ -123,7 +123,7 @@ DIAMER produces four different output files:
      * a normalized k-mer count with (k-mer count reads)/(k-mer count db)
    * one column per algorithm (with threshold and weight)
    ````
-   node id	rank	label	kmers in database	kmer count	kmer count (cumulative)	OVA (1.00) read count	OVA (1.00) read count (cumulative)	OVA (1.00) norm. kmer count	OVA (1.00) norm. kmer count (cumulative)	norm. kmer count ...
+   node id	rank	label	kmers in database	kmer count	kmer count (cumulative)	OVA (1.00) kmer count	OVA (1.00) kmer count (cumulative)	OVA (1.00) norm. kmer count	OVA (1.00) norm. kmer count (cumulative)	norm. kmer count ...
    1	no rank	root	76325325	45559852	626282761	2926	1132107	12478	1132107	1949 ...
    ...
    ````
@@ -138,3 +138,127 @@ Example: `OVA (1.00) norm. kmer count (cumulative)`
 * threshold: 1
 * the algorithm used normalized k-mer counts as weights for the subtree
 * the value in this column is accumulated over the taxonomic tree
+
+# Syntax & Options
+The argument syntax of diamer follows this pattern:
+````shell
+java [-Xmx<RAM>] -jar diamer.jar <computation task> [options] [input] [output]
+````
+The memory to use can be specified by the JVM parameter `-Xmx<int>g` in GB.
+Depending on the computation task, some options are mandatory.
+The number of input and output parameters is task-dependent too.
+## Computation Task (mandatory)
+DIAMER needs to know which task to perform. This has to be indicated with either of these five flags:
+1) `--preprocess`
+   * Preprocesses the reference database
+   * syntax:
+     * `--preprocess [options] <database input> <database output> <mapping file> [further mapping files ...]`
+   * mandatory options:
+     * `-no`, `-na` for the taxonomic tree
+   * database input:
+     * reference database in FASTA format
+   * database output:
+     * output file (will be gzipped)
+   * mapping file(s)
+     * paths to mapping files (NCBI or MEGAN)
+2) `--indexdb`
+   * Index a preprocessed reference database
+   * syntax:
+     * `--indexdb [options] <database input> <index folder>`
+   * mandatory options:
+     * `-no`, `-na` for the taxonomic tree
+   * optional options:
+     * `-t`, `--threads` number of threads to use
+     * `-b`, `--buckets` number of buckets per iteration
+     * `--keep-in-memory` cache input sequence in memory
+     * `--mask` specify mask for k-mers (default: `1111111111111`)
+     * `--alphabet` supply a custom reduced amino acid alphabet (default: `[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]`)
+     * `--filtering` filter k-mers (default: `c 3`)
+     * `--debug` debug mode
+     * `--statistics` collect additional statistics (might not work)
+     * `--only-standard-ranks` reduce the input taxonomy to the 8 NCBI standard ranks (might not work)
+   * database input:
+     * preprocessed reference database
+   * index folder:
+     * path to a folder where the database index will be stored
+3) `--indexreads`
+   * Generate an index of the reads
+   * syntax:
+     * `--indexreads [options] <reads FASTQ> <index folder>`
+   * optional options:
+     * `-t`, `--threads` number of threads to use
+     * `-b`, `--buckets` number of buckets per iteration
+     * `--keep-in-memory` cache input sequence in memory
+     * `--mask` specify mask for k-mers (default: `1111111111111`)
+     * `--alphabet` supply a custom reduced amino acid alphabet (default: `[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]`)
+     * `--filtering` filter k-mers (default: `c 3`, recomended `c 0` -> no filtering (faster))
+     * `--debug` debug mode
+     * `--statistics` collect additional statistics (might not work)
+   * reads FASTQ:
+     * FASTQ file with the DNA reads
+   * index folder:
+     * path to the folder where the reads index will be stored
+4) `--assignreads`
+   * Assign reads to taxa
+   * syntax:
+     * `--assignreads [options] <reference DB index> <reads index> <output folder>`
+   * optional options:
+     * `-t`, `--threads` number of threads to use
+     * `-b`, `--buckets` number of buckets to process in parallel (will be equal to the number of threads if unspecified)
+     * `--debug` debug mode
+     * `--statistics` collect additional statistics (might not work)
+   * reference DB index
+     * path to the folder of the reference database index
+   * reads index
+     * path to the folder of the reads index
+   * output folder
+     * path to the folder where the result files will be stored
+5) `--analyze-db-index`
+   * Calculate some statistics on the database index (might be broken)
+   * syntax:
+     * `--analyze-db-index <reference DB index> <output folder>`
+   * reference database index:
+     * path to the index of the reference database
+   * output folder:
+     * path to a folder where output files will be stored
+
+## Available Options
+* `-t`, `--threads`
+  * number of threads to use
+* `-b`, `--buckets`
+  * index generation: number of buckets per iteration
+  * read classificationto: number of buckets to be processed in parallel. Cannot exceed the number of threads in this case.
+* `--keep-in-memory`
+  * cache input sequence in memory
+  * the memory that is required for caching the sequence is not considered in the estimation of how many buckets
+  to process in parallel. Manually setting `-b` is recommended.
+* `--mask`
+  * specify a mask for k-mer extraction during indexing
+  * default: `1111111111111`
+  * spaces can be used to mask amino acids: `111010110100110111`
+* `--alphabet`
+  * supply a custom reduced amino acid alphabet
+  * default: `[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]`
+  * the parser is case sensitive! If your input sequences contain lower case letters, they should be included in the
+  alphabet as well.
+  * all undefined characters (including `*`) will be interpreted as the end of a sequence
+  and split sequences at this position
+* `--filtering`
+  * filter k-mers during indexing
+  * default: `c 3`
+  * for read indexing `c 0` (no filtering) is recommended, since it is much faster
+  * complexity filtering:
+    * syntax: `--filtering c <number>`
+    * only keeps k-mers with a complexity higher than `number`
+  * probability filtering:
+    * syntax: `--filtering p <number>`
+    * only keeps k-mers with a probability lower than `number`
+    * e.g., `--filtering p 1e-12`
+  * complexity maximizer
+    * use the minimizer concept to only keep the k-mer with maximal complexity within a window of size `number`
+    * syntax: `--filtering cm <number>`
+    * the window size cannot be smaller than the k-mer length
+  * probability minimizer
+    * use the minimizer concept to only keep k-mers with a low probability within a window of size `number`
+    * syntax: `--filtering pm <number>`
+    * the window size cannot be smaller than the k-mer length

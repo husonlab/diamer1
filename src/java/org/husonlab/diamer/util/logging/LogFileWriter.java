@@ -9,11 +9,14 @@ import java.io.PrintWriter;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
 
+import static org.husonlab.diamer.io.Utilities.getFile;
+import static org.husonlab.diamer.io.Utilities.getFolder;
+
 public class LogFileWriter {
     private final Path output;
     public LogFileWriter(Path output) {
         this.output = output;
-        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(output.toFile())))) {
+        try (PrintWriter writer = new PrintWriter(new BufferedWriter(new FileWriter(getFile(output.toString(), false).toString())))) {
             writer.println(LocalDateTime.now());
         } catch (IOException e) {
             throw new RuntimeException(e);

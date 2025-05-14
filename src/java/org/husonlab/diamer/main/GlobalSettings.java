@@ -12,6 +12,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
+import static org.husonlab.diamer.io.Utilities.getFile;
+import static org.husonlab.diamer.io.Utilities.getFolder;
 import static org.husonlab.diamer.main.CliUtils.*;
 import static org.husonlab.diamer.main.CliUtils.parseAlgorithms;
 
@@ -76,6 +78,7 @@ public class GlobalSettings {
 
     public GlobalSettings(String[] args, CommandLine cli, Options options, Path output, Path logFile) {
         this.logger = new Logger("DIAMER");
+        getFolder(logFile.getParent().toString(), false);
         this.logFileWriter = new LogFileWriter(logFile);
         this.args = args;
         int maxThreads = Runtime.getRuntime().availableProcessors();

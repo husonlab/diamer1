@@ -81,7 +81,7 @@ public class ReadIndexer {
 
             logger.logInfo("Indexing buckets " + i + " to " + (rangeEnd - 1));
             ProgressBar progressBar = new ProgressBar(sup.getFileSize(), 20);
-            new OneLineLogger("ReadIndexer2", 0).addElement(new RunningTime()).addElement(progressBar);
+            new OneLineLogger("ReadIndexer", 0).addElement(new RunningTime()).addElement(progressBar);
 
             for (FlexibleBucket bucket : buckets) {
                 bucket.clear();

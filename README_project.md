@@ -44,6 +44,7 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 | nr Solis15, k = 13                 | 581       |
 | nr DIAMOND                         | 381       |
 | nr DIAMOND p<1e-11                 | 347       |
+| nr50 uniform11s 13-mer             | 46        |
 
 
 # Changes since last meeting:
