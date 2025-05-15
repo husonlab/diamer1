@@ -1,4 +1,6 @@
 database	alphabet	kmer size	seed shape	minimizer window	filtering	path	minimizer criterion	DB Index size
+NR Kraken 2X	Solis15S	12	consecutive	12	segmasker	zymo_oral/assignment_kraken2x_nr/per_taxon_assignments.tsv
+NR	Uniform11S	13	consecutive	13	c > 3	zymo_oral/assignment_nr_uniform11s_13-mer/per_taxon_assignments.tsv		369
 NR90	Uniform11S	11	consecutive	12	c > 3	zymo_oral/assignment_nr90_uniform11s_11-mer/per_taxon_assignments.tsv
 NR90	Uniform11S	12	consecutive	13	c > 3	zymo_oral/assignment_nr90_uniform11s_12-mer/per_taxon_assignments.tsv
 NR90	Uniform11S	13	consecutive	13	c > 3	zymo_oral/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv
