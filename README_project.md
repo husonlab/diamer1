@@ -64,6 +64,8 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * -: 111111111111111
 * longspaced: 11111101101100111000100001
 * [Zhang et al.](https://doi.org/10.1093/bioinformatics/bth037): 11110010101011001101111
+* choi 13: 11101001101001110111
+* diamond: 1111001010000100100101111
 * zhang 12: 111010110100110111
 * zhang 9: 110110101000111
 * 12-2: 11111100111111
@@ -72,16 +74,15 @@ service:jmx:rmi://localhost:9001/jndi/rmi://localhost:9000/jmxrmi
 * DIAMOND: [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 * uniform11: [L][A][GC][VWUBIZO][SH][EMX][TY][RQ][DN][IF][PK]
 * uniform11 S: [L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]
-* uniform11-2: [RKO][PD][HYFW][L][EQZ][TNB][A][SCU][IMJ][G][VX]
 * uniform16: [L][A][G][V][S][E][T][R][D][I][PUBJZO][KX][FC][NW][QH][YM]
-* uniform16 S: [L][A][G][V][S][E][T][R][D][I][PUBJZO*][KX][FC][NW][QH][YM]
+* (uniform16 S: [L][A][G][V][S][E][T][R][D][I][PUBJZO*][KX][FC][NW][QH][YM])
 * Etchebest et. al: [G][P][IV][FYW][A][LMJ][EQRKZOX][NDB][HS][T][CU]
 * Solis 11: [ILMVJ][NPQSXB][DEZ][A][HR][G][T][KO][WY][F][CU]
 * Solis 15: [ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W][CU]
 * Solis 15 S: [ILJ][NQSXB][DEZ][A][MV][G][T][R][P][KO][F][Y][H][W][CU][*]
 * Solis 16: [ILJ][NQSXB][DEZ][A][M][V][G][T][R][P][KO][F][Y][H][W][CU]
-* all 20: [LXJ][A][G][V][S][EZ][T][R][DB][I][P][KO][F][N][Q][Y][M][H][W][CU]
-
+* (all 20: [LXJ][A][G][V][S][EZ][T][R][DB][I][P][KO][F][N][Q][Y][M][H][W][CU])
+* 
 # Future:
 * Refactor SequenceSupplier
 * Set up benchmarking framework to test different assignment algorithms 

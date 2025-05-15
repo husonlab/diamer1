@@ -1,4 +1,4 @@
-2025-05-12T23:15:32.419236
+2025-05-15T09:39:27.560655400
 --assignreads -t 1 -b 12 --debug --statistics --ovo 0.2,0.5,0.6,0.8,0.9,1.0 --ova 0.7 -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment_spaced
 VERSION:	1.0.0
 MAX_THREADS:	1
@@ -18,8 +18,8 @@ INPUT:	null
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment_spaced
 DB_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_index_spaced
 READS_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index_spaced
-Read assignment started: 2025-05-12T23:15:32.420241600
-Read assignment finished: 2025-05-12T23:15:32.966463100
+Read assignment started: 2025-05-15T09:39:27.561654200
+Read assignment finished: 2025-05-15T09:39:28.093792600
 Buckets skipped: 0
 Reads with matches: 2
 Reads without matches: 4

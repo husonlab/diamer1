@@ -112,7 +112,7 @@ public class GlobalSettings {
         ONLY_STANDARD_RANKS = !Objects.isNull(cli) && cli.hasOption("only-standard-ranks");
 
         ALPHABET = getAlphabet(cli, "[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]");
-        MASK = getMask(cli, "11111101101100111000100001");
+        MASK = getMask(cli, "1111111111111");
         ALGORITHMS = parseAlgorithms(cli);
         OUTPUT = output;
     }

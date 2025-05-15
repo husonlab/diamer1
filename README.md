@@ -5,6 +5,14 @@ by comparison to a protein reference database.
 
 This tool was created as part of the master thesis by Noel Kubach in 2025.
 
+# Download
+A precompiled .jar file can be downloaded [here](out/artifacts/diamer_jar/diamer.jar).
+
+# Requirenments
+DIAMER needs a Java Runtime Environment (version >= 23).
+
+At least 16 GB of RAM and about 500 GB of free disk space are recommended.
+
 # Usage
 To classify a FASTQ dataset of long reads with DIAMER, four steps have to be done:
 1) A reference database has to be prepared

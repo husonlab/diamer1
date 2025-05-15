@@ -35,7 +35,7 @@ def extract_algorithm_info(df: pd.DataFrame) -> pd.DataFrame:
     Combines all columns with read counts into one column and extracts the algorithm name, parameter and data from the column name
     """
     # only keep columns that contain read counts
-    cols = [col for col in df.reset_index().columns if col not in ["kmer count","kmer count cumulative", "node id", "kmers in database", "normalized kmer count"]]
+    cols = [col for col in df.reset_index().columns if col not in ["kmer count", "kmer count (cumulative)", "node id", "kmers in database", "norm. kmer count"]]
     # melt all columns with read counts and introduce new columns for the algorithm that was used
     df_melted = pd.melt(df.reset_index()[cols], id_vars=["label", "rank", "true positive"], var_name="assignment method", value_name="read count")
     # split the algorithm into its name, parameter and data and remove the old column
