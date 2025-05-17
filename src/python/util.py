@@ -35,7 +35,7 @@ def extract_algorithm_info(df: pd.DataFrame) -> pd.DataFrame:
     Combines all columns with read counts into one column and extracts the algorithm name, parameter and data from the column name
     """
     # only keep columns that contain read counts
-    cols = [col for col in df.reset_index().columns if col not in ["kmer count","kmer count cumulative", "node id", "kmers in database", "normalized kmer count"]]
+    cols = [col for col in df.reset_index().columns if col not in ["kmer count", "kmer count (cumulative)", "node id", "kmers in database", "norm. kmer count"]]
     # melt all columns with read counts and introduce new columns for the algorithm that was used
     df_melted = pd.melt(df.reset_index()[cols], id_vars=["label", "rank", "true positive"], var_name="assignment method", value_name="read count")
     # split the algorithm into its name, parameter and data and remove the old column
@@ -60,6 +60,15 @@ def get_precision_recall_reads(df: pd.DataFrame, total: int) -> pd.DataFrame:
     df["precision"] = df["true positive"] / (df["true positive"] + df["false positive"])
     df["recall"] = df["true positive"] / total
     return df
+
+def get_precision_recall_for_algorithm(df, algorithm, total_reads):
+    result = df[["rank", "true positive", algorithm]].groupby(["rank", "true positive"]).sum().reset_index()\
+        .pivot(index=["rank"], columns="true positive", values=algorithm)\
+        .reset_index().rename(columns={False: "false positive", True: "true positive"}).dropna(subset=["true positive"])
+    result.fillna(0, inplace=True)
+    result["precision"] = result["true positive"] / (result["true positive"] + result["false positive"])
+    result["recall"] = result["true positive"] / total_reads
+    return result
 
 
 def true_positives(df: pd.DataFrame, total_reads: int, true_labels: list, rank: str):
@@ -256,10 +265,10 @@ def plot_true_assigned_per_rank(df: pd.DataFrame, total: int = 100, title: str =
     colors = colors[-len(ranks):]
     plt.figure(figsize=(len(df), 6))
     for rank, color in zip(ranks, colors):
-        plt.bar(df["label"].astype(str), df[rank] / total * 100, label=rank, color=color, width=0.8)
+        plt.bar(df["label"].astype(str), df[rank] / total, label=rank, color=color, width=0.8)
     plt.legend(bbox_to_anchor=(1, 1), loc="upper left")
-    plt.ylim(0, 100)
-    plt.yticks(np.arange(0, 101, 10))
+    plt.ylim(0, 1)
+    plt.yticks(np.arange(0, 1.01, 0.1))
     plt.xlabel(x_axis)
     plt.xticks(rotation=45)
     plt.ylabel(y_axis)
