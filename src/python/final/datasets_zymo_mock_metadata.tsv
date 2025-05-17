@@ -14,7 +14,7 @@ NR90	Etchebest11	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_etchebest11_1
 NR90	DIAMOND	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_diamond_13-mer/per_taxon_assignments.tsv		66
 NR90	Uniform11	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_uniform11_13-mer/per_taxon_assignments.tsv		170
 NR90	Uniform16	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_uniform16_13-mer/per_taxon_assignments.tsv		203
-NR90	Uniform11S	13	Choi	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer_diamond/per_taxon_assignments.tsv		172
+NR90	Uniform11S	13	Choi	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer_choi/per_taxon_assignments.tsv		172
 NR90	Uniform11S	13	DIAMOND*	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer_diamond/per_taxon_assignments.tsv		172
 NR90	Uniform11S	13	consecutive	13	c > 4	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_c4/per_taxon_assignments.tsv		170
 NR90	Uniform11S	13	consecutive	13	c > 5	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_c5/per_taxon_assignments.tsv		164
