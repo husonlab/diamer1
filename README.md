@@ -5,6 +5,8 @@ by comparison to a protein reference database.
 
 This tool was created as part of the master thesis by Noel Kubach in 2025.
 
+![overview.png](src/test/resources/overview.png)
+
 # Download
 A precompiled .jar file can be downloaded [here](out/artifacts/diamer_jar/diamer.jar).
 
