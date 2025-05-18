@@ -1,5 +1,5 @@
-2025-05-15T09:39:23.725854800
---indexreads -t 12 -b 1024 --mask 111111111111111 --debug --statistics --filtering c 0 --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
+2025-05-18T13:49:48.308818400
+--indexreads -t 12 -b 1024 --mask 111111111111111 --debug --statistics --filtering c 0 --alphabet [BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W] C:\Users\nk035\Documents\diamer\src\test\resources\reads\reads.fq C:\Users\nk035\Documents\diamer\src\test\resources\test_output\reads_index
 VERSION:	1.0.0
 MAX_THREADS:	12
 MAX_IO_THREADS:	16
@@ -14,14 +14,14 @@ ONLY_STANDARD_RANKS:	false
 ALPHABET:	[BDEKNOQRXZ][AST][IJLV][G][P][F][Y][CU][H][M][W]
 MASK:	111111111111111
 ALGORITHMS:	OVO (1.00)
-INPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
-OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
+INPUT:	C:\Users\nk035\Documents\diamer\src\test\resources\reads\reads.fq
+OUTPUT:	C:\Users\nk035\Documents\diamer\src\test\resources\test_output\reads_index
 DB_INDEX:	null
-READS_INDEX:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
-Indexing started: 2025-05-15T09:39:23.729854200
+READS_INDEX:	C:\Users\nk035\Documents\diamer\src\test\resources\test_output\reads_index
+Indexing started: 2025-05-18T13:49:48.312868900
 No filtering.
 
-Statistics on the first 1000 sequences of the input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
+Statistics on the first 1000 sequences of the input file: C:\Users\nk035\Documents\diamer\src\test\resources\reads\reads.fq
 Character counts:
 0: 1060
 1: 843
@@ -1073,9 +1073,9 @@ Estimated bucket sizes:
 1022: 4
 1023: 2
 
-Indexing finished: 2025-05-15T09:39:24.274323200
-input file: C:\Users\nk035\Documents\diamer2\src\test\resources\reads\reads.fq
-output directory: C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\reads_index
+Indexing finished: 2025-05-18T13:49:48.888836700
+input file: C:\Users\nk035\Documents\diamer\src\test\resources\reads\reads.fq
+output directory: C:\Users\nk035\Documents\diamer\src\test\resources\test_output\reads_index
 processed reads: 6
 processed translations: 90
 skipped translations because length < 15: 118

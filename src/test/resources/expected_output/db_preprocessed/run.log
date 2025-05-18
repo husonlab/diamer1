@@ -12,7 +12,7 @@ DEBUG:	true
 COLLECT_STATS:	true
 ONLY_STANDARD_RANKS:	false
 ALPHABET:	[L][A][CG][*BOUVWZ][HS][EMX][TY][QR][DN][FI][KP]
-MASK:	11111101101100111000100001
+MASK:	1111111111111
 ALGORITHMS:	OVO (1.00)
 INPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz

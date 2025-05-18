@@ -1,0 +1,34 @@
+database	alphabet	kmer size	seed shape	minimizer window	filtering	path	minimizer criterion	DB Index size
+NR Kraken 2X	Solis15S	12	consecutive	12	segmasker	zymo_mock/assignment_kraken2x_nr/per_taxon_assignments.tsv
+NR	Uniform11S	13	consecutive	13	c > 3	zymo_mock/assignment_nr_uniform11s_13-mer/per_taxon_assignments.tsv		369
+NR90	Uniform11S	11	consecutive	12	c > 3	zymo_mock/assignment_nr90_uniform11s_11-mer/per_taxon_assignments.tsv		118
+NR90	Uniform11S	12	consecutive	13	c > 3	zymo_mock/assignment_nr90_uniform11s_12-mer/per_taxon_assignments.tsv		149
+NR90	Uniform11S	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv		171
+NR90	Uniform11S	14	consecutive	14	c > 3	zymo_mock/assignment_nr90_uniform11s_14-mer/per_taxon_assignments.tsv		193
+NR90	Uniform11S	15	consecutive	15	c > 3	zymo_mock/assignment_nr90_uniform11s_15-mer/per_taxon_assignments.tsv		215
+NR90	Solis11	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_solis11_13-mer/per_taxon_assignments.tsv		130
+NR90	Solis15	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_solis15_13-mer/per_taxon_assignments.tsv		182
+NR90	Solis15S	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_solis15s_13-mer/per_taxon_assignments.tsv		179
+NR90	Solis16	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_solis16_13-mer/per_taxon_assignments.tsv		182
+NR90	Etchebest11	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_etchebest11_13-mer/per_taxon_assignments.tsv		146
+NR90	DIAMOND	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_diamond_13-mer/per_taxon_assignments.tsv		66
+NR90	Uniform11	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_uniform11_13-mer/per_taxon_assignments.tsv		170
+NR90	Uniform16	13	consecutive	13	c > 3	zymo_mock/assignment_nr90_uniform16_13-mer/per_taxon_assignments.tsv		203
+NR90	Uniform11S	13	Choi	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer_choi/per_taxon_assignments.tsv		172
+NR90	Uniform11S	13	DIAMOND*	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer_diamond/per_taxon_assignments.tsv		172
+NR90	Uniform11S	13	consecutive	13	c > 4	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_c4/per_taxon_assignments.tsv		170
+NR90	Uniform11S	13	consecutive	13	c > 5	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_c5/per_taxon_assignments.tsv		164
+NR90	Uniform11S	13	consecutive	13	c > 6	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_c6/per_taxon_assignments.tsv		140
+NR90	Uniform11S	13	consecutive	13	c > 7	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_c7/per_taxon_assignments.tsv		89
+NR90	Uniform11S	13	consecutive	13	c > 8	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_c8/per_taxon_assignments.tsv		35
+NR90	Uniform11S	13	consecutive	13	p < 4e-14	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_p414/per_taxon_assignments.tsv		159
+NR90	Uniform11S	13	consecutive	13	p < 3e-14	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_p314/per_taxon_assignments.tsv		90
+NR90	Uniform11S	13	consecutive	13	p < 2e-14	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_p214/per_taxon_assignments.tsv		5.5
+NR90	Uniform11S	13	consecutive	14	maxC 14	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_cm14/per_taxon_assignments.tsv	copmlexity	104
+NR90	Uniform11S	13	consecutive	15	maxC 15	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_cm15/per_taxon_assignments.tsv	copmlexity	78
+NR90	Uniform11S	13	consecutive	17	maxC 17	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_cm17/per_taxon_assignments.tsv	copmlexity	55
+NR90	Uniform11S	13	consecutive	21	maxC 21	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_cm21/per_taxon_assignments.tsv	copmlexity	35
+NR90	Uniform11S	13	consecutive	14	minP 14	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_pm14/per_taxon_assignments.tsv	probability	128
+NR90	Uniform11S	13	consecutive	15	minP 15	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_pm15/per_taxon_assignments.tsv	probability	107
+NR90	Uniform11S	13	consecutive	17	minP 17	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_pm17/per_taxon_assignments.tsv	probability	85
+NR90	Uniform11S	13	consecutive	21	minP 21	zymo_mock/assignment_nr90_uniform11s_13-mer_filtering_pm21/per_taxon_assignments.tsv	probability	65

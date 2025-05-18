@@ -12,7 +12,7 @@ DEBUG:	true
 COLLECT_STATS:	true
 ONLY_STANDARD_RANKS:	false
 ALPHABET:	[L][A][CG][*BOUVWZ][HS][EMX][TY][QR][DN][FI][KP]
-MASK:	11111101101100111000100001
+MASK:	1111111111111
 ALGORITHMS:	OVO (0.20), OVO (0.50), OVO (0.60), OVO (0.80), OVO (0.90), OVO (1.00), OVA (0.70)
 INPUT:	null
 OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\assignment

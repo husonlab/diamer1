@@ -1,0 +1,6 @@
+database	alphabet	kmer size	seed shape	minimizer window	filtering	path	minimizer criterion	DB Index size	class, OVO (1.00) kmer count (cumulative)	family, OVO (1.00) kmer count (cumulative)	genus, OVO (1.00) kmer count (cumulative)	kingdom, OVO (1.00) kmer count (cumulative)	order, OVO (1.00) kmer count (cumulative)	phylum, OVO (1.00) kmer count (cumulative)	species, OVO (1.00) kmer count (cumulative)	superkingdom, OVO (1.00) kmer count (cumulative)
+NR90	Uniform11S	11	11111111111	12	c > 3	zymo_mock/assignment_nr90_uniform11s_11-mer/per_taxon_assignments.tsv			938175	841203	738044	1134332	860255	1061123	440848	1156610
+NR90	Uniform11S	12	111111111111	13	c > 3	zymo_mock/assignment_nr90_uniform11s_12-mer/per_taxon_assignments.tsv			1002979	968090	845565	1112844	982845	1049965	498722	1147985
+NR90	Uniform11S	13	1111111111111	13	c > 3	zymo_mock/assignment_nr90_uniform11s_13-mer/per_taxon_assignments.tsv			1011456	984835	853055	1083841	998320	1037336	493935	1119180
+NR90	Uniform11S	14	11111111111111	14	c > 3	zymo_mock/assignment_nr90_uniform11s_14-mer/per_taxon_assignments.tsv			998909	975002	841199	1048412	987238	1015149	480959	1076053
+NR90	Uniform11S	15	111111111111111	15	c > 3	zymo_mock/assignment_nr90_uniform11s_15-mer/per_taxon_assignments.tsv			977658	954478	822257	1022066	966040	991028	465875	1049089
