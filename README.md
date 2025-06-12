@@ -3,7 +3,7 @@ The Double-Indexed k-mer Taxonomic Classifier DIAMER is a bioinformatics tool
 to taxonomically classify long reads of next generation sequencing technologies
 by comparison to a protein reference database.
 
-This tool was created as part of the master thesis by Noel Kubach in 2025.
+This tool was created as part of the master thesis by Noel Kubach in 2025, which can be accessed [here](masterthesis_kubach_2025.pdf).
 
 ![overview.png](src/test/resources/overview.png)
 
