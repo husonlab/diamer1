@@ -8,7 +8,7 @@ This tool was created as part of the master thesis by Noel Kubach in 2025, which
 ![overview.png](src/test/resources/overview.png)
 
 # Download
-A precompiled .jar file can be downloaded [here](out/artifacts/diamer_jar/diamer.jar).
+A precompiled .jar file with dependencies can be downloaded [here](out/diamer.jar).
 
 # Requirenments
 DIAMER needs a Java Runtime Environment (version >= 23).
@@ -272,3 +272,17 @@ DIAMER needs to know which task to perform. This has to be indicated with either
     * use the minimizer concept to only keep k-mers with a low probability within a window of size `number`
     * syntax: `--filtering pm <number>`
     * the window size cannot be smaller than the k-mer length
+
+# Build from source with maven
+
+#### Clean, compile, test, and package the project
+mvn clean package
+
+#### Just compile without running tests
+mvn clean compile
+
+#### Package without running tests
+mvn clean package -DskipTests
+
+#### Just create the assembly JAR (if already compiled)
+mvn assembly:single
