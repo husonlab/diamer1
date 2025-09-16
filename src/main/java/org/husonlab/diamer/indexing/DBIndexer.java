@@ -15,7 +15,6 @@ import org.husonlab.diamer.util.FlexibleIntArray;
 import org.husonlab.diamer.util.Pair;
 import org.husonlab.diamer.util.logging.*;
 
-import java.util.Arrays;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;

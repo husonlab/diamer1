@@ -1,6 +1,5 @@
 package org.husonlab.diamer.main.Computations;
 
-import org.apache.commons.cli.CommandLine;
 import org.husonlab.diamer.io.NCBIReader;
 import org.husonlab.diamer.io.accessionMapping.AccessionMapping;
 import org.husonlab.diamer.io.accessionMapping.MeganMapping;
@@ -19,32 +18,32 @@ import static org.husonlab.diamer.io.Utilities.getFile;
 import static org.husonlab.diamer.main.CliUtils.*;
 
 /**
- * Class to preprocess a protein sequence database to replace the headers of the sequences with the taxId of the LCA
- * of all source organisms.
+ * Class to preprocess the NCBI protein sequence database and replace the headers of the sequences with the taxId of the
+ * LCA of all source organisms.
  */
 public class Preprocessing {
-    public static void preprocess(CommandLine cli, GlobalSettings settings) {
+    public static void preprocess(GlobalSettings settings) {
         // input, output, mapping file(s)
-        checkNumberOfPositionalArguments(cli, 3);
-        settings.INPUT = getFile(cli.getArgs()[0], true);
+        checkNumberOfPositionalArguments(settings.cli, 3);
+        settings.INPUT_FILE = getFile(settings.cli.getArgs()[0], true);
+
+        // parse all mapping files
+        AccessionMapping accessionMapping;
+        ArrayList<Path> mappingFiles = new ArrayList<>();
+        for (int i = 2; i < settings.cli.getArgs().length; i++) {
+            mappingFiles.add(getFile(settings.cli.getArgs()[i], true));
+        }
 
         // create log file writer
         settings.logFileWriter.writeSettings(settings);
         settings.logFileWriter.writeTimeStamp("Preprocessing started");
 
         // reading the taxonomic tree
-        Tree tree = readTree(cli);
-
-        // parse all mapping files
-        AccessionMapping accessionMapping;
-        ArrayList<Path> mappingFiles = new ArrayList<>();
-        for (int i = 2; i < cli.getArgs().length; i++) {
-            mappingFiles.add(getFile(cli.getArgs()[i], true));
-        }
+        Tree tree = readNCBITree(settings.cli);
 
         String runInfo;
         try (SequenceSupplier<String, String> sequenceSupplier = new SequenceSupplier<>(
-                new FastaReader(settings.INPUT), SequenceSupplier.getEmptyConverter(), settings.KEEP_IN_MEMORY)) {
+                new FastaReader(settings.INPUT_FILE), SequenceSupplier.getEmptyConverter(), settings.KEEP_IN_MEMORY)) {
 
             // case: mapping file is a megan mapping file
             if (mappingFiles.getFirst().toString().endsWith(".mdb") || mappingFiles.getFirst().toString().endsWith(".db")) {

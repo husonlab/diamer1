@@ -6,6 +6,8 @@ import org.husonlab.diamer.taxonomy.Tree;
 import org.husonlab.diamer.util.logging.Logger;
 import org.husonlab.diamer.util.logging.OneLineLogger;
 import org.husonlab.diamer.util.logging.ProgressBar;
+import org.husonlab.diamer.util.logging.Time;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -32,9 +34,9 @@ public class TreeIO {
             // write header
             String header =
                     (writeParent ? "parent id\t" : "") +
-                    (writeTaxId ? "node id\t" : "") +
-                    (writeRank ? "rank\t" : "") +
-                    (writeLabel ? "label\t" : "");
+                            (writeTaxId ? "node id\t" : "") +
+                            (writeRank ? "rank\t" : "") +
+                            (writeLabel ? "label\t" : "");
             bw.write(header.substring(0, header.length() - 1));
             for (String label: longProperties) {
                 bw.write("\t" + label);
@@ -50,9 +52,9 @@ public class TreeIO {
                 Node node = queue.poll();
                 String line =
                         (node.hasParent() && writeParent ? node.getParent().getTaxId() + "\t" : (writeParent ? "\t" : "")) +
-                        (writeTaxId ? node.getTaxId() + "\t" : "") +
-                        (writeRank ? node.getRank() + "\t" : "") +
-                        (writeLabel ? node.getScientificNameOrFirstLabel() + "\t" : "");
+                                (writeTaxId ? node.getTaxId() + "\t" : "") +
+                                (writeRank ? node.getRank() + "\t" : "") +
+                                (writeLabel ? node.getScientificNameOrFirstLabel() + "\t" : "");
                 bw.write(line.substring(0, line.length() - 1));
                 for (String longPerpoerty : longProperties) {
                     bw.write("\t" + tree.getLongProperty(node.getTaxId(), longPerpoerty));

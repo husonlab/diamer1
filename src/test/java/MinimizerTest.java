@@ -1,6 +1,5 @@
 import org.husonlab.diamer.indexing.kmers.*;
 import org.junit.Test;
-
 import java.util.Arrays;
 
 public class MinimizerTest {

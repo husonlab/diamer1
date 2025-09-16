@@ -255,33 +255,42 @@ public class Main {
 
         // prepare additional options for the different tasks and start them
         if (cli.hasOption("preprocess")) {
+            // expected arguments: input, output, mapping
             CliUtils.checkNumberOfPositionalArguments(cli, 3);
             Path output = getFile(cli.getArgs()[1], false);
             // ensure writing a gzipped output file
             if (!output.toString().endsWith(".gz")) {
                 output = output.getParent().resolve(output.getFileName() + ".gz");
             }
-            GlobalSettings globalSettings = new GlobalSettings(args, cli, options, output, output.getParent().resolve("run.log"));
-            Preprocessing.preprocess(cli, globalSettings);
+            GlobalSettings globalSettings = new GlobalSettings(
+                    args, cli, options, output,
+                    output.getParent().resolve("run.log"));
+            Preprocessing.preprocess(globalSettings);
         } else if (cli.hasOption("indexdb")) {
+            // expected arguments: input, output
             CliUtils.checkNumberOfPositionalArguments(cli, 2);
             Path output = getFolder(cli.getArgs()[1], false);
             GlobalSettings globalSettings = new GlobalSettings(args, cli, options, output);
             DBIndexing.indexDB(cli, globalSettings);
         } else if (cli.hasOption("indexreads")) {
+            // expected arguments: input, output
             CliUtils.checkNumberOfPositionalArguments(cli, 2);
             Path output = getFolder(cli.getArgs()[1], false);
             GlobalSettings globalSettings = new GlobalSettings(args, cli, options, output);
             ReadIndexing.indexReads(cli, globalSettings);
         } else if (cli.hasOption("assignreads")) {
+            // expected arguments: db index, reads index, output
             CliUtils.checkNumberOfPositionalArguments(cli, 3);
             Path output = getFolder(cli.getArgs()[2], false);
             GlobalSettings globalSettings = new GlobalSettings(args, cli, options, output);
             ReadAssigning.assignReads(cli, globalSettings);
         } else if (cli.hasOption("analyze-db-index")) {
+            // expected arguments: db index, output
             CliUtils.checkNumberOfPositionalArguments(cli, 2);
             Path output = getFolder(cli.getArgs()[1], false);
-            GlobalSettings globalSettings = new GlobalSettings(args, cli, options, output, output.resolve("db-analyze-run.log"));
+            GlobalSettings globalSettings = new GlobalSettings(
+                    args, cli, options, output,
+                    output.resolve("db-analyze-run.log"));
             DBIndexAnalyzing.analyzeDBIndex(cli, globalSettings);
         } else {
             System.err.println("No computation option selected");

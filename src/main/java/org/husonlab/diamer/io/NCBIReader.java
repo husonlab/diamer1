@@ -29,7 +29,7 @@ public class NCBIReader {
      * @param onlyOneName if true, only one name (preferably the "scientific name") is added to each node
      */
     @NotNull
-    public static Tree readTaxonomy(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile, boolean onlyOneName) {
+    public static Tree readNCBITree(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile, boolean onlyOneName) {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
         logger.logInfo("Reading nodes dumpfile...");
         Tree tree = readNodesDumpfile(nodesDumpfile, logger);
@@ -52,7 +52,7 @@ public class NCBIReader {
         ProgressBar progressBar = new ProgressBar(nodesDumpfile.toFile().length(), 20);
         new OneLineLogger("NCBIReader", 500)
                 .addElement(progressBar);
-        HashMap<Integer, Integer> parentMap = new HashMap<>();
+        Map<Integer, Integer> parentMap = new HashMap<>();
         try (CountingInputStream cis = new CountingInputStream(new FileInputStream(nodesDumpfile.toString()));
              BufferedReader br = new BufferedReader(new InputStreamReader(cis)) ) {
             String line;

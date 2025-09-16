@@ -24,20 +24,20 @@ public class DBIndexing {
     public static void indexDB(CommandLine cli, GlobalSettings settings) {
         // input database fasta file, output folder
         checkNumberOfPositionalArguments(cli, 2);
-        settings.INPUT = getFile(cli.getArgs()[0], true);
+        settings.INPUT_FILE = getFile(cli.getArgs()[0], true);
         settings.DB_INDEX = getFolder(cli.getArgs()[1], false);
 
         settings.logFileWriter.writeSettings(settings);
         settings.logFileWriter.writeTimeStamp("Indexing started");
 
         // parse tree
-        Tree tree = readTree(cli);
+        Tree tree = readNCBITree(cli);
 
         // setup kmer extractor and encoder with filtering options:
-        Encoder encoder = setupEncoder(new FastaIdReader(settings.INPUT), settings.ALPHABET::translateDBSequence, cli, settings);
+        Encoder encoder = setupEncoder(new FastaIdReader(settings.INPUT_FILE), settings.ALPHABET::translateDBSequence, cli, settings);
 
         try (SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
-                new FastaIdReader(settings.INPUT), settings.ALPHABET::translateDBSequence, settings.KEEP_IN_MEMORY)) {
+                new FastaIdReader(settings.INPUT_FILE), settings.ALPHABET::translateDBSequence, settings.KEEP_IN_MEMORY)) {
             // estimate bucket sizes with first 10,000 sequences
             StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 10_000);
             int estimatedBucketSize = statisticsEstimator.getMaxBucketSize();

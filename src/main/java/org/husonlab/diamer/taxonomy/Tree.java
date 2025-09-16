@@ -680,6 +680,10 @@ public class Tree {
         return nodesPerRank;
     }
 
+    public int size() {
+        return idMap.size();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

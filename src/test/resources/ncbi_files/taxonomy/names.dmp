@@ -1,0 +1,178 @@
+1	|	all	|		|	synonym	|
+1	|	root	|		|	scientific name	|
+2	|	Bacteria	|	Bacteria <prokaryotes>	|	scientific name	|
+2	|	bacteria	|	bacteria <blast name>	|	blast name	|
+2	|	prokaryotes	|		|	common name	|
+2	|	Bacteria Woese and Fox 1977	|		|	authority	|
+131567	|	Proteobacteria	|	Proteobacteria <purple bacteria>	|	scientific name	|
+131567	|	purple bacteria	|		|	common name	|
+131567	|	Proteobacteria Stackebrandt et al. 1988	|		|	authority	|
+90001	|	Alphaproteobacteria (subphylum)	|		|	scientific name	|
+90001	|	alpha subdivision	|		|	common name	|
+32015	|	Myxococcia	|	Myxococcia <fruiting bacteria>	|	scientific name	|
+32015	|	fruiting bacteria	|		|	common name	|
+32015	|	Myxococcia Tchan et al. 1948	|		|	authority	|
+90002	|	Myxococcidae (subclass)	|		|	scientific name	|
+90002	|	gliding fruiting bacteria	|		|	common name	|
+29	|	Myxococcales	|	Myxococcales <fruiting gliding bacteria>	|	scientific name	|
+29	|	fruiting gliding bacteria	|		|	genbank common name	|
+29	|	Myxococcales Tchan et al. 1948	|		|	authority	|
+90003	|	Cystobacterineae	|		|	scientific name	|
+90003	|	Cystobacter-like bacteria	|		|	common name	|
+80811	|	Myxococcaceae	|		|	scientific name	|
+80811	|	Myxococcaceae Jahn et al. 1924	|		|	authority	|
+31	|	Myxococcinae	|		|	scientific name	|
+31	|	Myxococcus subfamily	|		|	common name	|
+90004	|	Myxococceae	|		|	scientific name	|
+90004	|	Myxococcus tribe	|		|	common name	|
+32	|	Myxococcus	|		|	scientific name	|
+32	|	Myxococcus Thaxter 1892	|		|	authority	|
+90005	|	Myxococcus (Eumyxococcus)	|		|	scientific name	|
+90005	|	typical myxococci	|		|	common name	|
+33	|	Myxococcus fulvus	|		|	scientific name	|
+33	|	Myxococcus fulvus (Cohn 1875) Jahn 1911	|		|	authority	|
+33	|	Micrococcus fulvus	|		|	synonym	|
+33	|	ATCC 25199	|	ATCC 25199 <type strain>	|	type material	|
+90006	|	Myxococcus fulvus subsp. fulvus	|		|	scientific name	|
+90006	|	M. fulvus typical strain	|		|	common name	|
+34	|	Myxococcus xanthus	|		|	scientific name	|
+34	|	Myxococcus xanthus Beebe 1941	|		|	authority	|
+34	|	ATCC 25232	|	ATCC 25232 <type strain>	|	type material	|
+39	|	Archangiaceae	|		|	scientific name	|
+39	|	Archangiaceae Jahn et al. 1924	|		|	authority	|
+39	|	Cystobacteraceae	|		|	synonym	|
+40	|	Stigmatella	|		|	scientific name	|
+40	|	Stigmatella Berkeley and Curtis 1875	|		|	authority	|
+41	|	Stigmatella aurantiaca	|		|	scientific name	|
+41	|	Stigmatella aurantiaca Berkeley and Curtis 1875	|		|	authority	|
+41	|	Chondromyces aurantiacus	|		|	synonym	|
+41	|	ATCC 25190	|	ATCC 25190 <type strain>	|	type material	|
+42	|	Cystobacter	|		|	scientific name	|
+42	|	Cystobacter Schroeter 1886	|		|	authority	|
+43	|	Cystobacter fuscus	|		|	scientific name	|
+43	|	Cystobacter fuscus Schroeter 1886	|		|	authority	|
+43	|	Polyangium fuscum	|		|	synonym	|
+43	|	ATCC 25194	|	ATCC 25194 <type strain>	|	type material	|
+44	|	Melittangium	|		|	scientific name	|
+44	|	Melittangium Jahn 1924	|		|	authority	|
+45	|	Melittangium lichenicola	|		|	scientific name	|
+45	|	Melittangium lichenicola (Thaxter 1892) McCurdy 1971	|		|	authority	|
+45	|	Chondromyces lichenicolus	|		|	synonym	|
+45	|	ATCC 25944	|	ATCC 25944 <type strain>	|	type material	|
+47	|	Archangium	|		|	scientific name	|
+47	|	Archangium Jahn 1924	|		|	authority	|
+47	|	Angiococcus	|		|	synonym	|
+48	|	Archangium gephyra	|		|	scientific name	|
+48	|	Archangium gephyra Jahn 1924	|		|	authority	|
+48	|	Angiococcus disciformis	|		|	synonym	|
+48	|	ATCC 25201	|	ATCC 25201 <type strain>	|	type material	|
+49	|	Polyangiaceae	|		|	scientific name	|
+49	|	Polyangiaceae Jahn 1924	|		|	authority	|
+49	|	Sorangiaceae	|		|	includes	|
+50	|	Chondromyces	|		|	scientific name	|
+50	|	Chondromyces Berkeley and Curtis 1874	|		|	authority	|
+50	|	Myxobotrys	|		|	synonym	|
+35	|	Corallococcus macrosporus	|		|	scientific name	|
+35	|	Corallococcus macrosporus (Krzemieniewska and Krzemieniewski 1926) Reichenbach 2007	|		|	authority	|
+35	|	Myxococcus macrosporus	|		|	synonym	|
+35	|	Chondrococcus macrosporus	|		|	synonym	|
+83461	|	Corallococcus (subgenus)	|		|	scientific name	|
+83461	|	coral-like fruiting bodies	|		|	common name	|
+90007	|	Sorangiidae (infraclass)	|		|	scientific name	|
+90007	|	sorus-forming bacteria	|		|	common name	|
+335928	|	Gammaproteobacteria Garrity et al. 2005	|		|	authority	|
+90008	|	Enterobacteriales (class)	|		|	scientific name	|
+90008	|	enteric bacteria class	|		|	common name	|
+90009	|	Rhizobiales	|		|	scientific name	|
+90009	|	Rhizobiales Kuykendall 2005	|		|	authority	|
+90009	|	nitrogen-fixing bacteria	|		|	common name	|
+90010	|	Rhizobiaceae	|		|	scientific name	|
+90010	|	Rhizobiaceae Conn 1938	|		|	authority	|
+90010	|	root nodule bacteria	|		|	common name	|
+6	|	Azorhizobium	|		|	scientific name	|
+6	|	Azorhizobium Dreyfus et al. 1988	|		|	authority	|
+7	|	Azorhizobium caulinodans	|		|	scientific name	|
+7	|	Azorhizobium caulinodans Dreyfus et al. 1988	|		|	authority	|
+7	|	Azotirhizobium caulinodans	|		|	equivalent name	|
+7	|	ATCC 43989	|	ATCC 43989 <type strain>	|	type material	|
+7	|	ORS 571	|	ORS 571 <type strain>	|	type material	|
+32199	|	Buchnera	|		|	scientific name	|
+32199	|	Buchnera Munson et al. 1991	|		|	authority	|
+9	|	Buchnera aphidicola	|		|	scientific name	|
+9	|	Buchnera aphidicola Munson et al. 1991	|		|	authority	|
+9	|	primary endosymbiont of Schizaphis graminum	|		|	includes	|
+9	|	aphid endosymbiont	|		|	common name	|
+90011	|	Cellvibrionaceae	|		|	scientific name	|
+90011	|	cellulose-degrading bacteria	|		|	common name	|
+1706371	|	Cellvibrio	|		|	scientific name	|
+1706371	|	Cellvibrio (ex Winogradsky 1929) Blackall et al. 1986	|		|	authority	|
+11	|	Cellulomonas gilvus	|		|	scientific name	|
+11	|	Cellulomonas gilvus (Hulcher and King 1958) Christopherson et al. 2013	|		|	authority	|
+11	|	Cellvibrio gilvus	|		|	synonym	|
+11	|	ATCC 13127	|	ATCC 13127 <type strain>	|	type material	|
+203488	|	Dictyoglomus	|		|	scientific name	|
+203488	|	Dictyoglomus Saiki et al. 1985	|		|	authority	|
+14	|	Dictyoglomus thermophilum	|		|	scientific name	|
+14	|	Dictyoglomus thermophilum Saiki et al. 1985	|		|	authority	|
+14	|	ATCC 35947	|	ATCC 35947 <type strain>	|	type material	|
+14	|	thermophilic bacterium	|		|	common name	|
+90012	|	Methylococcales	|		|	scientific name	|
+90012	|	methane-oxidizing bacteria	|		|	common name	|
+90013	|	Methylococcaceae	|		|	scientific name	|
+90013	|	methanotrophs	|		|	common name	|
+32011	|	Methylophilus	|		|	scientific name	|
+32011	|	Methylophilus Jenkins et al. 1987	|		|	authority	|
+32011	|	Methyliphilus	|		|	equivalent name	|
+17	|	Methylophilus methylotrophus	|		|	scientific name	|
+17	|	Methylophilus methylotrophus Jenkins et al. 1987	|		|	authority	|
+17	|	Methylomonas clara	|		|	synonym	|
+17	|	Methyliphilus methylotrophus	|		|	equivalent name	|
+17	|	ATCC 53528	|	ATCC 53528 <type strain>	|	type material	|
+17	|	methylotroph	|		|	common name	|
+213421	|	Pelobacter	|		|	scientific name	|
+213421	|	Pelobacter Schink and Pfennig 1983	|		|	authority	|
+213421	|	Pseudopelobacter	|		|	synonym	|
+19	|	Syntrophotalea carbinolica	|		|	scientific name	|
+19	|	Syntrophotalea carbinolica (Schink 1984) Waite et al. 2020	|		|	authority	|
+19	|	Pelobacter carbinolicus	|		|	synonym	|
+19	|	DSM 2380	|	DSM 2380 <type strain>	|	type material	|
+76892	|	Phenylobacterium	|		|	scientific name	|
+76892	|	Phenylobacterium Lingens et al. 1985	|		|	authority	|
+21	|	Phenylobacterium immobile	|		|	scientific name	|
+21	|	Phenylobacterium immobile Lingens et al. 1985	|		|	authority	|
+21	|	ATCC 35973	|	ATCC 35973 <type strain>	|	type material	|
+21	|	aromatic compound degrader	|		|	common name	|
+90014	|	Shewanellaceae	|		|	scientific name	|
+90014	|	marine bacteria family	|		|	common name	|
+267890	|	Shewanella	|		|	scientific name	|
+267890	|	Shewanella MacDonell and Colwell 1986	|		|	authority	|
+22	|	Shewanella (Pseudoshewanella)	|		|	scientific name	|
+22	|	marine Shewanella subgenus	|		|	common name	|
+23	|	Shewanella colwelliana	|		|	scientific name	|
+23	|	Shewanella colwelliana (Weiner et al. 1988) Coyne et al. 1990	|		|	authority	|
+23	|	Alteromonas colwelliana	|		|	synonym	|
+23	|	Shewanella affinis	|		|	synonym	|
+23	|	ATCC 39565	|	ATCC 39565 <type strain>	|	type material	|
+24	|	Shewanella putrefaciens	|		|	scientific name	|
+24	|	Shewanella putrefaciens (Lee et al. 1981) MacDonell and Colwell 1986	|		|	authority	|
+24	|	Alteromonas putrefaciens	|		|	synonym	|
+24	|	Pseudomonas putrefaciens	|		|	synonym	|
+24	|	ATCC 8071	|	ATCC 8071 <type strain>	|	type material	|
+25	|	Shewanella hanedai	|		|	scientific name	|
+25	|	Shewanella hanedai (Jensen et al. 1981) MacDonell and Colwell 1986	|		|	authority	|
+25	|	Alteromonas hanedai	|		|	synonym	|
+25	|	ATCC 33224	|	ATCC 33224 <type strain>	|	type material	|
+49928	|	Halophilobacterium	|		|	scientific name	|
+49928	|	salt-loving bacterium	|		|	common name	|
+27	|	Halophilobacterium salinarum	|		|	scientific name	|
+27	|	halophilic eubacterium NRCC 41227	|		|	synonym	|
+27	|	extremely halophilic bacterium	|		|	common name	|
+28	|	Halophilobacterium marinus	|		|	scientific name	|
+28	|	halophilic eubacterium	|		|	synonym	|
+28	|	marine halophile	|		|	common name	|
+90015	|	Halophilobacterium salinarum var. extremophilus	|		|	scientific name	|
+90015	|	extreme halophile variety	|		|	common name	|
+90016	|	Halophilobacterium marinus f. typicus	|		|	scientific name	|
+90016	|	typical marine form	|		|	common name	|eria	|	Gammaproteobacteria <enterics and related bacteria>	|	scientific name	|
+335928	|	gamma subdivision	|		|	common name	|
+335928	|	enterics and related bacteria	|		|	genbank common name	|

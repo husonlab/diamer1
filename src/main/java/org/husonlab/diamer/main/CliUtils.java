@@ -9,7 +9,7 @@ import org.husonlab.diamer.readAssignment.algorithms.OVA;
 import org.husonlab.diamer.readAssignment.algorithms.OVO;
 import org.husonlab.diamer.seq.alphabet.*;
 import org.husonlab.diamer.taxonomy.Tree;
-import org.husonlab.diamer.util.Pair;
+import org.husonlab.diamer.util.NNPair;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -47,13 +47,13 @@ public class CliUtils {
      * @param cli command line arguments
      * @return pair of NCBI nodes and names dump files
      */
-    public static Pair<Path, Path> getNodesAndNames(CommandLine cli) {
+    public static NNPair<Path, Path> getNodesAndNames(CommandLine cli) {
         if (!cli.hasOption("no") || !cli.hasOption("na")) {
             System.err.println("At least one of the required NCBI taxonomy files is missing: " +
                     "nodes.dmp (option -no), names.dmp (option -na)");
             System.exit(1);
         }
-        return new Pair<>(getFile(cli.getOptionValue("no"), true), getFile(cli.getOptionValue("na"), true));
+        return new NNPair<>(getFile(cli.getOptionValue("no"), true), getFile(cli.getOptionValue("na"), true));
     }
 
     /**
@@ -92,17 +92,27 @@ public class CliUtils {
         return alphabet;
     }
 
-    public static Tree readTree(CommandLine cli) {
-        Pair<Path, Path> nodesAndNames = getNodesAndNames(cli);
+    /**
+     * Read the NCBI taxonomy tree from the specified nodes and names dump files.
+     * @param cli command line arguments
+     * @return taxonomy tree
+     */
+    public static Tree readNCBITree(CommandLine cli) {
+        NNPair<Path, Path> nodesAndNames = getNodesAndNames(cli);
         Tree tree;
         try {
-            tree = NCBIReader.readTaxonomy(nodesAndNames.first(), nodesAndNames.last(), true);
+            tree = NCBIReader.readNCBITree(nodesAndNames.first(), nodesAndNames.last(), true);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
         return tree;
     }
 
+    /**
+     * Parse the classification algorithms from the command line arguments.
+     * @param cli command line arguments
+     * @return list of classification algorithms
+     */
     public static List<ClassificationAlgorithm> parseAlgorithms(CommandLine cli) {
         List<ClassificationAlgorithm> algorithms = new ArrayList<>();
         if (!Objects.isNull(cli) && cli.hasOption("ovo")) {

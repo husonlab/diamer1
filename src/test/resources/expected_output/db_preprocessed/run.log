@@ -1,12 +1,12 @@
-2025-05-07T18:21:29.655860300
---preprocess -t 12 --debug --statistics -no C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxdmp\names.dmp C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid.gz C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid2.gz
+2025-08-29T14:07:49.679938500
+--preprocess -t 12 --debug --statistics -no C:\Users\noel\Documents\diamer1\src\test\resources\database\taxdmp\nodes.dmp -na C:\Users\noel\Documents\diamer1\src\test\resources\database\taxdmp\names.dmp C:\Users\noel\Documents\diamer1\src\test\resources\database\db.fsa C:\Users\noel\Documents\diamer1\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz C:\Users\noel\Documents\diamer1\src\test\resources\database\taxmap\prot.accession2taxid.gz C:\Users\noel\Documents\diamer1\src\test\resources\database\taxmap\prot.accession2taxid2.gz
 VERSION:	1.0.0
 MAX_THREADS:	12
 MAX_IO_THREADS:	16
 KEEP_IN_MEMORY:	false
 BITS_FOR_IDS:	22
 SEQUENCE_BATCH_SIZE:	1000
-BUCKETS_PER_CYCLE:	0
+BUCKETS_PER_CYCLE:	null
 QUEUE_SIZE:	24
 DEBUG:	true
 COLLECT_STATS:	true
@@ -14,15 +14,15 @@ ONLY_STANDARD_RANKS:	false
 ALPHABET:	[L][A][CG][*BOUVWZ][HS][EMX][TY][QR][DN][FI][KP]
 MASK:	1111111111111
 ALGORITHMS:	OVO (1.00)
-INPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa
-OUTPUT:	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+INPUT:	C:\Users\noel\Documents\diamer1\src\test\resources\database\db.fsa
+OUTPUT:	C:\Users\noel\Documents\diamer1\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 DB_INDEX:	null
 READS_INDEX:	null
-Preprocessing started: 2025-05-07T18:21:29.725904200
-Using NCBI mapping files: C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid.gz and C:\Users\nk035\Documents\diamer2\src\test\resources\database\taxmap\prot.accession2taxid2.gz
-Preprocessing finished: 2025-05-07T18:21:29.819077800
-input file	C:\Users\nk035\Documents\diamer2\src\test\resources\database\db.fsa
-output file	C:\Users\nk035\Documents\diamer2\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
+Preprocessing started: 2025-08-29T14:07:49.731861600
+Using NCBI mapping files: C:\Users\noel\Documents\diamer1\src\test\resources\database\taxmap\prot.accession2taxid.gz and C:\Users\noel\Documents\diamer1\src\test\resources\database\taxmap\prot.accession2taxid2.gz
+Preprocessing finished: 2025-08-29T14:07:49.832382700
+input file	C:\Users\noel\Documents\diamer1\src\test\resources\database\db.fsa
+output file	C:\Users\noel\Documents\diamer1\src\test\resources\test_output\db_preprocessed\db_preprocessed.fsa.gz
 processed sequenceRecords	7
 kept sequenceRecords	6
 skipped sequenceRecords without accession	1

@@ -17,17 +17,17 @@ public class ReadIndexing {
     public static void indexReads(CommandLine cli, GlobalSettings settings) {
         // input reads, output folder
         checkNumberOfPositionalArguments(cli, 2);
-        settings.INPUT = getFile(cli.getArgs()[0], true);
+        settings.INPUT_FILE = getFile(cli.getArgs()[0], true);
         settings.READS_INDEX = getFolder(cli.getArgs()[1], false);
 
         settings.logFileWriter.writeSettings(settings);
         settings.logFileWriter.writeTimeStamp("Indexing started");
 
         // setup kmer extractor and encoder with filtering options:
-        Encoder encoder = setupEncoder(new FastqIdReader(settings.INPUT), settings.ALPHABET::translateRead, cli, settings);
+        Encoder encoder = setupEncoder(new FastqIdReader(settings.INPUT_FILE), settings.ALPHABET::translateRead, cli, settings);
 
-        try (FastqIdReader fastqIdReader = new FastqIdReader(settings.INPUT);
-                SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
+        try (FastqIdReader fastqIdReader = new FastqIdReader(settings.INPUT_FILE);
+             SequenceSupplierCompressed sup = new SequenceSupplierCompressed(
                         fastqIdReader, settings.ALPHABET::translateRead, settings.KEEP_IN_MEMORY)) {
             // estimate bucket sizes with first 10,000 sequences
             StatisticsEstimator statisticsEstimator = new StatisticsEstimator(sup, encoder, 1_000);

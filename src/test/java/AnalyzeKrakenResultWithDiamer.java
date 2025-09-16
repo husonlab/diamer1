@@ -9,7 +9,7 @@ import org.husonlab.diamer.taxonomy.Tree;
 import java.nio.file.Path;
 import java.util.List;
 
-import static org.husonlab.diamer.io.NCBIReader.readTaxonomy;
+import static org.husonlab.diamer.io.NCBIReader.readNCBITree;
 import static org.husonlab.diamer.io.ReadAssignmentIO.readRawKrakenAssignment;
 
 public class AnalyzeKrakenResultWithDiamer {
@@ -20,7 +20,7 @@ public class AnalyzeKrakenResultWithDiamer {
     public void analyze_kraken_result() {
         Path output = Path.of("processed_kraken_output");
         GlobalSettings settings = new GlobalSettings(new String[0], null, null, null, output.resolve("run.log"));
-        Tree tree = readTaxonomy(Path.of("nodes.dmp"), Path.of("names.dmp"), true);
+        Tree tree = readNCBITree(Path.of("nodes.dmp"), Path.of("names.dmp"), true);
         ReadAssignment readAssignment = readRawKrakenAssignment(tree, Path.of("kraken_output.txt"), settings);
         readAssignment.addKmerCountsToTree();
         readAssignment.sortKmerCounts();

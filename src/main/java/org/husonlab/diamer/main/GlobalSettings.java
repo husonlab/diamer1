@@ -7,37 +7,47 @@ import org.husonlab.diamer.readAssignment.algorithms.ClassificationAlgorithm;
 import org.husonlab.diamer.seq.alphabet.ReducedAlphabet;
 import org.husonlab.diamer.util.logging.LogFileWriter;
 import org.husonlab.diamer.util.logging.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 
-import static org.husonlab.diamer.io.Utilities.getFile;
 import static org.husonlab.diamer.io.Utilities.getFolder;
 import static org.husonlab.diamer.main.CliUtils.*;
 import static org.husonlab.diamer.main.CliUtils.parseAlgorithms;
 
 public class GlobalSettings {
+    /**
+     * Global console logger
+     */
+    @NotNull
     public final Logger logger;
+    /**
+     * Writer for the log file
+     */
+    @NotNull
     public final LogFileWriter logFileWriter;
     /**
      * cli arguments
      */
+    @NotNull
     public final String[] args;
-
-    public final static String VERSION = "1.0.0";
     /**
-     * Maximum number of threads to use
+     * Parsed command line object
      */
-    public final int MAX_THREADS;
+    @NotNull
+    public final CommandLine cli;
+    /**
+     * Version for the log file.
+     */
+    public final static String VERSION = "1.0.0";
+
+    //------------Fixed computational settings----------------
     /**
      * Maximum number of threads to use for IO operations
      */
     public final int MAX_IO_THREADS = 16;
-    /**
-     * Whether to keep sequences in memory during iterations or not (in the SequenceSupplier class)
-     */
-    public final boolean KEEP_IN_MEMORY;
     /**
      * How many bits of the index are reserved for the ids of the sequences
      */
@@ -46,43 +56,104 @@ public class GlobalSettings {
      * How many sequences to process in a batch in one thread
      */
     public final int SEQUENCE_BATCH_SIZE = 1_000;
+
+    //------------User definable computational settings-------
+    /**
+     * Maximum number of threads to use
+     */
+    @NotNull
+    public final Integer MAX_THREADS;
+    /**
+     * Whether to keep sequences in memory during iterations or not (in the SequenceSupplier class)
+     */
+    @NotNull
+    public final Boolean KEEP_IN_MEMORY;
     /**
      * Buckets to process in one cycle
      */
-    public int BUCKETS_PER_CYCLE;
+    @Nullable
+    public Integer BUCKETS_PER_CYCLE;
     /**
      * How large the queues for thread pools should be
      */
-    public final int QUEUE_SIZE;
-    /**
-     * Flag for debugging
-     */
-    public final boolean DEBUG;
-    /**
-     * Flag for collecting and writing statistics about generated index files.
-     */
-    public final boolean COLLECT_STATS;
+    @NotNull
+    public final Integer QUEUE_SIZE;
     /**
      * Flag to reduce the taxonomic tree to standard ranks only.
      */
-    public final boolean ONLY_STANDARD_RANKS;
-
+    @NotNull
+    public final Boolean ONLY_STANDARD_RANKS;
+    /**
+     * The reduced alphabet to use for encoding sequences.
+     */
+    @NotNull
     public ReducedAlphabet ALPHABET;
+    /**
+     * The mask to use for spaced seeds.
+     */
     public boolean[] MASK;
+    /**
+     * The classification algorithms to use for read assignment.
+     */
+    @NotNull
     public List<ClassificationAlgorithm> ALGORITHMS;
 
-    public Path INPUT;
+    //------------Other flags---------------------------------
+    /**
+     * Flag for debugging
+     */
+    @NotNull
+    public final Boolean DEBUG;
+    /**
+     * Flag for collecting and writing statistics about generated index files.
+     */
+    @NotNull
+    public final Boolean COLLECT_STATS;
+
+    //------------Global input and output files/paths---------
+    /**
+     * Input folder or file. Contents depend on the task.
+     */
+    @Nullable
+    public Path INPUT_FILE;
+    /**
+     * Data output folder.
+     */
+    @NotNull
     public final Path OUTPUT;
+    /**
+     * Folder with the database index.
+     */
+    @Nullable
     public Path DB_INDEX;
+    /**
+     * Folder with the reads index.
+     */
+    @Nullable
     public Path READS_INDEX;
 
-    public GlobalSettings(String[] args, CommandLine cli, Options options, Path output, Path logFile) {
+    /**
+     * Constructor for global settings.
+     * @param args command line arguments
+     * @param cli parsed command line object
+     * @param options command line options
+     * @param output output file/folder
+     * @param logFile log file
+     */
+    public GlobalSettings(@NotNull String[] args, @NotNull CommandLine cli, @NotNull Options options,
+                          @NotNull Path output, @NotNull Path logFile) {
+        // create logger
         this.logger = new Logger("DIAMER");
+        // create folder for log file and log file writer
         getFolder(logFile.getParent().toString(), false);
         this.logFileWriter = new LogFileWriter(logFile);
         this.args = args;
+        this.cli = cli;
+
+        //------------User definable computational settings-------
+        // use all available threads or the number specified by the user
         int maxThreads = Runtime.getRuntime().availableProcessors();
-        if (!Objects.isNull(cli) && cli.hasOption("threads")) {
+        if (cli.hasOption("threads")) {
             try {
                 Integer parsedThreads = cli.getParsedOptionValue("t");
                 if (parsedThreads != null) {
@@ -94,10 +165,9 @@ public class GlobalSettings {
                 System.exit(1);
             }
         }
-
         MAX_THREADS = maxThreads;
-        KEEP_IN_MEMORY = !Objects.isNull(cli) && cli.hasOption("keep-in-memory");
-        if (!Objects.isNull(cli) && cli.hasOption("b")) {
+        KEEP_IN_MEMORY = cli.hasOption("keep-in-memory");
+        if (cli.hasOption("b")) {
             try {
                 BUCKETS_PER_CYCLE = Integer.parseInt(cli.getOptionValue("b"));
             } catch (NumberFormatException e) {
@@ -107,16 +177,26 @@ public class GlobalSettings {
             }
         }
         QUEUE_SIZE = MAX_THREADS * 2;
-        DEBUG = !Objects.isNull(cli) && cli.hasOption("debug");
-        COLLECT_STATS = !Objects.isNull(cli) && cli.hasOption("statistics");
-        ONLY_STANDARD_RANKS = !Objects.isNull(cli) && cli.hasOption("only-standard-ranks");
-
+        ONLY_STANDARD_RANKS = cli.hasOption("only-standard-ranks");
         ALPHABET = getAlphabet(cli, "[L][A][GC][VWUBIZO*][SH][EMX][TY][RQ][DN][IF][PK]");
         MASK = getMask(cli, "1111111111111");
         ALGORITHMS = parseAlgorithms(cli);
+
+        //------------Other flags---------------------------------
+        DEBUG = cli.hasOption("debug");
+        COLLECT_STATS = cli.hasOption("statistics");
+
+        //------------Global input and output files/paths---------
         OUTPUT = output;
     }
 
+    /**
+     * Constructor for global settings with default log file path.
+     * @param args command line arguments
+     * @param cli parsed command line object
+     * @param options command line options
+     * @param output output file/folder
+     */
     public GlobalSettings(String[] args, CommandLine cli, Options options, Path output) {
         this(args, cli, options, output, output.resolve("run.log"));
     }
@@ -149,7 +229,7 @@ public class GlobalSettings {
                 "ALPHABET:\t" + ALPHABET + "\n" +
                 "MASK:\t" + maskString + "\n" +
                 "ALGORITHMS:\t" + algorithmsString + "\n" +
-                "INPUT:\t" + INPUT + "\n" +
+                "INPUT:\t" + INPUT_FILE + "\n" +
                 "OUTPUT:\t" + OUTPUT + "\n" +
                 "DB_INDEX:\t" + DB_INDEX + "\n" +
                 "READS_INDEX:\t" + READS_INDEX + "\n";

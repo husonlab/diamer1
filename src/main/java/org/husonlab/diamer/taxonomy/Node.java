@@ -1,5 +1,6 @@
 package org.husonlab.diamer.taxonomy;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ public class Node {
     @Nullable
     private String scientificName;
     // alternative names
+    @NotNull
     private final ArrayList<String> labels;
     @Nullable
     private String rank;
@@ -111,15 +113,25 @@ public class Node {
     /**
      * Get the scientific name of the node.
      * <p>This name is meant to reflect NCBIs scientific name and should be unique.</p>
-     * @return the scientific name of the node
+     * @return the scientific name of the node or an empty string if not set
      */
     @Nullable
     public String getScientificName() {
         return scientificName;
     }
 
+    @NotNull
     public String getScientificNameOrFirstLabel() {
         return scientificName != null ? scientificName : labels.isEmpty() ? "" : labels.getFirst();
+    }
+
+    /**
+     * Get all names of the node (scientific name and alternative names).
+     * @return all names of the node
+     */
+    @NotNull
+    public Iterable<String> getAllNames() {
+        return labels;
     }
 
     /**
@@ -138,7 +150,7 @@ public class Node {
      * <p>The labels don't have to be unique.</p>
      * @return the labels of the node
      */
-    public ArrayList<String> getLabels() {
+    public @NotNull ArrayList<String> getLabels() {
         return labels;
     }
 
@@ -154,8 +166,7 @@ public class Node {
      * Get the rank of the node.
      * @return the rank of the node
      */
-    @Nullable
-    public String getRank() {
+    public @Nullable String getRank() {
         return rank;
     }
 
@@ -194,8 +205,7 @@ public class Node {
      * Get the parent of the node.
      * @return the parent of the node
      */
-    @Nullable
-    public Node getParent() {
+    public @Nullable Node getParent() {
         return parent;
     }
 

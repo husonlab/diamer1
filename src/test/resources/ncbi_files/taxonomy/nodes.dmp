@@ -1,0 +1,62 @@
+1	|	1	|	no rank	|		|	8	|	0	|	1	|	0	|	0	|	0	|	0	|	0	|		|
+2	|	1	|	superkingdom	|		|	0	|	0	|	11	|	0	|	0	|	0	|	0	|	0	|		|
+131567	|	2	|	phylum	|		|	0	|	0	|	11	|	0	|	0	|	0	|	0	|	0	|		|
+90001	|	131567	|	subphylum	|		|	0	|	0	|	11	|	0	|	0	|	0	|	0	|	0	|		|
+32015	|	90001	|	class	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90002	|	32015	|	subclass	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+29	|	90002	|	order	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90003	|	29	|	suborder	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+80811	|	90003	|	family	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+31	|	80811	|	subfamily	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90004	|	31	|	tribe	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+32	|	90004	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90005	|	32	|	subgenus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+33	|	90005	|	species	|	MF	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+90006	|	33	|	subspecies	|	MF	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+34	|	32	|	species	|	MX	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+39	|	90003	|	family	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+40	|	39	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+41	|	40	|	species	|	SA	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+42	|	39	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+43	|	42	|	species	|	CF	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+44	|	39	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+45	|	44	|	species	|	ML	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+47	|	39	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+48	|	47	|	species	|	AG	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+49	|	29	|	family	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+50	|	49	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+35	|	83461	|	species	|	CM	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+83461	|	50	|	subgenus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90007	|	32015	|	infraclass	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+335928	|	131567	|	phylum	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90008	|	335928	|	class	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90009	|	90008	|	order	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90010	|	90009	|	family	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+6	|	90010	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+7	|	6	|	species	|	AC	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+32199	|	90010	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+9	|	32199	|	species	|	BA	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+90011	|	90009	|	family	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+1706371	|	90011	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+11	|	1706371	|	species	|	CG	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	effective current name;specified	|
+203488	|	90011	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+14	|	203488	|	species	|	DT	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+90012	|	90008	|	order	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+90013	|	90012	|	family	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+32011	|	90013	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+17	|	32011	|	species	|	MM	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+213421	|	90013	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+19	|	213421	|	species	|	SC	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+76892	|	90013	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+21	|	76892	|	species	|	PI	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+90014	|	90012	|	family	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+267890	|	90014	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+22	|	267890	|	subgenus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|	code compliant	|
+23	|	22	|	species	|	SC	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+24	|	22	|	species	|	SP	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+25	|	22	|	species	|	SH	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|	code compliant; specified	|
+49928	|	90014	|	genus	|		|	0	|	1	|	11	|	1	|	0	|	1	|	0	|	0	|		|
+27	|	49928	|	species	|	HE	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+28	|	49928	|	species	|	HE	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+90015	|	27	|	varietas	|	HE	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|
+90016	|	28	|	forma	|	HE	|	0	|	1	|	11	|	1	|	0	|	1	|	1	|	0	|		|

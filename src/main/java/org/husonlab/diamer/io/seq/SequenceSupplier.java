@@ -28,6 +28,10 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     private final LinkedList<MemoryEntry<H, S>> sequenceMemory;
     private final SequenceReader<H, char[]> sequenceReader;
     private final Converter<S> converter;
+    /**
+     * variable to use for reading from the SequenceReader
+     */
+    SequenceRecord<H, char[]> sequenceRecord;
     private final boolean keepInMemory;
     private boolean finishedReading;
     private Iterator<MemoryEntry<H, S>> iterator;
@@ -62,27 +66,29 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
      *         {@link Converter} or {@code null} if one iteration over the sequences is finished.
      */
     public FutureSequenceRecords<H, S> next() throws IOException {
+        // case 1: sequences should be cached in memory
         if (keepInMemory) {
+            // case 1.1: iterator over memory is already initialized: all sequences are in memory
             if (iterator != null) {
+                // case: 1.1.1: the iterator is not at the end of the cached list of sequences
                 if (iterator.hasNext()) {
-                    // case: All sequences are already in memory
                     MemoryEntry<H, S> entry = iterator.next();
                     sequencesRead = entry.sequencesRead;
                     bytesRead = entry.bytesRead;
                     return entry.futureSequenceRecords;
+                // case: 1.1.2: the iterator is at the end of the cached list of sequences
                 } else {
-                    // case: All sequences are already in memory and the iterator is at the end of the list
                     return null;
                 }
+            // case 1.2: iterator over memory is not initialized: not all sequences are in memory
             } else {
+                // case: 1.2.1: all sequences are already in memory, but the reset() method has not been called yet
                 if (finishedReading) {
-                    // case: All sequences are in memory after the first iteration,
-                    // but the reset() method has not been called.
                     return null;
+                // case: 1.2.2: reading from the SequenceReader is still ongoing
                 } else {
-                    SequenceRecord<H, char[]> sequenceRecord;
+                    // case: 1.2.2.1: reading a sequence was successful
                     if ((sequenceRecord = sequenceReader.next()) != null) {
-                        // case: First iteration
                         bytesRead = sequenceReader.getBytesRead();
                         sequencesRead++;
                         MemoryEntry<H, S> entry = new MemoryEntry<>(sequencesRead, bytesRead, null);
@@ -90,20 +96,21 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
                         FutureSequenceRecords<H, S> futureSequenceRecords = getFutureSequenceRecords(converter, sequenceRecord, entry);
                         entry.futureSequenceRecords = futureSequenceRecords;
                         return futureSequenceRecords;
+                    // case 1.2.2.2: SequenceReader reached end of file
                     } else {
-                        // case: First return of null during first iteration
+                        // set finishedReading flag
                         finishedReading = true;
-                        return next();
+                        return next(); // returns null (case 1.2.1)
                     }
                 }
             }
+        // case 2: sequences should not be cached in memory
         } else {
-            SequenceRecord<H, char[]> sequenceRecord;
+            // case 2.1: reading a sequence was not successful (i.e. end of file)
             if ((sequenceRecord = sequenceReader.next()) == null) {
-                // case: End of file
                 return null;
+            // case 2.2: reading a sequence was successful
             } else {
-                // case: Read next sequence
                 bytesRead = sequenceReader.getBytesRead();
                 sequencesRead++;
                 return getFutureSequenceRecords(converter, sequenceRecord, null);
@@ -126,6 +133,11 @@ public class SequenceSupplier<H, S> implements AutoCloseable {
     protected FutureSequenceRecords<H, S> getFutureSequenceRecords(
             Converter<S> converter, SequenceRecord<H, char[]> sequenceRecord, MemoryEntry<H, S> entry) {
         return new FutureSequenceRecords<H, S>() {
+            /**
+             * Method to get the (converted) sequence records from this object.
+             * Depending if the conversion has to be done, this call might need resources.
+             * @return List of (converted) sequence records
+             */
             @Override
             public LinkedList<SequenceRecord<H, S>> getSequenceRecords() {
                 LinkedList<SequenceRecord<H, S>> sequenceRecords = new LinkedList<>();
