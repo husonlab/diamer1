@@ -54,7 +54,7 @@ public class FastaIdReader extends SequenceReader<Integer, char[]> {
                     line = br.readLine();
                     return true;
                 } catch (NumberFormatException e) {
-                    throw new RuntimeException("Invalid sequence ID format");
+                    throw new RuntimeException("Invalid Sequence ID format");
                 }
             }
         } while ((line = br.readLine()) != null);
@@ -67,12 +67,12 @@ public class FastaIdReader extends SequenceReader<Integer, char[]> {
         do {
             if (line.startsWith(">")) {
                 sequence.append("*");
-                return; // End of sequence
+                return; // End of Sequence
             } else {
                 sequence.append(line);
             }
         } while ((line = br.readLine()) != null);
-        sequence.append("*"); // End of last sequence
+        sequence.append("*"); // End of last Sequence
     }
 
     @Override

@@ -7,7 +7,8 @@ import java.io.*;
 import java.nio.file.Path;
 
 /**
- * Class to read the header and the sequence (not the quality) as {@link SequenceRecord}s from a FASTQ file.
+ * Class to read the header and the Sequence (not the quality) as {@link SequenceRecord}s from a FASTQ file.
+ Sequence
  */
 public class FastqReader extends SequenceReader<String, String> {
     private String line;
@@ -19,7 +20,7 @@ public class FastqReader extends SequenceReader<String, String> {
         try {
             this.line = br.readLine();
         } catch (IOException e) {
-            throw new RuntimeException("Could not read from sequence file: " + file);
+            throw new RuntimeException("Could not read from Sequence file: " + file);
         }
     }
 

@@ -3,7 +3,7 @@ package org.husonlab.diamer.indexing.kmers;
 import java.util.Arrays;
 
 /**
- * Class to extract and encode of kmers from a sequence.
+ * Class to extract and encode of kmers from a Sequence.
  */
 public class KmerExtractor {
     protected final KmerEncoder kmerEncoder;
@@ -34,11 +34,11 @@ public class KmerExtractor {
     }
 
     /**
-     * Extracts the kmers from the given sequence.
-     * <p>Together with the provided {@link KmerEncoder} the mask will be shifted over the sequence and all kmers will
+     * Extracts the kmers from the given Sequence.
+     * <p>Together with the provided {@link KmerEncoder} the mask will be shifted over the Sequence and all kmers will
      * be extracted and converted to a number. The most significant bit mask position will correspond to the most
      * significant position in the kmer to number conversion.</p>
-     * @param sequence the sequence to extract the kmers from
+     * @param sequence the Sequence to extract the kmers from
      * @return the extracted kmers
      */
     public long[] extractKmers(byte[] sequence) {

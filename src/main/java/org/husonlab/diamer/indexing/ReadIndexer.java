@@ -265,14 +265,14 @@ public class ReadIndexer {
                             break;
                         }
                         for (SequenceRecord<Integer, byte[]> sequenceRecord : futureSequenceRecords.getSequenceRecords()) {
-                            if (sequenceRecord.sequence().length < encoder.getK()) {
+                            if (sequenceRecord.getSequence().length < encoder.getK()) {
                                 skippedTranslations.incrementAndGet();
                                 continue;
                             } else {
                                 processedTranslations.incrementAndGet();
                             }
-                            int id = sequenceRecord.id();
-                            extractKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
+                            int id = sequenceRecord.getId();
+                            extractKmers = kmerExtractor.extractKmers(sequenceRecord.getSequence());
                             for (long kmer : extractKmers) {
                                 int bucketOfKmer = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketInRange(bucketOfKmer)) {

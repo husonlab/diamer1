@@ -293,17 +293,17 @@ public class DBIndexer {
                             break;
                         }
                         for (SequenceRecord<Integer, byte[]> sequenceRecord : futureSequenceRecords.getSequenceRecords()) {
-                            // sequence too short
-                            if (sequenceRecord.sequence().length < encoder.getK()) {
+                            // Sequence too short
+                            if (sequenceRecord.getSequence().length < encoder.getK()) {
                                 skippedSequences.incrementAndGet();
                                 continue;
                             }
-                            int id = sequenceRecord.id();
+                            int id = sequenceRecord.getId();
                             // taxId not in the taxonomic tree
                             if (!tree.hasNode(id)) {
                                 continue;
                             }
-                            extractKmers = kmerExtractor.extractKmers(sequenceRecord.sequence());
+                            extractKmers = kmerExtractor.extractKmers(sequenceRecord.getSequence());
                             for (long kmer : extractKmers) {
                                 int bucketOfKmer = encoder.getBucketNameFromKmer(kmer);
                                 if (bucketInRange(bucketOfKmer)) {

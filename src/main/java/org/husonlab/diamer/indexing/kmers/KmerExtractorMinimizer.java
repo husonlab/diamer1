@@ -24,7 +24,7 @@ public class KmerExtractorMinimizer extends KmerExtractor {
     }
 
     /**
-     * Extracts the minimizers from the given sequence.
+     * Extracts the minimizers from the given Sequence.
      */
     @Override
     public long[] extractKmers(byte[] sequence) {

@@ -22,9 +22,9 @@ public class Utilities {
     }
 
     /**
-     * Translates a DNA sequence to its complement.
-     * @param sequence DNA sequence
-     * @return reverse complement of the sequence
+     * Translates a DNA Sequence to its complement.
+     * @param sequence DNA Sequence
+     * @return reverse complement of the Sequence
      */
     @Deprecated
     public static String reverseComplement(String sequence) {

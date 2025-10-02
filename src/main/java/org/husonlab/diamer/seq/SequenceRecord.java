@@ -1,27 +1,33 @@
 package org.husonlab.diamer.seq;
 
 /**
- * Represents a sequence of type {@link S} together with a header/id of another type {@link H} e.g. the
- * header string or id of a sequence.
- * @param <H> the type of the header/id
- * @param <S> the type of the sequence
+ * Represents a Sequence of type {@link S} together with a header/Id of another type {@link H} e.g. the
+ * header string or Id of a Sequence.
+ * @param <H> the type of the header/Id
+ * @param <S> the type of the Sequence
  */
-public record SequenceRecord<H, S>(H id, S sequence) {
+public class SequenceRecord<H, S> {
+    private final H id;
+    private final S sequence;
+
+    public SequenceRecord(H id, S sequence) {
+        this.id = id;
+        this.sequence = sequence;
+    }
 
     /**
-     * Get the id of the sequence.
-     * @return the id of the sequence
+     * Get the Id of the Sequence.
+     * @return the id of the Sequence
      */
-    @Override
-    public H id() {
+    public H getId() {
         return id;
     }
 
     /**
-     * Get the sequence.
-     * @return the sequence
+     * Get the Sequence.
+     * @return the Sequence
      */
-    public S sequence() {
+    public S getSequence() {
         return sequence;
     }
 }

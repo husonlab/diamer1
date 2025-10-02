@@ -260,7 +260,7 @@ public class ReadAssignment {
 
     /**
      * @param readId The id of the read
-     * @return The taxon assignments for the input read id in the form [[taxon id, number of kmer matches], ...]
+     * @return The taxon assignments for the input read id in the form [[taxon getId, number of kmer matches], ...]
      */
     public ArrayList<KmerCount<Integer>> getKmerCounts(int readId) {
         return kmerCounts[readId];

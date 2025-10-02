@@ -35,7 +35,7 @@ def extract_algorithm_info(df: pd.DataFrame) -> pd.DataFrame:
     Combines all columns with read counts into one column and extracts the algorithm name, parameter and data from the column name
     """
     # only keep columns that contain read counts
-    cols = [col for col in df.reset_index().columns if col not in ["kmer count", "kmer count (cumulative)", "node id", "kmers in database", "norm. kmer count"]]
+    cols = [col for col in df.reset_index().columns if col not in ["kmer count", "kmer count (cumulative)", "node getId", "kmers in database", "norm. kmer count"]]
     # melt all columns with read counts and introduce new columns for the algorithm that was used
     df_melted = pd.melt(df.reset_index()[cols], id_vars=["label", "rank", "true positive"], var_name="assignment method", value_name="read count")
     # split the algorithm into its name, parameter and data and remove the old column
@@ -75,7 +75,7 @@ def true_positives(df: pd.DataFrame, total_reads: int, true_labels: list, rank: 
     """
     Calculate the true positive assigned reads
 
-    The following columns will not be considered in the calculation: "kmer count", "node id", "rank", "label",
+    The following columns will not be considered in the calculation: "kmer count", "node getId", "rank", "label",
     "kmers in database", "kmer count (accumulated)", "normalized kmer count"
     :param df: dataframe with at least one column "label" and "rank"
     :param total_reads: total reads of the sample
@@ -86,7 +86,7 @@ def true_positives(df: pd.DataFrame, total_reads: int, true_labels: list, rank: 
     """
     true_assigned = df.loc[true_labels]
     true_assigned = true_assigned.drop([x for x in true_assigned.columns if x in ["kmer count",
-                                                                                  "node id",
+                                                                                  "node getId",
                                                                                   "rank",
                                                                                   "label",
                                                                                   "kmers in database",

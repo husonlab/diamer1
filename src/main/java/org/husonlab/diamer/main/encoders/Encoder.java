@@ -27,7 +27,7 @@ public abstract class Encoder {
      */
     protected final boolean[] mask;
     /**
-     * number of bits required to represent the ids (taxon ids or sequence ids)
+     * number of bits required to represent the ids (taxon ids or Sequence ids)
      */
     protected final int bitsForIds;
     /**

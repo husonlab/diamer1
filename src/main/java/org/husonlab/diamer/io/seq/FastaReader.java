@@ -21,7 +21,7 @@ public class FastaReader extends SequenceReader<String, char[]> {
         try {
             this.line = br.readLine();
         } catch (IOException e) {
-            throw new RuntimeException("Could not read from sequence file: " + file);
+            throw new RuntimeException("Could not read from Sequence file: " + file);
         }
     }
 

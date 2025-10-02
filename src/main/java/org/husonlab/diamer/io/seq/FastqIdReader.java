@@ -8,9 +8,9 @@ import java.nio.file.Path;
 import java.util.LinkedList;
 
 /**
- * Class to read {@link SequenceRecord}s containing the sequence and an integer ID from a FASTQ file.
+ * Class to read {@link SequenceRecord}s containing the Sequence and an integer ID from a FASTQ file.
  * <p>
- *     The ID is the index of the sequence in the file, starting from 0.
+ *     The ID is the index of the Sequence in the file, starting from 0.
  * </p>
  * <p>
  *     A List of the original headers can be obtained with {@link #getHeaders()}.
@@ -64,7 +64,7 @@ public class FastqIdReader extends SequenceReader<Integer, char[]> implements He
                     line = br.readLine();
                     return true;
                 } catch (NumberFormatException e) {
-                    throw new RuntimeException("Invalid sequence ID format");
+                    throw new RuntimeException("Invalid Sequence ID format");
                 }
             }
         } while ((line = br.readLine()) != null);

@@ -18,7 +18,7 @@ import static org.husonlab.diamer.io.Utilities.getFile;
 import static org.husonlab.diamer.main.CliUtils.*;
 
 /**
- * Class to preprocess the NCBI protein sequence database and replace the headers of the sequences with the taxId of the
+ * Class to preprocess the NCBI protein Sequence database and replace the headers of the sequences with the taxId of the
  * LCA of all source organisms.
  */
 public class Preprocessing {

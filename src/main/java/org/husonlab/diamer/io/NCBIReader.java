@@ -133,7 +133,7 @@ public class NCBIReader {
     }
 
     /**
-     * Extracts the sequence accessions from the header of a fasta file.
+     * Extracts the Sequence accessions from the header of a fasta file.
      * <p>
      *     Each accession has to start with ">".
      * </p>
@@ -175,7 +175,7 @@ public class NCBIReader {
             progressBar.setProgress(sequenceSupplier.getBytesRead());
             progressLogger.incrementProgress();
             for (SequenceRecord<String, String> record: container.getSequenceRecords()) {
-                for (String accession : extractAccessionsFromHeader(record.id())) {
+                for (String accession : extractAccessionsFromHeader(record.getId())) {
                     neededAccessions.put(accession, -1);
                 }
             }
@@ -225,7 +225,7 @@ public class NCBIReader {
 
                 for (SequenceRecord<String, String> record: futureSequenceRecords.getSequenceRecords()) {
                     // Extract taxIds and compute LCA taxId
-                    String header = record.id();
+                    String header = record.getId();
                     ArrayList<String> accessions = extractAccessionsFromHeader(header);
                     sequenceBuffer[fastaIndex % bufferSize] = new Pair<>(record, accessions.size());
                     accessionBuffer.addAll(accessions);
@@ -273,12 +273,12 @@ public class NCBIReader {
                 break;
             }
             SequenceRecord<String, String> record = bufferEntry.first();
-            String header = record.id();
-            String sequence = record.sequence();
+            String header = record.getId();
+            String sequence = record.getSequence();
             int nrOfAccessions = bufferEntry.last();
             if (nrOfAccessions == 0) {
                 counts.skippedNoTaxId++;
-                bwSkipped.write(record.id() + " (No accession found in header)");
+                bwSkipped.write(record.getId() + " (No accession found in header)");
                 bwSkipped.newLine();
                 bwSkipped.write(sequence);
                 bwSkipped.newLine();
@@ -319,7 +319,7 @@ public class NCBIReader {
 //                counts.skippedRank++;
 //                bwSkipped.write(header + " (rank to high: %s)".formatted(rank));
 //                bwSkipped.newLine();
-//                bwSkipped.write(sequence);
+//                bwSkipped.write(getSequence);
 //                bwSkipped.newLine();
 //                continue;
 //            }
@@ -377,7 +377,7 @@ public class NCBIReader {
 
                 for (SequenceRecord<String, String> record: container.getSequenceRecords()) {
                     // Extract taxIds and compute LCA taxId
-                    String header = record.id();
+                    String header = record.getId();
                     ArrayList<Integer> taxIds = new ArrayList<>();
                     for (String id: extractAccessionsFromHeader(header)) {
                         int taxId = accessionMapping.getTaxId(id);
@@ -395,7 +395,7 @@ public class NCBIReader {
                         skippedNoTaxId++;
                         bwSkipped.write(header + " (Accession(s) not found in mapping)");
                         bwSkipped.newLine();
-                        bwSkipped.write(record.sequence());
+                        bwSkipped.write(record.getSequence());
                         bwSkipped.newLine();
                         continue;
                     }
@@ -403,7 +403,7 @@ public class NCBIReader {
                         skippedNoTaxId++;
                         bwSkipped.write(header + " (taxId not found in taxonomy %d)".formatted(taxId));
                         bwSkipped.newLine();
-                        bwSkipped.write(record.sequence());
+                        bwSkipped.write(record.getSequence());
                         bwSkipped.newLine();
                         continue;
                     }
@@ -422,7 +422,7 @@ public class NCBIReader {
 
                     bw.write(header);
                     bw.newLine();
-                    bw.write(record.sequence());
+                    bw.write(record.getSequence());
                     bw.newLine();
                 }
             }

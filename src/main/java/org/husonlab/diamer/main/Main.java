@@ -20,7 +20,7 @@ public class Main {
                 Option.builder()
                         .longOpt("preprocess")
                         .desc("""
-                                Preprocess protein sequence database.
+                                Preprocess protein Sequence database.
                                 
                                 Required options: -no -na <input> <output> <mapping>
                                 
@@ -36,7 +36,7 @@ public class Main {
                 Option.builder()
                         .longOpt("indexdb")
                         .desc("""
-                                Index a preprocessed sequence database.
+                                Index a preprocessed Sequence database.
                                 
                                 Required options: -no -na <input> <output>
                                 
@@ -107,7 +107,7 @@ public class Main {
         options.addOption(
                 Option.builder()
                         .longOpt("keep-in-memory")
-                        .desc("If set, keeps the sequence files" +
+                        .desc("If set, keeps the Sequence files" +
                                 "(database or reads) in memory during indexing and preprocessing.")
                         .build()
         );

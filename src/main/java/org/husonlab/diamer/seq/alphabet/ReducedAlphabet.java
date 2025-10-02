@@ -15,14 +15,14 @@ public abstract class ReducedAlphabet extends Alphabet<Byte> {
     public abstract byte[] translateCodon(String triplet);
 
     /**
-     * Translates a DNA sequence into an array of arrays that represent all six reading frames and all fragments that
+     * Translates a DNA Sequence into an array of arrays that represent all six reading frames and all fragments that
      * are separated by stop codons.
-     * @param dna DNA sequence to translate (upper case)
+     * @param dna DNA Sequence to translate (upper case)
      * @return array of arrays with all translated sequences.
      */
-    public byte[][] translateRead(char[] dna){
+    public byte[][] translateRead(char[] dna) {
 
-        // The sequence is too short to be translated
+        // The Sequence is too short to be translated
         if (dna.length < 3) {
             return new byte[0][];
         }
@@ -68,9 +68,9 @@ public abstract class ReducedAlphabet extends Alphabet<Byte> {
     public abstract byte translateAA(char aa);
 
     /**
-     * Converts a protein sequence into an array of all fragments that are separated by unknown characters (including
+     * Converts a protein Sequence into an array of all fragments that are separated by unknown characters (including
      * {@code *}).
-     * @param peptide protein sequence (upper case)
+     * @param peptide protein Sequence (upper case)
      * @return array of all fragments encoded in the alphabet.
      */
     public byte[][] translateDBSequence(char[] peptide) {

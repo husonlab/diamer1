@@ -73,7 +73,7 @@ public class KmerExtractorComplexityMaximizer extends KmerExtractor {
             }
             // add maximizer if it is the first or different from the last one.
             // in a constructed dataset, it might be possible that only one maximizer is extracted independent of the
-            // input sequence length, but in real data this should not happen
+            // input Sequence length, but in real data this should not happen
             if (kmersIndex == 0 || windowKmers[windowMaximizerIndex] != kmers[kmersIndex - 1]) {
                 kmers[kmersIndex++] = windowKmers[windowMaximizerIndex];
             }

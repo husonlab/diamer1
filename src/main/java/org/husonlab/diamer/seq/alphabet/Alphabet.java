@@ -32,7 +32,7 @@ public abstract class Alphabet<T> {
     abstract public String getName();
 
     /**
-     * @return a string representation of the given sequence
+     * @return a string representation of the given Sequence
      */
     abstract public String toString(Iterable<T> seq);
 

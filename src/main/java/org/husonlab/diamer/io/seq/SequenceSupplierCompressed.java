@@ -15,10 +15,8 @@ public class SequenceSupplierCompressed extends SequenceSupplier<Integer, byte[]
         super(sequenceReader, converter, keepInMemory);
     }
 
-
-
     /**
-     * Method to store the converted sequence records in a compressed format in memory.
+     * Method to store the converted Sequence records in a compressed format in memory.
      * Only the 4 LSD of the bytes are stored.
      */
     @Override
@@ -28,17 +26,17 @@ public class SequenceSupplierCompressed extends SequenceSupplier<Integer, byte[]
             @Override
             public LinkedList<SequenceRecord<Integer, byte[]>> getSequenceRecords() {
                 LinkedList<SequenceRecord<Integer, byte[]>> sequenceRecords = new LinkedList<>();
-                for (byte[] sequence : converter.convert(sequenceRecord.sequence())) {
-                    sequenceRecords.add(new SequenceRecord<>(sequenceRecord.id(), sequence));
+                for (byte[] sequence : converter.convert(sequenceRecord.getSequence())) {
+                    sequenceRecords.add(new SequenceRecord<>(sequenceRecord.getId(), sequence));
                 }
                 if (entry != null) { // the sequenceSupplier should keep the sequences in memory
                     // compress converted sequences
                     long[][] compressedSequences = new long[sequenceRecords.size()][];
                     for (int i = 0; i < sequenceRecords.size(); i++) {
-                        compressedSequences[i] = compressByteArray(sequenceRecords.get(i).sequence());
+                        compressedSequences[i] = compressByteArray(sequenceRecords.get(i).getSequence());
                     }
-                    // store id separately
-                    int id = sequenceRecord.id();
+                    // store getId separately
+                    int id = sequenceRecord.getId();
                     // remove original sequenceRecord
                     entry.futureSequenceRecords = new CompressedFutureSequenceRecords(id, sequenceRecords);
                 }
@@ -55,7 +53,7 @@ public class SequenceSupplierCompressed extends SequenceSupplier<Integer, byte[]
             this.id = id;
             compressedSequences = new long[sequenceRecords.size()][];
             for (int i = 0; i < sequenceRecords.size(); i++) {
-                compressedSequences[i] = compressByteArray(sequenceRecords.get(i).sequence());
+                compressedSequences[i] = compressByteArray(sequenceRecords.get(i).getSequence());
             }
         }
 

@@ -44,11 +44,11 @@ public class StatisticsEstimator {
             while ((sequenceRecords = sup.next()) != null && n++ <= numberOfSequences) {
                 for (SequenceRecord<?, byte[]> sequenceRecord : sequenceRecords.getSequenceRecords()) {
                     // Count characters
-                    for (byte b : sequenceRecord.sequence()) {
+                    for (byte b : sequenceRecord.getSequence()) {
                         charCounts.put(b, charCounts.getOrDefault(b, 0L) + 1);
                     }
                     // Count kmers
-                    for (long kmer : kmerExtractor.extractKmers(sequenceRecord.sequence())) {
+                    for (long kmer : kmerExtractor.extractKmers(sequenceRecord.getSequence())) {
                         int bucket = encoder.getBucketNameFromKmer(kmer);
                         bucketSizes[bucket]++;
 

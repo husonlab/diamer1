@@ -8,7 +8,7 @@ import java.util.Arrays;
  * The elements in that array get updated with each new element to the significance of their current position with
  * respect to the base of the encoding alphabet and the provided mask. The "encoding" of this class always represents
  * the sum of the elements in the array that lie in the mask.</p>
- * <p>The class is most efficient when all kmers of a sequence must be extracted and the individual characters are
+ * <p>The class is most efficient when all kmers of a Sequence must be extracted and the individual characters are
  * added one by one to one side of the kmer.</p>
  */
 public class KmerEncoder {

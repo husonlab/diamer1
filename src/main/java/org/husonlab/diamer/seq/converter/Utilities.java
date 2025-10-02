@@ -183,7 +183,7 @@ public class Utilities {
      * Splits all input arrays at stop codons ({@code -1}) and returns the resulting sequences that are above or equal
      * to the given length threshold.
      * @param sequences Input sequences
-     * @param minLength Minimum length of a sequence
+     * @param minLength Minimum length of a Sequence
      * @return Sequences split at stop codons
      */
     public static Byte[][] splitAtMinus1AndSizeFilter(byte[][] sequences, int minLength) {

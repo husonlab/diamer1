@@ -14,7 +14,7 @@ import java.util.zip.GZIPInputStream;
  * Class for reading string sequences from a file (gzipped or not) with multiple sequences.
  * The sequences are supposed to have a header in the form of a string or an integer (H).
  * <p>
- *     The class is supposed to be implemented in sequence readers that are specific to the format of the file.
+ *     The class is supposed to be implemented in Sequence readers that are specific to the format of the file.
  * </p>
  * @param <H> Type of the header
  */
@@ -40,8 +40,8 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
     }
 
     /**
-     * Reads over the file until the next sequence is found and returns it.
-     * @return SequenceRecord with the header and the sequence
+     * Reads over the file until the next Sequence is found and returns it.
+     * @return SequenceRecord with the header and the Sequence
      */
     public abstract SequenceRecord<H, S> next() throws IOException;
 
@@ -63,7 +63,7 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
     }
 
     /**
-     * (Re)opens the sequence file for reading.
+     * (Re)opens the Sequence file for reading.
      */
     public void open() {
         try {
@@ -75,7 +75,7 @@ public abstract class SequenceReader<H, S> implements AutoCloseable {
             }
             this.fileSize = Files.size(Paths.get(file.toString()));
         } catch (IOException e) {
-            throw new RuntimeException("Could not find sequence file: " + file);
+            throw new RuntimeException("Could not find Sequence file: " + file);
         }
     }
 
