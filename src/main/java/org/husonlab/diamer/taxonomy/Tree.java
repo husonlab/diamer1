@@ -69,6 +69,10 @@ public class Tree {
         }
     }
 
+    public void addNode(Node node) {
+        addNode(node.getTaxId(), node);
+    }
+
     /**
      * @param taxId Taxonomic ID
      * @return Node with the input taxonomic ID or {@code null} if the tree does not contain the node
@@ -101,7 +105,7 @@ public class Tree {
         return root;
     }
 
-    public Node getRoorOrError() {
+    public Node getRootOrError() {
         if (getRoot() == null) {
             throw new RuntimeException("Root not found");
         }
@@ -431,7 +435,7 @@ public class Tree {
             throw new RuntimeException("Tried to access non-existing property: " + label);
         }
         addLongProperty(targetLabel, 0);
-        accumulateLongProperty(label, targetLabel, getRoorOrError());
+        accumulateLongProperty(label, targetLabel, getRootOrError());
     }
 
     /**
@@ -457,7 +461,7 @@ public class Tree {
             throw new RuntimeException("Tried to access non-existing property: " + label);
         }
         addDoubleProperty(targetLabel, 0);
-        accumulateDoubleProperty(label, targetLabel, getRoorOrError());
+        accumulateDoubleProperty(label, targetLabel, getRootOrError());
     }
 
     /**

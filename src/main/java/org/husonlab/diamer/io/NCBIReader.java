@@ -6,11 +6,13 @@ import org.husonlab.diamer.io.seq.SequenceSupplier;
 import org.husonlab.diamer.seq.SequenceRecord;
 import org.husonlab.diamer.util.Pair;
 import org.husonlab.diamer.util.logging.*;
+import org.husonlab.diamer.util.logging.Time;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.sql.*;
 import java.util.*;
 import java.util.zip.GZIPOutputStream;
 
@@ -20,23 +22,73 @@ import org.husonlab.diamer.taxonomy.Node;
 public class NCBIReader {
 
     /**
+     * @param fileName either a nodes dumpfile or a taxonomy4blast sqlite file.
+     * @return taxonomic tree
+     */
+    public static Tree readNCBITree(Path fileName) {
+        Logger logger = new Logger("NCBIReader").addElement(new Time());
+        Tree tree;
+        if (fileName.endsWith(".sqlite3") || fileName.endsWith(".sqlite")) {
+            tree = readNCBITreeSQLite(fileName);
+        } else {
+            logger.logInfo("Reading nodes dumpfile...");
+            tree = readNodesDumpfile(fileName, logger);
+        }
+        return tree;
+    }
+
+    /**
      * Read the NCBI taxonomy from the nodes and names dumpfile. Convenience method that calls
      * {@link #readNodesDumpfile(Path, Logger)} and {@link #readNamesDumpfile(Path, Tree, boolean)}.
      * <p>Can usually be downloaded under
      * <a href=https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/>https://ftp.ncbi.nlm.nih.gov/pub/taxonomy/</a>.</p>
-     * @param nodesDumpfile path to the nodes dumpfile (nodes.dmp)
+     * @param treeFile path to the nodes dumpfile (nodes.dmp) or the taxonomy4blast sqlite file
      * @param namesDumpfile path to the names dumpfile (names.dmp)
      * @param onlyOneName if true, only one name (preferably the "scientific name") is added to each node
      */
     @NotNull
-    public static Tree readNCBITree(@NotNull Path nodesDumpfile, @NotNull Path namesDumpfile, boolean onlyOneName) {
+    public static Tree readNCBITree(@NotNull Path treeFile, @NotNull Path namesDumpfile, boolean onlyOneName) {
         Logger logger = new Logger("NCBIReader").addElement(new Time());
-        logger.logInfo("Reading nodes dumpfile...");
-        Tree tree = readNodesDumpfile(nodesDumpfile, logger);
+        Tree tree = readNCBITree(treeFile);
         logger.logInfo("Reading names dumpfile...");
         readNamesDumpfile(namesDumpfile, tree, onlyOneName);
         logger.logInfo("Finished reading taxonomy. Tree with %d nodes."
                 .formatted(tree.idMap.size()));
+        return tree;
+    }
+
+    private static @NotNull Tree readNCBITreeSQLite(@NotNull Path taxonomy4blast) {
+        // connect to the database
+        Tree tree = new Tree();
+        HashMap<Integer, LinkedList<Node>> orphans = new HashMap<>();
+        try {
+            Connection connection = DriverManager.getConnection("jdbc:sqlite:" + taxonomy4blast);
+            Statement stmt = connection.createStatement();
+            ResultSet rs = stmt.executeQuery("SELECT taxid, parent FROM TaxidInfo ORDER BY parent, taxid;");
+            while (rs.next()) {
+                int taxId = rs.getInt("taxid");
+                int parentTaxId = rs.getInt("parent");
+                Node node;
+                Node parent = tree.getNode(parentTaxId);
+                node = new Node(taxId, parent);
+                if (parent == null) {
+                    orphans.computeIfAbsent(parentTaxId, k -> new LinkedList<>()).add(node);
+                }
+                tree.addNode(node);
+                if (orphans.containsKey(taxId)) {
+                    for (Node orphan : orphans.remove(taxId)) {
+                        orphan.setParent(node);
+                        node.addChild(orphan);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        tree.autoFindRoot();
+        if (!orphans.isEmpty()) {
+            throw new RuntimeException("Error in taxonomic tree: could not find parents for " + orphans.size() + " nodes.");
+        }
         return tree;
     }
 

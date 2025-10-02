@@ -228,6 +228,14 @@ public class Node {
     }
 
     /**
+     * Checks if the node is the root of the tree (no parent, or parent is itself).
+     * @return true if the node is the root of the tree
+     */
+    public boolean isRoot() {
+        return parent == null || parent.equals(this);
+    }
+
+    /**
      * Get the children of the node.
      * @return the children of the node
      */
